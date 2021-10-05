@@ -16,17 +16,17 @@ modules:
   ocp4ws-ops-1-5:
     name: 　Lab1-5. Prometheus(3/3) CRの設定
   ocs4:
-    name: 演習2 OpenShift Container Storage ハンズオン
+    name: 演習2 OpenShift Data Foundation ハンズオン
   ocs4-1:
-    name: 　Lab2-1. OCS nodeの準備
+    name: 　Lab2-1. ODF nodeの準備
   ocs4-2:
-    name: 　Lab2-2. OCSクラスターの作成
+    name: 　Lab2-2. ODFクラスターの作成
   ocs4-3:
     name: 　Lab2-3. RWO PV
   ocs4-4:
     name: 　Lab2-4. RWX PV
   ocs4-5:
-    name: 　OCS オプションLab
+    name: 　ODF オプションLab
   option-placeholder:
     name: --- オプション演習 ---
   installation:

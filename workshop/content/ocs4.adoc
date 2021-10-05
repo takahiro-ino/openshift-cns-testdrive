@@ -1,23 +1,23 @@
-= 演習2: Red Hat OpenShift Container Storage ハンズオン
+= 演習2: Red Hat OpenShift Data Foundation ハンズオン
 
 == 演習概要
-本演習は、演習2: Red Hat OpenShift Container Storage ハンズオンです。 +
+本演習は、演習2: Red Hat OpenShift Data Foundation ハンズオンです。 +
 本ハンズオンは4つのLabがあり、以下を学びます。
 
-* OpenShift Container Storage(OCS)をデプロイするためのnodeを準備する
-* OCSクラスターを作成する
-* OCSが提供するRWO PVを使用する
+* OpenShift Data Foundation(ODF)をデプロイするためのnodeを準備する
+* ODFクラスターを作成する
+* ODFが提供するRWO PVを使用する
 * CephFSボリュームを使ってRWX PVを使用する
 
 == Lab
-事前に構築したOCPクラスターにOCSをデプロイするためのnodeを準備し、OCSクラスターを作成します。 +
-作成したOCSクラスターを使って、実際にPersistent Volume Claim(PVC)を発行して、Persistent Volume(PV)が割り当てられる様子を確認します。 +
+事前に構築したOCPクラスターにODFをデプロイするためのnodeを準備し、ODFクラスターを作成します。 +
+作成したODFクラスターを使って、実際にPersistent Volume Claim(PVC)を発行して、Persistent Volume(PV)が割り当てられる様子を確認します。 +
 また、実際にアプリケーションからRWO(ReadWriteOnce) PVとRWX(ReadWriteMany) PVを使うことで、具体的なPVの使われ方を体験します。
 
 作業は以下の手順どおりに進めます。
 
-==== Lab1: link:ocs4-1[Lab2-1: OpenShift Container Storageをデプロイするためのnodeを準備する]
-==== Lab2: link:ocs4-2[Lab2-2: OCSクラスターを作成する]
+==== Lab1: link:ocs4-1[Lab2-1: OpenShift Data Foundationをデプロイするためのnodeを準備する]
+==== Lab2: link:ocs4-2[Lab2-2: ODFクラスターを作成する]
 ==== Lab3: link:ocs4-3[Lab2-3: CSが提供するRWO PVを使用する]
 ==== Lab4: link:ocs4-4[Lab2-4: CephFSボリュームを使ってRWX PVを使用する]
 

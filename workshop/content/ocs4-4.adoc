@@ -4,7 +4,7 @@
 = Lab 2-4: CephFSボリュームを使ってRWX PVを使用する
 
 == Labの概要
-このLabでは作成したOCSクラスターからReadWriteMany(RWX)のPVを作成し、アプリケーションから使用します。 +
+このLabでは作成したODFクラスターからReadWriteMany(RWX)のPVを作成し、アプリケーションから使用します。 +
 RWX PVは、複数のworker nodeで稼働する複数のアプリケーションPodが共有してRead-Writeすることができます。イメージとしてはNAS(Network Attached Storage)やファイルサーバーといったファイルストレージのようなもので、ストレージ側でファイルロックなどの排他制御が行われます。 +
 実際、OpenShiftあるいはKubernetesでRWX PVを提供できるストレージのほとんどはファイルストレージです。一度調べてみるとよいでしょう。
 
@@ -223,4 +223,4 @@ image::images/ocs/uploader_screen_upload.png[]
 以上で、「Lab 2-4: CephFSボリュームを使ってRWX PVを使用する」は完了です。
 
 時間があまった方は、link:ocs4-5[オプションLab]を用意していますので、こちらも試してみて下さい。 +
-オプションLabでは、オブジェクトストレージの利用やOCSクラスターの拡張など、advancedな内容を学習することができます。
+オプションLabでは、オブジェクトストレージの利用やODFクラスターの拡張など、advancedな内容を学習することができます。

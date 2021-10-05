@@ -1,9 +1,9 @@
 :experimental:
 
-= Lab 2-3: OCSが提供するRWO PVを使用する
+= Lab 2-3: ODFが提供するRWO PVを使用する
 
 == Labの概要
-このLabでは作成したOCSクラスターからReadWriteOnce(RWO)のPersistent Volume(PV)を作成し、アプリケーションから使用します。 +
+このLabでは作成したODFクラスターからReadWriteOnce(RWO)のPersistent Volume(PV)を作成し、アプリケーションから使用します。 +
 RWO PVは、ひとつのworker node上で稼働するアプリケーションPodにBindされ、PodがマウントすることでアプリケーションはPVにRead/Writeすることができます。 +
 通常PVをどのnodeにアタッチするかを意識することはありませんが、RWO PVはひとつのworker nodeにのみアタッチされます。ReadWriteOnceの"Once"はこれを意味します。 +
 複数のworker nodeにアタッチし、その上で稼働する複数のアプリケーションPodが共有してRead-Writeすることはできません。これにはRWX(ReadWriteMany)というタイプのPVが必要となります。RWX PVは次のLabで学習します。 +
@@ -42,10 +42,10 @@ pvc-d1b2f456-2ae3-4355-bfcd-565cf9319054   2Ti        RWO            Delete     
 pvc-fa0dbb7a-1796-4bc0-a495-2b4af4f7fa4f   10Gi       RWO            Delete           Bound    openshift-storage/rook-ceph-mon-a                    gp2                                    19h
 ----
 
-いくつかのPVが表示されますが、これらはOCSクラスターを構成するために作られたPVです。ユーザーアプリケーション向けにはPVはまだありません。
+いくつかのPVが表示されますが、これらはODFクラスターを構成するために作られたPVです。ユーザーアプリケーション向けにはPVはまだありません。
 
 それでは下のようにPVCを作成します。 +
-OCSをバックエンドとする `ocs-storagecluster-ceph-rbd` StorageClass に対して、1GiBのRWO PVを要求する内容です。
+ODFをバックエンドとする `ocs-storagecluster-ceph-rbd` StorageClass に対して、1GiBのRWO PVを要求する内容です。
 
 [source,role="execute"]
 ----
@@ -91,7 +91,7 @@ pvc-f87e20a8-cbd0-4e7a-9789-86eee0ae9691   1Gi        RWO            Delete     
 ...(省略)
 ----
 
-これはOCSが *Dynamic Provisioning* に対応しているため、PVCの発行後自動的にOCSにボリュームを作るよう命令し、そのボリュームがPVとして登録されるからです。
+これはODFが *Dynamic Provisioning* に対応しているため、PVCの発行後自動的にODFにボリュームを作るよう命令し、そのボリュームがPVとして登録されるからです。
 
 == 2-3-2. RWO(ReadWriteOnce) PVCを使ったアプリケーションをデプロイする
 
@@ -162,7 +162,7 @@ kbd:[Ctrl+C] を押すと終了できます。
 oc get pvc -n my-database-app
 ----
 
-OCSでRWO PVCで作られるPVの実体は、`ocs-storagecluster-cephblockpool` プール内に作られるCeph RBD(RADOS Block Device) imageです。 +
+ODFでRWO PVCで作られるPVの実体は、`ocs-storagecluster-cephblockpool` プール内に作られるCeph RBD(RADOS Block Device) imageです。 +
 アプリケーションがPersistent VolumeとしてCeph RBDボリュームを使用しているかどうかテストできます。
 
 [source,role="execute"]
@@ -290,5 +290,5 @@ rbd image 'csi-vol-8765a21d-3330-11ea-9a7c-0a580a820205':
 ----
 
 ---
-以上で、「Lab 2-3: OCSが提供するRWO PVを使用する」は完了です。 +
+以上で、「Lab 2-3: ODFが提供するRWO PVを使用する」は完了です。 +
 次は link:ocs4-4[Lab 2-4: CephFSボリュームを使ってRWX PVを使用する] に進みます。
