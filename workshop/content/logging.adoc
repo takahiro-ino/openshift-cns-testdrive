@@ -167,8 +167,8 @@ Operator のインストールは成功したものの、Operator 自体のイ�
 +
 [Warning]
 ====
-このステップに入る前に、`Deploying and Managing OpenShift Container Storage` モジュールを完了している必要があります。
-`OCS` モジュールが完了していない場合は、エディタにコピーする前に、以下の `YAML` の `storageClassName: ocs-storagecluster-ceph-rbd` を `storageClassName: gp2` で置き換える必要があります。
+このステップに入る前に、`OpenShift Data Foundation(ODF)` モジュールを完了している必要があります。
+`ODF` モジュールが完了していない場合は、エディタにコピーする前に、以下の `YAML` の `storageClassName: ocs-storagecluster-ceph-rbd` を `storageClassName: gp2` で置き換える必要があります。
 ====
 
 5. `YAML` エディタで、コードを以下で置き換えます。:

@@ -10,7 +10,7 @@
 * 3 Worker Node
 * 1 Bastion Host (踏み台ホスト)
 
-このワークショップでは、Rook/CephをベースにしたOpenShift Container Storage(OCS)のデプロイも行います。その際にはOCS用のNodeを3台追加しますが、Nodeの追加はOCSの演習の中で行うため、今の時点では3台のWorker Nodeで構いません。
+このワークショップでは、Rook/CephをベースにしたOpenShift Data Foundation(ODF)のデプロイも行います。その際にはODF用のNodeを3台追加しますが、Nodeの追加はODFの演習の中で行うため、今の時点では3台のWorker Nodeで構いません。
 
 == ターミナルとWebコンソールの使い方
 このワークショップは、link:https://github.com/openshift-labs/workshop-dashboard[Homeroom] というツールを利用しています。Homeroomでは、画面左側に(まさに今読んでいる)演習ガイドが表示され、画面右側にはターミナルを利用することができます。
