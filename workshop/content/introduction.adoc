@@ -18,8 +18,8 @@ Welcome to *Container and Cloud Native Roadshow - Ops Track* !!
 |9:25 - 9:45|*_レクチャー 1_* : Red Hat OpenShift 4 Ops
 |9:45 - 11:25|*_演習 1_* : Red Hat OpenShift 4 Ops ハンズオン
 |11:25 - 11:45|Break Time
-|11:45 - 12:00|*_レクチャー 2_* : Red Hat OpenShift Container Storage 4
-|12:00 - 12:55|*_演習 2_* : Red Hat OpenShift Container Storage 4 ハンズオン
+|11:45 - 12:00|*_レクチャー 2_* : Red Hat OpenShift Data Foundation
+|12:00 - 12:55|*_演習 2_* : Red Hat OpenShift Data Foundation ハンズオン
 |12:55 - 13:00|クロージング
 |=========
 
@@ -31,9 +31,9 @@ Welcome to *Container and Cloud Native Roadshow - Ops Track* !!
 . *Red Hat OpenShift 4 Ops* +
 OpenShiftのコンセプトと基本的なクラスタ管理方法を学びます。コンテナやKubernetesの経験がある方には違いを感じて頂きやすい内容です。OpenShiftに統合されたUIを使ったアプリケーションのデプロイや、Prometheusを使用したモニタリング、Operator Lifecycle Manager を利用したOperatorによる機能追加、OpenShiftのインストール方法などを学ぶことができます。
 
-. *Red Hat OpenShift Container Storage* +
-OpenShiftに最適なクラウドネイティブストレージである、OpenShift Container Storage(OCS)の利用方法を学びます。
-OpenShiftクラスタにOperatorを利用してOCSをデプロイし、アプリケーションからOCSの永続ストレージを利用できるための設定方法や、ストレージ容量の拡張、Prometheusを使用したモニタリングなどを学ぶことができます。
+. *Red Hat OpenShift Data Foundation* +
+OpenShiftに最適なクラウドネイティブストレージである、OpenShift Data Foundation(ODF)の利用方法を学びます。
+OpenShiftクラスタにOperatorを利用してODFをデプロイし、アプリケーションからODFの永続ストレージを利用できるための設定方法や、ストレージ容量の拡張、Prometheusを使用したモニタリングなどを学ぶことができます。
 
 また、これらの演習の他にオプションのOpenShift 4の演習を用意しています。 +
 よりこれらのオプション演習は、OpenShift 4の基礎的な項目に関してより詳細に説明しているので、OpenShift 4の基礎的な部分を振り返りたいワークショップ参加者にとってはちょうどよいかもしれません。
