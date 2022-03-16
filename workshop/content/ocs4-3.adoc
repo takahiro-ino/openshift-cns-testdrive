@@ -189,7 +189,7 @@ password: secret
 
 作成された記事とコメントはPostgreSQLデータベースに保存されます。PostgreSQLデータベースは、アプリケーションのデプロイ中に `ocs-storagecluster-ceph-rbd` *StorageClass* を使ってプロビジョニングされたCeph RBDボリュームにテーブルスペースを保存します。 +
 そのため、PostgreSQLのPodを削除してもデータが失われることはありません。試しにPostgreSQLのPodを削除してみましょう。 +
-PostgreSQLのPodはDeploymentConfigによって削除されても自動的に再作成され、すでに存在するPVを自動でマウントするるようになっています。
+PostgreSQLのPodはDeploymentConfigによって削除されても自動的に再作成され、すでに存在するPVを自動でマウントするようになっています。
 
 [source,role="execute"]
 ----
