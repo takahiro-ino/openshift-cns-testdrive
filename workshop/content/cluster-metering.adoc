@@ -29,14 +29,7 @@ Operator Meteringはlink:https://coreos.com/blog/introducing-operator-framework-
 
 === Operator Metering のインストール
 
-<<<<<<< HEAD
 ==== Cluster Projects の確認
-=======
-[Note]
-====
-This lab assumes you have logged into an existing cluster with the `oc login` command
-====
->>>>>>> upstream/ocp4-dev
 
 `oc projects` コマンドを実行して、既存のクラスタ内の *Project* を表示します(これは `kubectl namespace` と似ています)。出力で `openshift-metering` を検索してください。
 
@@ -63,15 +56,8 @@ kubeadmin
 
 [Warning]
 ====
-<<<<<<< HEAD
 OpenShift Webコンソールに初めてアクセスすると、ブラウザに自己署名証明書エラーが表示されます。 +
 OpenShiftをインストールすると、デフォルトでは、Webコンソールを含むOpenShift内のすべてのコンポーネント間通信に対してCAとSSL証明書が生成されます。
-=======
-You might receive a self-signed certificate error in your browser when you
-first visit the OpenShift Web console. When OpenShift is installed, by default, a CA
-and SSL certificates are generated for all inter-component communication
-within OpenShift, including the web console.
->>>>>>> upstream/ocp4-dev
 ====
 
 #### クラスタにMetering Operatorをインストール
@@ -79,14 +65,8 @@ OpenShift Webコンソールを使用してMetering Operatorをインストー�
 
 1. OpenShift Container PlatformのWebコンソールで、*Administration* → *Namespaces* → *Create Namespace* をクリックします。
 
-<<<<<<< HEAD
 2. 名前を `openshift-metering` に設定します。他の名前ではサポートされませんので注意して下さい。 +
 Namespace に以下のLabelを付けます。
-=======
-1. In the OpenShift Container Platform web console, click *Administration* → *Namespaces* → *Create Namespace*.
-
-2. Set the name to `openshift-metering` and make sure to label the namespace with 
->>>>>>> upstream/ocp4-dev
 +
 [source,role="copypaste"]
 ----
@@ -95,53 +75,23 @@ openshift.io/cluster-monitoring=true
 +
 *Create* をクリックします。
 
-<<<<<<< HEAD
 3. 次に、 *Operators* → *OperatorHub* をクリックし、`Metering` とフィルタリングしてMetering Operatorを探します。
-=======
-3. Next, click *Operators* → *OperatorHub*, and filter for `metering` to find the Metering Operator.
-+
-image::images/metering-operator-image.png[Metering Operator Logo]
->>>>>>> upstream/ocp4-dev
 
 4. *Metering* のカードをクリックし、パッケージの説明を確認してから、*Install* をクリックします。
 
-<<<<<<< HEAD
 5. *Install Operator* の画面にて、Update Channelに `4.5` を指定し、上記で作成した `openshift-metering` Namespace を選択します。 +
 Approval Strategyに `Automatic` を指定したら、*Install* をクリックします。
 
 6. *Installed Operators* の画面で、Metering Operatorのインストールが終わると、*Status* に *Succeeded* と表示されます。 +
 表示される名前(Metering) をクリックすることで、*Operator Details* のページを見ることができます。
-=======
-5. On the *Install Operator* screen, make sure the `4.6` *Update Channel* is selected. Also, verify that `A specific namespace on the cluster` is selected as the *Installation Mode*. The *Installed Namespace* should already be set  to `Operator recommended namespace` with `openshift-metering` selected. Keep the *Approval Strategy* to `Automatic`.
-+
-image::images/metering-install-operator.png[Metering Operator Install]
-+
-Once you've verified these options, click "Install".
-
-6. This will take you the the "Installing Operator" progress page.
-+
-image::images/metering-installing-progress.png[Metering Operator Install Progress]
-+
-Once the page displays *Installed operator - ready for use*, go ahead and click on `View Operator`.
-
-7. This will take you to the *Operator Details* page.
-+
-image::images/metering-details-page.png[Metering Operator Install Progress]
-
->>>>>>> upstream/ocp4-dev
 
 [Note]
 ====
-<<<<<<< HEAD
 Metering Operatorのインストールには、数分かかる場合があります。
-=======
-It may take a few minutes for the metering operator to install, be patient.
->>>>>>> upstream/ocp4-dev
 ====
 
 ### Metering stackのインストール
 
-<<<<<<< HEAD
 1. `openshift-metering` *Project* で、Metering Operatorの *Operator Details* ページにいることを確認して下さい。 +
 このページに移動するには、*Operators* → *Installed Operators* とクリックして、Metering Operatorを選択します。
 
@@ -149,15 +99,6 @@ It may take a few minutes for the metering operator to install, be patient.
 `Configure via` で `YAML View` を指定すると、デフォルトのMeteringConfigファイルを持つYAMLエディタが開きます。
 
 3. 以下のMeteringConfigをYAMLエディタにコピーして貼り付け、*Create* をクリックして、デフォルトの構成を置き換えます。
-=======
-1. From the web console, ensure you are on the *Operator Details* page for the Metering Operator in the `openshift-metering` project. If you've navigated away from this page, you can get back to this page by clicking *Operators* → *Installed Operators*, then selecting the Metering Operator.
-
-2. Under *Provided APIs*, click *Create Instance* on the **Metering Configuration** card.
-+
-image::images/metering-config-card.png[Metering Config Card]
-
-3. Click on *YAML View* in the *Configure via* section; and replace the default configuration by copying and pasting the following MeteringConfig into the YAML editor and click `Create`:
->>>>>>> upstream/ocp4-dev
 +
 [source,role="copypaste"]
 ----
@@ -207,25 +148,8 @@ reporting-operator-56c6c878fb-2zbhp   0/2     ContainerCreating   0          4s
 2. *Pod* が `Ready` と表示されるまでチェックを続けます。これには数分かかることがあります。 +
 多くの *Pod* では、それ自体がReadyとみなされる前に他のコンポーネントの機能に依存しています。他の *Pod* の起動に時間がかかりすぎると、一部の *Pod* が再起動することがあります。これは問題ではなく、インストール中に予期される動作です。
 +
-<<<<<<< HEAD
 `oc` CLIで同様のチェックをすると次のような出力が表示されます。
 
-=======
-You can follow the instantiation of the Pods by waiting for all the `StatefulSet` rollouts:
-+
-[source,bash,role="execute"]
-----
-until [[ $(oc get sts -n openshift-metering -o name | wc -l) -gt 4 ]]; do echo "waiting for statefulsets..." ; sleep 10 ; done
-oc rollout status sts/hdfs-datanode -n openshift-metering
-oc rollout status sts/hdfs-namenode -n openshift-metering
-oc rollout status sts/hive-metastore -n openshift-metering
-oc rollout status sts/hive-server -n openshift-metering
-oc rollout status sts/presto-coordinator -n openshift-metering
-oc rollout status sts/presto-worker -n openshift-metering
-----
-+
-Once done, you can use the `oc` CLI, to see them running:
->>>>>>> upstream/ocp4-dev
 +
 [source,bash,role="execute"]
 ----
@@ -259,15 +183,9 @@ oc get reportdatasources -n openshift-metering | grep -v raw
 Report Custom Resourceは、Reportの実行とステータスを管理するために使用されます。 +
 使用量のデータソースから派生したReportを生成し、さらなる分析やフィルタリングに使用することができます。
 
-<<<<<<< HEAD
 1つのReport Resourceは、データベーステーブルを管理し、スケジュールに従って新しい情報に更新するジョブを表します。 +
 Reportは、Reporting-OperatorのHTTP APIを介して、そのテーブルのデータを公開します。`spec.schedule` フィールドが設定されたReportは常に実行されており、データを収集した期間をトラッキングします。 +
 これにより、Meteringがシャットダウンされたり、長期間使用できない場合でも、データは中断されたところからbackfillされることが保証されます。
-=======
-A single Report resource represents a job that manages a database table and updates it with new information according to a schedule. The Report exposes the data in that table via the reporting-operator HTTP API. Reports with a `spec.schedule` field set are always running and track what time periods it has collected data for. This ensures that if metering is shutdown or unavailable for an extended period of time, it will backfill the data starting where it left off. If the schedule is unset, then the Report will run once for the time specified by the `reportingStart` and `reportingEnd`.
-
-By default, reports wait for `ReportDataSources` to have fully imported any data covered in the reorting peroid. If the Report has a schedule, it will wait to run until the data in the period currently being processed has finished importing.
->>>>>>> upstream/ocp4-dev
 
 スケジュールが設定されていない場合、Reportは `reportingStart` と `reportingEnd` で指定された時間だけ実行されます。 +
 デフォルトでは、ReportはReportDataSourcesが期間に含まれるデータが完全にインポートされるのを待ちます。 +
@@ -280,34 +198,15 @@ Reportにスケジュールがある場合、現在処理されている期間�
 oc get reportqueries -n openshift-metering | grep -v raw
 ----
 
-<<<<<<< HEAD
 後に `-raw` の付くReportQueriesは、より複雑なクエリを構築するために他のReportQueriesによって使用されるものです。Reportに直接使用されるべきではありません。
-=======
-[Note]
-====
-ReportQueries with the `-raw` suffix are used by other ReportQueries to build more complex queries, and should not be used directly for reports. Therefore, we omitted them with the `grep -v raw` command.
-====
->>>>>>> upstream/ocp4-dev
 
 #### スケジュールを使ったReportの作成
 
 以下の操作で作成するReportには、すべての *Pod* のCPUリクエストに関する情報が含まれており、1時間ごとに実行され、実行するたびに最後の1時間分のデータが追加されます。
 
-<<<<<<< HEAD
 1. OpenShift Container PlatformのWebコンソールで、*Operators* → *Installed Operators* をクリックします。*Installed Operators* でMetering Operatorをクリックします。
 
 2. *Metering Report* カードで *Create Instance* をクリックします。これにより、構成を定義するデフォルトのMeteringConfigファイルを持つYAMLエディタが開きます。
-=======
-1. In the OpenShift Container Platform web console, click *Operators* → *Installed Operators*. On the *Installed Operators* click the Metering operator. This will bring you to the details page again.
-+
-image::images/metering-details-page.png[Metering Details Page]
-
-2. Under the *Metering Report* card, click *Create Instance*.
-+
-image::images/metering-report-card.png[Metering Report card]
-+
-This opens the *Create Report* page. Click `YAML View` to get the YAML editor
->>>>>>> upstream/ocp4-dev
 
 3. YAMLエディタで以下のMeteringConfigにコピーして貼り付け、デフォルトの構成を置き換えます
 。*Create* をクリックします。
@@ -344,21 +243,9 @@ cluster-cpu-usage-hourly   cluster-cpu-usage   hourly     ReportingPeriodWaiting
 
 以下の例では、すべてのNamespaceのCPUリクエストに関する情報を含むReportが1回実行されます。
 
-<<<<<<< HEAD
 1. OpenShift Container PlatformのWebコンソールで、*Operators* → *Installed Operators* をクリックします。*Installed Operators* でMetering Operatorをクリックします。
 
 2. *Metering Report* カードで *Create Instance* をクリックします。これにより、構成を定義するデフォルトのMeteringConfigファイルを持つYAMLエディタが開きます。
-=======
-1. In the OpenShift Container Platform web console, click *Operators* → *Installed Operators*. On the *Installed Operators* click the Metering operator. This will, once again, bring you to the details page.
-+
-image::images/metering-details-page.png[Metering Details Page]
-
-2. Under the *Metering Report* card, click *Create Instance*.
-+
-image::images/metering-report-card.png[Metering Report card]
-+
-This opens the *Create Report* page. Click `YAML View` to get the YAML editor
->>>>>>> upstream/ocp4-dev
 
 3. YAMLエディタで以下のMeteringConfigにコピーして貼り付け、デフォルトの構成を置き換えます
 。*Create* をクリックします。
@@ -395,22 +282,8 @@ namespace-cpu-request-2020   namespace-cpu-request              Finished        
 ### Reportの表示
 Reportを表示するには、以下の手順を実行します。
 
-<<<<<<< HEAD
 1. OpenShift Container PlatformのWebコンソールで、*Administration* → *Chargeback* をクリックします。
 
 2. 前のセクションで作成したワンタイムレポート(namespace-cpu-request-2020)を選択します。
 
 3. この画面で *Download* ボタンをクリックすることで、ReportをCSVファイルとしてダウンロードすることができます。また、Reportは画面下部にも表示されます。
-=======
-1. In the OpenShift Container Platform web console, click *Administration* → *Chargeback*. This opens the `Chargeback Reporting` page.
-+
-image::images/chargeback-rep.png[Chargeback Reporting]
-
-2. Select the one-time report created in the previous section titled `namespace-cpu-request-2020`
-
-3. From this screen the report can be downloaded as a CSV file by scolling down, and clicking the Download button. The report is also displayed in the lower part of the screen.
-+
-image::images/download-csv.png[Download CSV]
-+
-This file can be imported to any metering application that accepts CSV format.
->>>>>>> upstream/ocp4-dev

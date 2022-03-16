@@ -1,10 +1,10 @@
 
 :experimental:
 
-= 演習2 Lab4: CephFSボリュームを使ってRWX PVを使用する
+= Lab 2-4: CephFSボリュームを使ってRWX PVを使用する
 
 == Labの概要
-このLabでは作成したOCSクラスターからReadWriteMany(RWX)のPVを作成し、アプリケーションから使用します。 +
+このLabでは作成したODFクラスターからReadWriteMany(RWX)のPVを作成し、アプリケーションから使用します。 +
 RWX PVは、複数のworker nodeで稼働する複数のアプリケーションPodが共有してRead-Writeすることができます。イメージとしてはNAS(Network Attached Storage)やファイルサーバーといったファイルストレージのようなもので、ストレージ側でファイルロックなどの排他制御が行われます。 +
 実際、OpenShiftあるいはKubernetesでRWX PVを提供できるストレージのほとんどはファイルストレージです。一度調べてみるとよいでしょう。
 
@@ -14,12 +14,12 @@ RWX PVは、複数のworker nodeで稼働する複数のアプリケーション
 
 [[labexercises]]
 
-== CephFSが提供するRWX PVを作成し、アプリケーションから使用する
+== 2-4-1. CephFSが提供するRWX PVを作成し、アプリケーションから使用する
 
 このセクションでは、`ocs-storagecluster-cephfs` *StorageClass* を使用して、同時に複数のポッドで使用できるRWX（ReadWriteMany）PVCを作成します。 +
 ここでは `File Uploader` と呼ばれるアプリケーションを使用します。
 
-はじめに新しいプロジェクトを作成します
+はじめに新しいProjectを作成します
 
 [source,role="execute"]
 ----
@@ -30,35 +30,35 @@ oc new-project my-shared-storage
 
 [source,role="execute"]
 ----
-oc new-app openshift/php:7.2~https://github.com/christianh814/openshift-php-upload-demo --name=file-uploader
+oc new-app openshift/php:7.2-ubi8~https://github.com/christianh814/openshift-php-upload-demo --name=file-uploader
 ----
 
 .出力例:
 ----
---> Found image 000ed04 (9 days old) in image stream "openshift/php" under tag "7.2" for "openshift/php:7.2"
+--> Found image 5328642 (2 weeks old) in image stream "openshift/php" under tag "7.2-ubi8" for "openshift/php:7.2-ubi8"
 
-    Apache 2.4 with PHP 7.2 
-    ----------------------- 
-    PHP 7.2 available as container is a base platform for building and running various PHP 7.2 applications and frameworks. PHP is an HTML-embedded scripting language. PHP attempts to make it easy for developers to write dynamically generated web pages. PHP also offers built-in database integration for several commercial and non-commercial database management systems, so writing a database-enabled webpage with PHP is fairly simple. The most common use of PHP coding is probably as a replacement for CGI scripts.
+    Apache 2.4 with PHP 7.2
+    -----------------------
+    PHP 7.2 available as container is a base platform for building and running various PHP 7.2 applications and frameworks. PHP is an HTML-embedded scripting language.
+PHP attempts to make it easy for developers to write dynamically generated web pages. PHP also offers built-in database integration for several commercial and non-comme
+rcial database management systems, so writing a database-enabled webpage with PHP is fairly simple. The most common use of PHP coding is probably as a replacement for C
+GI scripts.
 
-    Tags: builder, php, php72, rh-php72
+    Tags: builder, php, php72, php-72
 
     * A source build using source code from https://github.com/christianh814/openshift-php-upload-demo will be created
       * The resulting image will be pushed to image stream tag "file-uploader:latest"
       * Use 'oc start-build' to trigger a new build
-    * This image will be deployed in deployment config "file-uploader"
-    * Ports 8080/tcp, 8443/tcp will be load balanced by service "file-uploader"
-      * Other containers can access this service through the hostname "file-uploader"
 
 --> Creating resources ...
     imagestream.image.openshift.io "file-uploader" created
     buildconfig.build.openshift.io "file-uploader" created
-    deploymentconfig.apps.openshift.io "file-uploader" created
+    deployment.apps "file-uploader" created
     service "file-uploader" created
 --> Success
-    Build scheduled, use 'oc logs -f bc/file-uploader' to track its progress.
+    Build scheduled, use 'oc logs -f buildconfig/file-uploader' to track its progress.
     Application is not exposed. You can expose services to the outside world by executing one or more of the commands below:
-     'oc expose svc/file-uploader' 
+     'oc expose service/file-uploader'
     Run 'oc status' to view your app.
 ----
 
@@ -121,7 +121,7 @@ oc expose svc/file-uploader -n my-shared-storage
 ----
 [source,role="execute"]
 ----
-oc scale --replicas=3 dc/file-uploader -n my-shared-storage
+oc scale --replicas=3 deploy/file-uploader -n my-shared-storage
 ----
 [source,role="execute"]
 ----
@@ -140,7 +140,7 @@ ReadWriteMany(RWX) の *PersistentVolumeClaim(PVC)* を作成し、`oc set volum
 
 [source,role="execute"]
 ----
-oc set volume dc/file-uploader --add --name=my-shared-storage \
+oc set volume deploy/file-uploader --add --name=my-shared-storage \
 -t pvc --claim-mode=ReadWriteMany --claim-size=1Gi \
 --claim-name=my-shared-storage --claim-class=ocs-storagecluster-cephfs \
 --mount-path=/opt/app-root/src/uploaded \
@@ -150,8 +150,8 @@ oc set volume dc/file-uploader --add --name=my-shared-storage \
 このコマンドによって次のことが行われます。
 
 * *PVC* を作成する
-* `volume` の定義が含まれるように *DeploymentConfig* を更新する
-* 指定された `mount-path` にボリュームをマウントするよう *DeploymentConfig* を更新する
+* `volume` の定義が含まれるように *Deployment* を更新する
+* 指定された `mount-path` にボリュームをマウントするよう *Deployment* を更新する
 * 3つのアプリケーション *Pod* を改めてデプロイする
 
 
@@ -182,12 +182,16 @@ oc get pod -n my-shared-storage --field-selector=status.phase=Running -o 'custom
 ----
 .出力例
 ----
-NAME                    PVCNAME             MOUNTPOINT
-file-uploader-2-wzxct   my-shared-storage   /opt/app-root/src/uploaded
-file-uploader-2-z45qg   my-shared-storage   /opt/app-root/src/uploaded
-file-uploader-2-zkrqh   my-shared-storage   /opt/app-root/src/uploaded
+NAME                             PVCNAME             MOUNTPOINT
+file-uploader-5bd8fb96bc-hh9vr   my-shared-storage   /opt/app-root/src/uploaded
+file-uploader-5bd8fb96bc-j95ps   my-shared-storage   /opt/app-root/src/uploaded
+file-uploader-5bd8fb96bc-r8wh7   my-shared-storage   /opt/app-root/src/uploaded
 ----
 
+[NOTE]
+====
+PVCNAMEが``my-shared-storage``ではない別のと表示されない場合は、しばらく待ってからもう一度コマンドを実行して下さい。
+====
 
 最後にWebブラウザを使用して、ファイルアップローダーアプリケーションを試してみましょう。
 作成された *Route* を確認します。
@@ -205,7 +209,7 @@ file-uploader-my-shared-storage.apps.cluster-ocs-9b06.ocs-9b06.example.opentlc.c
 Webアプリは、アップロードされたすべてのファイルをリストし、新しいファイルをアップロードする機能と、
 既存のデータをダウンロードする機能を提供します。現時点では何もありません。
 
-ローカルマシンから任意のファイルを選択し、アプリにアップロードします。
+ローカルマシンから任意のファイルを選択し、アプリケーションにアップロードします。
 
 .A simple PHP-based file upload tool
 image::images/ocs/uploader_screen_upload.png[]
@@ -216,7 +220,7 @@ image::images/ocs/uploader_screen_upload.png[]
 また、先のコマンドで確認したfile-uploader Podのmount pathに同じファイルが保存されていることを確認してみましょう。
 
 ---
-以上で、「Lab4: CephFSボリュームを使ってRWX PVを使用する」は完了です。
+以上で、「Lab 2-4: CephFSボリュームを使ってRWX PVを使用する」は完了です。
 
 時間があまった方は、link:ocs4-5[オプションLab]を用意していますので、こちらも試してみて下さい。 +
-オプションLabでは、オブジェクトストレージの利用やOCSクラスターの拡張など、advancedな内容を学習することができます。
+オプションLabでは、オブジェクトストレージの利用やODFクラスターの拡張など、advancedな内容を学習することができます。

@@ -221,53 +221,28 @@ oc patch --type=merge project.config.openshift.io cluster -p '{"spec":{"projectR
 ここでは、`projectRequestMessage` と `Please visit
 https://ticket.example.com to request a project` というValueを指定しています。
 
-<<<<<<< HEAD
 これで、ユーザはProjectを作成しようとするときにこのメッセージを受け取るようになります。`fancyuser1` になってProjectを作成してみてください。
-=======
-Before you can see this new message, you'll need to wait for the `apiserver`
-application to rollout the changes. This can take some time to rollout,
-especially on a busy cluster.
->>>>>>> upstream/ocp4-dev
 
 [source,bash,role="execute"]
 ----
 oc rollout status -n  openshift-apiserver deploy/apiserver
 ----
 
-<<<<<<< HEAD
 以下のようなメッセージが表示されるはずです。
-=======
-Now, the user will get this message when trying to create a project. Test
-this by becoming the `fancyuser1` user.
->>>>>>> upstream/ocp4-dev
 
 [source,bash,role="execute"]
 ----
 oc login -u fancyuser1 -p Op#nSh1ft
 ----
 
-<<<<<<< HEAD
 Operatorがmaster configを更新するまでに時間がかかることがあるので、新しいメッセージが表示されるまでに時間がかかるかもしれません。新しいメッセージが表示されない場合は、しばらく待ってからもう一度試してみてください。
-=======
-And try to create a project.
->>>>>>> upstream/ocp4-dev
 
 [source,bash,role="execute"]
 ----
 oc new-project fancyuserproject
 ----
 
-<<<<<<< HEAD
 #### クリーンアップ
-=======
-You should see the following message:
-
-----
-Error from server (Forbidden): Please visit https://ticket.example.com to request a project
-----
-
-#### Clean Up
->>>>>>> upstream/ocp4-dev
 
 次のラボでは必ず `kubeadmin` でログインしてください。
 

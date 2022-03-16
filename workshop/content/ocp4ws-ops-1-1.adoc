@@ -1,61 +1,38 @@
-= 演習1 Lab1-1: OpenShift4クラスターへのログインと動作確認
+= Lab 1-1: OpenShift4クラスターへのログインと動作確認
 
 各自のOpenShift4クラスターに実際に接続し、クラスター内コンポーネントの動作確認を次の手順で行います。
 
-* A) OpenShift4クラスターへのログイン (2)
-* B) プロジェクト(openshift-console)のリソース利用状況の確認 (3-1)
-* C) クラスターを構成するNodeの確認 (3-2)
-* D) K8sワークロード の動作確認 (3-3)
+* A) OpenShift4クラスターへのログイン (1-1-2)
+* B) Project(openshift-console)のリソース利用状況の確認 (1-1-3-2)
+* C) クラスターを構成するNodeの確認 (1-1-3-3)
+* D) ワークロード の動作確認 (1-1-3-4)
 
 image::images/ocp4ws-ops/ocp4-Lab1-2_overview.png[]
 
 '''
 
-== 1. 諸注意
+== 1-1-1. 諸注意
 
-=== 1-1. OpenShift4へのログイン方法
-* *ocコマンド* : kubectlをwrapしたOpenShift4を制御するCLIでログイン
- ** `oc login <OpenShift_API>`: 任意のユーザーでログイン
- ** `oc get pods -n default`: defaultネームスペースのPodを一覧表示
- ** `kubectl get pods -n default` : kubectlも使用可
- ** etc.
-* *OpenShift4コンソール* : OpenShift4の専用コンソール画面にブラウザからログイン
+=== 1-1-1-1. OpenShift4へのログイン方法
+* *OpenShift4 Webコンソール* : OpenShift4の専用コンソール画面にブラウザからログイン
  ** PodやDeployment、Secretなどのワークロードや、ServiceやPVCなどの作成および編集
  ** ワークロードやNodeの状態確認やモニタリング
  ** カタログからのミドルウェア、アプリケーションのデプロイ
- ** クラスター設定やネームスペース、ロール管理などのAdmin作業
+ ** クラスター設定やNamespace、ロール管理などのAdmin作業
+ ** etc.
+* *ocコマンド* : kubectlをwrapしたOpenShift4を制御するCLIでログイン
+ ** `oc login <OpenShift_API>`: 任意のユーザーでログイン
+ ** `oc get pods -n default`: default NamespaceのPodを一覧表示
+ ** `kubectl get pods -n default` : kubectlも使用可
  ** etc.
 
-=== 1-2. 事前準備
+=== 1-1-1-2. 事前準備
 * 踏み台サーバー(Bastion Server)へのアクセス情報
 * OpenShift4クラスターへのアクセス情報
 
-== 2. OpenShift4へのログイン
+== 1-1-2. OpenShift4へのログイン
 
-=== 2-1. ocコマンドによるログイン(oc login)
-
-. 踏み台サーバー(Bastion Server)にSSHでログインします。
-+
-[source,bash,role="execute"]
-----
-ssh -l {{ SSH_USERNAME }} {{ BASTION_FQDN }} -o ServerAliveInterval=120
-----
-+
-あなたの ssh パスワードはこれです。
-+
-[source,bash,role="copypaste"]
-----
-{{ SSH_PASSWORD }}
-----
-+
-. OpenShift4クラスターにocコマンドでログインします。
-+
-[source,bash,role="execute"]
-----
-oc login -u kubeadmin -p {{ KUBEADMIN_PASSWORD }} {{ API_URL }} 
-----
-
-=== 2-2. OpenShift4 Webコンソールへのログイン
+=== 1-1-2-1 OpenShift4 Webコンソールへのログイン
 
 次のリンクをクリックしてブラウザ(Chrome or Firefox)でOpenShift4 Webコンソールにログインします。
 
@@ -72,82 +49,155 @@ Privacy Errorが出た場合は、[Advanced] > [Proceed to oauth-openshift.apps.
 
 image::images/ocp4ws-ops/ocp4-console-login-error.png[]
 
-== 3. OpenShift4クラスターの動作確認
+---
 
-コンソールやocコマンドでクラスターの状態について確認しましょう。基本的には**参照系のみ(oc get pod, oc describe deploy, oc logs xxx, etc.)を使用**します。
+=== 1-1-2-2. ocコマンドによるログイン(oc login)
 
-OpenShift4コンソールで各自のプロジェクトを作成しましょう。
+. 踏み台サーバー(Bastion Server)にSSHでログインします。
++
+[source,bash,role="execute"]
+----
+ssh -l {{ SSH_USERNAME }} {{ BASTION_FQDN }} -o ServerAliveInterval=120
+----
++
+あなたの ssh パスワードはこれです。
++
+[source,bash,role="copypaste"]
+----
+{{ SSH_PASSWORD }}
+----
++
+. OpenShift4クラスターに``oc login``コマンドでログインします。 +
+※実は今回のLabでは踏み台サーバーで``oc login``をする必要性はないのですが、通常の環境では``oc login``は大抵必要となりますので、学習のためあえて``oc login``をすることとしています。(詳細は下記の"NOTE"を参照)
++
+[source,bash,role="execute"]
+----
+oc login -u kubeadmin -p {{ KUBEADMIN_PASSWORD }} {{ API_URL }} 
+----
++
+試しにログインしているユーザーの情報を表示する``oc whoami``コマンドを実行してみましょう。``kube:admin``と表示されるはずです。
++
+[source,bash,role="execute"]
+----
+oc whoami
+----
++
+出力例)
++
+----
+$ oc whoami
+kube:admin
+----
++
 
-. [Administrator] > [Home] > [Projects] > [Create Project] を選択します。
+[TIPS]
+====
+TIP: **クラスターにログインしなくてもクラスターと通信ができる？？**
+
+今回のLabで利用する踏み台サーバーでは、``oc login``でログインする前に``oc whoami``を実行すると、``system:admin``と表示されます。  +
+通常、クラスターにログインする前に``oc``コマンドを実行すると、クラスターのAPIサーバーのURLが分からないためエラーとなるはずです。なぜコマンドは成功するのでしょうか？
+
+その理由は、踏み台サーバーが(system:)adminユーザーの**context**を持っているからです。 +
+contextには、ログイン時にアクセスするクラスターのAPIサーバーのURLや、ログインユーザー、クライアントの認証キーなどのアクセス情報が含まれています。これらの情報は``oc``コマンドを実行する際に参照され、クラスターにAPIで通信できるよう自動的に認証処理がなされます。 
+現在クライアントが持つcontextは、``oc config view``コマンドで確認できます。
+
+[source,bash,role="execute"]
+----
+oc config view
+----
+``oc login``した後だと次の2つのcontextが確認でき、後者が``current-context``として指定されているはずです。
+
+- ``name: admin``
+- ``name: default/api-cluster-.../kube:admin``　　← ``current-context``として指定
+
+``oc config view``の出力ではクラスターやユーザーの認証キーといったセンシティブな情報は除外されていますが、これらの情報はクライアントが持つ``oc``および``kubectl``のconfigファイル(``~/.kube/config``)に書かれています。そのファイルを見ることで全ての情報を確認できますので、興味のある方は、``cat``などでこのconfigファイルを確認してみるとよいでしょう。
+
+ちなみに、``oc config use-context``コマンドを使うことで、``current-context``を切り替えることが可能です。
+====
+
+== 1-1-3. OpenShift4クラスターの動作確認
+
+Webコンソールや``oc``コマンドを使って、クラスターの状態について確認してみましょう。
+
+=== 1-1-3-1. Projectの作成とリソース利用状況の確認
+
+Webコンソールで**Project**を作成してみます。 +
+Projectとはクラスター内で他のアプリケーションや他のユーザーと作業空間を分離する、名前空間(Namespace)としての役割を持ちます。そのためProjectの名前はクラスター内で一意であることが必要となります。
+
+. **[Administrator] > [Home] > [Projects] > [Create Project]** を選択します。
 +
 image::images/ocp4ws-ops/ocp4-console-create-project-1.png[]
 +
 image::images/ocp4ws-ops/ocp4-console-create-project-1-2.png[]
 +
-. 好きなプロジェクト名(例: `lab1-2` )を指定し、*Create* を選択します。
+. **"Name"**にProject名として``lab1-1``(他の名前でも構いません)を指定し、**Create** を選択します。
 +
 image::images/ocp4ws-ops/ocp4-console-create-project-2.png[]
 +
+すると、作成したProjectの詳細が表示されます。
++
 image::images/ocp4ws-ops/ocp4-console-create-project-3.png[]
 
-=== 3-1. プロジェクトのリソース利用状況の確認
+---
 
-最初に、前の手順で作成した自身のプロジェクトを確認してみましょう。 +
-その後、`openshift-consoleプロジェクト` のリソース利用状況を確認します。
+=== 1-1-3-2. Projectのリソース利用状況の確認
+Projectのリソース利用状況を確認します。 +
+OpenShiftクラスターには複数のProjectが存在します。Projectの一覧は、Webコンソールで　**[Administrator] > [Home] > [Projects]** から確認することができます。 +
+Projectの詳細はこの一覧からProjectを選択することで確認できます。例えば、先程作成した``lab1-1``を選択すると、Project作成後に表示されたものと同じ画面が表示されます。 +
 
-. [Administrator] > [Home] > [Projects] > [自身のプロジェクト (例: lab1-2) ] を選択します。
-+
 image::images/ocp4ws-ops/ocp4-console-project.png[]
-+
-以下のような画面が表示されます。ただ、作成したばかりのプロジェクトなので特に情報がありません。
-+
 image::images/ocp4ws-ops/ocp4-console-project-status.png[]
 
-. 次に、[Administrator] > [Home] > [Projects] > [openshift-console] を選択します。
+作成したばかりのProjectは特にリソースを使っていないので、利用状況の情報がありません。ですので、別のProjectとして``openshift-console``を選んでみましょう。
+[TIPS]
+====
+NOTE: ``openshift-console`` Projectは、まさに今皆さんが使っているWebコンソールを提供するWebアプリケーションのProjectです。 +
+OpenShift4には他にも様々な機能やツールが存在しますが、それらのほとんどはWebコンソールと同じように、クラスターにおいてProjectで安全に分離されたアプリケーションとして提供されています。
+====
+
+. **[Administrator] > [Home] > [Projects] > [openshift-console]** を選択します。
 +
 image::images/ocp4ws-ops/ocp4-console-project-openshift-console.png[]
 +
-openshift-consoleプロジェクトにおけるCPUやメモリなどのリソース利用状況が確認できました。 +
-さらに下方では、Podによるメモリ利用量と、利用量の大きい順にTOP10が一覧表示されています。
+``openshift-console`` Projectの画面で、CPUやメモリなどのリソース利用状況が確認できます。 +
+さらに下方では、**Pod**によるメモリ利用量と、利用量の大きい順にTOP10が一覧表示されています。
 +
 image::images/ocp4ws-ops/ocp4-console-project-openshift-console-status.png[]
 
-. openshift-consoleプロジェクトの利用状況について詳細に見ていきます。
-+
-グラフ内にカーソルを合わせて選択します。
+. ``openshift-console`` Projectの利用状況について詳細に見ていきましょう。中央の"Utilization"のボックスにあるCPUのグラフにマウスカーソルを重ねると、クリックできることが分かります。これをクリックしてみます。
 +
 image::images/ocp4ws-ops/ocp4-console-project-openshift-console-status-next.png[]
 +
-CPU利用量を示したグラフが表示されているはずです。OpenShiftのUIに組み込まれたPrometheusを使用しています。 +
- 次に、[Prometheus UI] を選択して、Prometheusに直接アクセスしてみましょう。
+グラフをクリックすると、より詳細なCPU利用量のグラフが表示されているはずです。このグラフはOpenShift4クラスターに組み込まれた"Prometheus"というツールを使用しています。 +
+次に、画面内の **[Prometheus UI]** をクリックして、Prometheus自身が提供するdashboard(Prometheus Expression Browser)にアクセスしてみましょう。
 +
 image::images/ocp4ws-ops/ocp4-console-project-openshift-console-status-prometheus.png[]
 +
-ログインを求められた場合は、OpenShift4クラスターへのログイン情報を使用します。
+ログインを求められる場合は、**[Log in with OpenShift]** のボタンをクリックし、OpenShift4クラスターへのログイン情報を使用してログインします。 +
+`kubeadmin`ユーザーのパスワードは下の通りです。
++
+[source,role="copypaste"]
+----
+{{ KUBEADMIN_PASSWORD }}
+----
 +
 image::images/ocp4ws-ops/ocp4-console-project-openshift-console-status-login.png[]
 +
-Authorized Accessのページが表示されたら、[Allow selected permissions]を選択します。
+"Authorized Access"のページが表示されたら、**[Allow selected permissions]**を選択します。これによって、クラスターに組み込まれたPrometheusに対して自身のアカウント(``kubeadmin``)の情報をReadOnlyで利用する許可を与えます。
 +
-[TIPS]
-====
-NOTE: モニタリングツール(Prometheus)に対して、ReadOnlyで情報利用する許可を与えています。
-
 image::images/ocp4ws-ops/ocp4-console-project-openshift-console-status-allow.png[]
-====
 +
-openshift-consoleプロジェクト(=openshift-consoleネームスペース)内のコンテナCPU利用量のグラフが描画されました。
+``openshift-console``Project(=``openshift-console``Namespace)内のコンテナCPU利用量のグラフが描画されます。
 +
 image::images/ocp4ws-ops/ocp4-console-project-openshift-console-status-prometheus-cpu-usage.png[]
 +
 [TIPS]
 ====
-NOTE: 折れ線グラフにカーソルを合わせると詳細情報が表示されます。
-Prometheusに対して、以下のQueryを投げることで上図の情報を抽出しています。 +
+NOTE: 折れ線グラフにカーソルを合わせると詳細情報が表示されます。Prometheusに対して、以下のQuery実行することで上図の情報を抽出しています。 +
 `Query: namespaces:container_cpu_usage:sum{namespace='openshift-console'}`
 ====
-
-. 任意のメトリクスを指定して描画してみます。
++
+. Prometheusで任意のメトリクスを指定して描画してみます。
 +
 入力済のクエリを削除してブランクにしてから、[- insert metric at cursol -] を選択します。
 +
@@ -157,40 +207,29 @@ image::images/ocp4ws-ops/ocp4-console-project-openshift-console-status-prometheu
 +
 image::images/ocp4ws-ops/ocp4-console-project-openshift-console-status-prometheus-add-2.png[]
 +
-以下図のように折れ線グラフが描画され、下部にはリクエストが一覧されています。カーソルをグラフなどに合わせて詳細情報を確認してみましょう。
+以下図のように折れ線グラフが描画され、下部にはリクエストが一覧されています。カーソルをグラフなどに合わせて詳細情報を確認してみましょう。もしうまく描画されない場合は、検索クエリが正しく指定されているか(``controller_runtime_reconcile_total``)を確認してみましょう。
 +
-[TIPS]
-====
-NOTE: もしうまく描画されない場合は、検索クエリが正しく指定されているか("controller_runtime_reconcile_total")を確認してみましょう。
-
 image::images/ocp4ws-ops/ocp4-console-project-openshift-console-status-prometheus-add-3.png[]
-====
 +
 [TIPS]
 ====
-NOTE: OpenShift4では、各プロジェクト(ネームスペース)に属するあらゆるリソースのメトリクスを初期状態で取得できるようになっています。PrometheusやGrafanaなどを使うことでモニタリングおよび描画を実現しています。
+NOTE: OpenShift4では、各Project(Namespace)に属するあらゆるリソースのメトリクスを初期状態で取得できるようになっています。PrometheusやGrafanaなどを使うことでモニタリングおよび描画を実現しています。
 ====
 +
-[Administrator] > [Monitoring] > [Dashboards]で Grafana UIの確認も可能です。
+. "Grafana"というツールを使ってリソースを確認することも可能です。[Administrator] > [Monitoring] > [Dashboards]から確認してみましょう。
 +
 image::images/ocp4ws-ops/ocp4-console-project-openshift-console-monitoring.png[]
++
+. 現在開いているタブ（Prometheus UI (あるいはGrafana)）は、**モニタリングやロギングなど短期間で更新される画面であるため、ブラウザに負荷がかかります。**このため、必ずクローズしておきましょう。
 
-. 現在開いているタブ（Prometheus UI (あるいはGrafana)の可視化）は、**モニタリングやロギングなど短期間で更新のある可視化画面であるため、ブラウザに負荷がかかります。**このため、必ずクローズしておきましょう。
+---
 
-=== 3-2. クラスターを構成するNodeの確認
+=== 1-1-3-3. クラスターを構成するNodeの確認
 
 OpenShift4クラスターはIPIでデフォルト構成でインストールされた場合、Master3台/Worker3台の計6台のNode群で構成されます。 +
 Nodeの状態について確認してみましょう。
 
 *※ノード台数や構成は変更できます。ハンズオン実施時は6台構成ではない場合もあります。*
-
-[CAUTION]
-====
-**
-* Node確認については参照系のみ +
-* 変更は行わないこと
-**
-====
 
 . [Administrator] > [Compute] > [Nodes] を選択します。
 +
@@ -206,7 +245,7 @@ NOTE: `ip-10-0-139-202.ap-southeast-1.compute.internal` のような名称で、
 image::images/ocp4ws-ops/ocp4-lab1-2-node-worker.png[]
 +
 [Overview]タブでは、選択した単一のNodeのCPUやメモリなどのリソース利用状況が確認できます。 +
-プロジェクトと同様に、OpenShift4にデフォルト構成されているPrometheusが各メトリクスを抽出しています。
+Projectと同様に、OpenShift4にデフォルト構成されているPrometheusが各メトリクスを抽出しています。
 +
 image::images/ocp4ws-ops/ocp4-lab1-2-node-worker-detail.png[]
 +
@@ -215,7 +254,7 @@ image::images/ocp4ws-ops/ocp4-lab1-2-node-worker-detail.png[]
 image::images/ocp4ws-ops/ocp4-lab1-2-node-confirm-detail-yaml.png[]
 +
 [Pods]タブでは、指定したNode上で動作するPod一覧を確認できます。 +
-例えば、``openshift-monitoringネームスペース``に属するgrafanaのPodや、alertManagerなどが動作していることが分かります。
+例えば、``openshift-monitoring``Namespaceに属するGrafanaのPodや、alertManagerなどが動作していることが分かります。
 +
 image::images/ocp4ws-ops/ocp4-lab1-2-node-confirm-detail-pod.png[]
 +
@@ -247,11 +286,12 @@ image::images/ocp4ws-ops/ocp4-lab1-2-node-confirm-action-unschedulable.png[]
 
 コンソール上で、OpenShift4クラスターを構成するNodeの数や種類、付与されたラベル、リソース利用状況、あるNode上で動作中のPod、Nodeの構成変更、などについて確認しました。
 
-=== 3-3. K8sワークロード の動作確認 (ocコマンド使用)
+---
 
-ocコマンドを使用して、K8sワークロードの動作状況を確認してみましょう。
+=== 1-1-3-4. ワークロード の動作確認 (ocコマンド使用)
+``oc``コマンドを使用して、ワークロードの動作状況を確認してみましょう。
 
-. クラスターに含まれるプロジェクトを一覧します。
+. クラスターに含まれるProjectを一覧します。
 +
 [source,bash,role="execute"]
 ----
@@ -267,6 +307,8 @@ default                                                                Active
 kube-node-lease                                                        Active
 kube-public                                                            Active
 kube-system                                                            Active
+lab-ocp-cns                                                            Active
+lab1-1                                                                 Active
 openshift                                                              Active
 openshift-apiserver                                                    Active
 openshift-apiserver-operator                                           Active
@@ -320,87 +362,85 @@ openshift-service-ca-operator                                          Active
 openshift-service-catalog-removed                                      Active
 openshift-user-workload-monitoring                                     Active
 openshift-vsphere-infra                                                Active
-terminal                                           Workshop Terminal   Active
-lab1-2                                                                 Active
 ----
 +
-. 1-3. で作成した自身のプロジェクトを検索し、操作対象として切替えます。
+. 1-1-3-1. で作成した自身のProjectを検索し、操作対象として切替えます。
++
+[TIPS]
+====
+CAUTION: 作成したProjectの名前が"lab1-1"でない場合は、各自のProject名に置き替えてください。
+====
++
 +
 [source,bash,role="copypaste"]
 ----
-oc get project | grep <Replace-with-your-project>
+oc get project | grep lab1-1
 ----
 +
 実行例)
 +
 ----
-$ oc get project | grep lab1-2
-lab1-2                                                                 Active
+$ oc get project | grep lab1-1
+lab1-1                                                                 Active
 ----
 +
-プロジェクトを切替えて操作してみましょう。
+Projectを切替えて操作してみましょう。
 +
 [source,bash,role="copypaste"]
 ----
-oc project <Replace-with-your-project>
+oc project lab1-1
 ----
 +
 実行例)
 +
 ----
-$ oc project lab1-2
-Now using project "lab1-2" on server "https://api.group00-ocp4ws-basic.capsmalt.org:6443".
+$ oc project lab1-1
+Now using project "lab1-1" on server "https://api.cluster-XXXX.XXXX.sandboxYYYY.opentlc.com:6443".
 ----
 +
 [TIPS]
 ====
-NOTE: `$ oc project` でプロジェクト（ネームスペース）を指定しておくことで、``-n lab1-2`` のようにコマンド実行時に毎度ネームスペース指定をする必要が無くなるため幾分便利になります。 +
-※ただし、本ハンズオンの実行例においては、``$ oc project +++<プロジェクト名>+++` の実行有無に関係無く `-n` オプションを付与しています。
+TIP: `$ oc project` でProject（Namespace）を指定しておくことで、``-n lab1-1`` のようにコマンド実行時に毎度Namespace指定をする必要が無くなるため幾分便利になります。 +
 ====
 +
-. 自身のプロジェクト内のワークロードを確認します。
-+
-[TIPS]
-====
-CAUTION: コマンド実行時は、`-n <各自のプロジェクト名>` に読み替えてください。
-====
+. 自身のProject内のワークロードを確認します。
 +
 
 [source,bash,role="copypaste"]
 ----
-oc get po -n <Replace-with-you-project>
+oc get pod -n lab1-1
 ----
 +
 [source,bash,role="copypasete"]
 ----
-oc get deploy -n <Replace-with-you-project>
+oc get deploy -n lab1-1
 ----
 +
 [source,bash,role="copypasete"]
 ----
-oc get svc -n <Replace-with-you-project>
+oc get svc -n lab1-1
 ----
 +
 実行例)
 +
 ----
-$ oc get po -n lab1-2
+$ oc get pod -n lab1-1
 No resources found.
 
-$ oc get deploy -n lab1-2
+$ oc get deploy -n lab1-1
 No resources found.
 
-$ oc get svc -n lab1-2
+$ oc get svc -n lab1-1
 No resources found.
 ----
 +
-自身のプロジェクトでは、まだ何もK8sワークロードを作成していないため、上記例の通り "No resource found." が出力されます。
+自身のProjectでは、まだ何もワークロードを作成していないため、上記例の通り "No resource found." が出力されます。
 +
-. openshift-console プロジェクト のワークロードを確認します。
+. openshift-console Project のワークロードを確認します。
 +
 [source,bash,role="execute"]
 ----
-oc get po -n openshift-console
+oc get pod -n openshift-console
 ----
 +
 [source,bash,role="execute"]
@@ -416,7 +456,7 @@ oc get svc -n openshift-console
 実行例)
 +
 ----
-$ oc get po -n openshift-console
+$ oc get pod -n openshift-console
 NAME                         READY   STATUS    RESTARTS   AGE
 console-855bff5f9c-rhnmm     1/1     Running   0          16h
 console-855bff5f9c-xvttg     1/1     Running   1          16h
@@ -434,7 +474,7 @@ console     ClusterIP   172.30.159.179   <none>        443/TCP   16h
 downloads   ClusterIP   172.30.220.192   <none>        80/TCP    16h
 ----
 
-ocコマンドは、Kubernetesを拡張したOpenShift4の制御をシンプルに行うために用意されているCLIですが、kubectlと同じ制御が行えます。例えば、``$ kubectl describe po``と同じ操作を `$ oc describe po` で行えます。余談ですが、もちろんkubectlコマンドをOpenShift4で使うこともできます。
+``oc``コマンドは、Kubernetesを拡張したOpenShiftの制御をシンプルに行うために用意されているCLIですが、``kubectl``と同じ制御が行えます。例えば、``$ kubectl describe pod``と同じ操作を `$ oc describe pod` で行えます。余談ですが、もちろん``kubectl``コマンドをOpenShift4で使うこともできます。
 
 OpenShift4によって拡張された機能については、次のハンズオン(link:ocp4ws-ops-1-2[コンテナイメージのビルドとデプロイ])で体験できます。
 

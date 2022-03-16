@@ -455,12 +455,7 @@ oc delete clusterresourcequotas for-pricelist for-user-normaluser1
 oc delete projects pricelist-backend pricelist-frontend welcome1 welcome2
 ----
 
-<<<<<<< HEAD
 次の演習では必ず `kubeadmin` でログインしてください。
-=======
-Make sure you login as `kubeadmin` in an existing project for the
-next lab.
->>>>>>> upstream/ocp4-dev
 
 [source,bash,role="execute"]
 ----

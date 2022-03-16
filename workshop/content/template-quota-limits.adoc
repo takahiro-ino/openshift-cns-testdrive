@@ -37,12 +37,8 @@ parameters:
 ...
 ----
 
-<<<<<<< HEAD
 
 次に、 `oc new-project` コマンドのヘルプ出力を見てみましょう:
-=======
-Next, let's take a look at the help output for the `oc new-project` command:
->>>>>>> upstream/ocp4-dev
 
 [source,bash,role="execute"]
 ----
@@ -59,7 +55,6 @@ OpenShiftはこの要求を許可すべきかどうかを決定します。（�
 *テンプレート* で定義されているオブジェクトを見てみると、クォータや制限についての言及がないことに気づくでしょう。
 今すぐ変更しましょう。
 
-<<<<<<< HEAD
 NOTE: *テンプレート* は、ユーザーに再利用可能な OpenShift のセットを強力なパラメーターで作成できるようにする強力なツールです。
 これらはもっと複雑なで関連性の高いコンポーネントを OpenShift に素早くデプロイする事に使う事ができます。
 また、あなたの組織の Software Development Lifecycle (SDLC)の有用な部品となりうるでしょう。
@@ -72,19 +67,6 @@ documentation^]. このエクササイズでは、 *テンプレート* の詳�
 #### プロジェクト・リクエスト・テンプレート を編集する
 このラボでは実際にテンプレートの変更を行う必要はありません。変更したものを既に作成済みです。
 `cat`、`less` もしくは、好きなエディターを使って、変更を確認します。
-=======
-[Note]
-====
-*Templates* are a powerful tool that enable the user to easily create reusable
-sets of OpenShift objects with powerful parameterization. They can be used to
-quickly deploy more complicated and related components into OpenShift, and can be a
-useful part of your organization's software development lifecycle (SDLC). More
-information can be found in the
-link:https://docs.openshift.com/container-platform/4.6/openshift_images/using-templates.html[template documentation^].
-We will not go into more detail on *Templates* in these
-exercises.
-====
->>>>>>> upstream/ocp4-dev
 
 *プロジェクト・リクエスト・テンプレート* :
 
@@ -95,7 +77,6 @@ cat {{ HOME_PATH }}/support/project_request_template.yaml
 
 新たに2つのセクションが追加されましたので、注意してください。 *ResourceQuota* と *LimitRange* です。
 
-<<<<<<< HEAD
 ### 背景: ResourceQuota
 // FIXME: 4.0 Doc Link Needed
 link:https://docs.openshift.com/container-platform/3.11/admin_guide/quota.html[quota
@@ -107,19 +88,6 @@ documentation^] のリンク先に *ResourceQuota* について詳しくかか�
 これは、プロジェクト内で作成できるオブジェクトの量をタイプ別に制限したり、そのプロジェクト内のリソースが消費する計算リソースと
 ストレージの総量を制限したりすることができます。
 
-=======
-### Background: ResourceQuota
-The
-link:https://docs.openshift.com/container-platform/4.6/applications/quotas/quotas-setting-per-project.html[quota documentation^]
-provides a great description of *ResourceQuota*:
-
-----
-A resource quota, defined by a ResourceQuota object, provides constraints
-that limit aggregate resource consumption per project. It can limit the
-quantity of objects that can be created in a project by type, as well as
-the total amount of compute resources and storage that may be consumed
-by resources in that project.
->>>>>>> upstream/ocp4-dev
 ----
 
 私たちの場合は、CPU, memory, storage, persistentvolumeclaims と Pods に特定のクォータを設定しています。
@@ -146,7 +114,6 @@ by resources in that project.
 <3> CPUは「ミリコア」で計測されます。どのように Kubernetes/OpenShift がコアを計算するかは次のリンクで確認できます。
 link:https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/[upstream
 documentation^].
-<<<<<<< HEAD
 <4> `limits` と `requests` の両方がありますが、これについては *LimitRange* オブジェクトを見てから詳しく説明します。
 <5> プロジェクト内のすべてのpersistentvolumeclaimsにおいて、要求されたストレージの合計がこの値を超えることはできません。
 <6> プロジェクト内の persistentvolumeclaim の総数。
@@ -163,21 +130,6 @@ documentation^] を参照してください。
 // FIXME: 4.0 Doc Link Needed
 link:https://docs.openshift.com/container-platform/3.11/admin_guide/limits.html[limit
 range documentation^] のリンクに良い情報があります。:
-=======
-<4> There is a system of both `limits` and `requests` that we will discuss more
-when we get to the *LimitRange* object.
-<5> Across all persistent volume claims in a project, the sum of storage requested cannot exceed this value.
-<6> The total number of persistent volume claims in a project.
-
-For more details on the available quota options, refer back to the
-link:https://docs.openshift.com/container-platform/4.6/applications/quotas/quotas-setting-per-project.html[quota
-documentation^]
-
-### Background: LimitRange
-The
-link:https://docs.openshift.com/container-platform/4.6/nodes/clusters/nodes-cluster-limit-ranges.html[limit
-range documentation^] provides some good background:
->>>>>>> upstream/ocp4-dev
 
 ----
 
@@ -219,25 +171,17 @@ ResourceQuota はプロジェクト内の総リソース消費量の上限を設
           memory: 512Mi
 ----
 
-<<<<<<< HEAD
 リクエストとデフォルトの制限値の違いは重要で、それについては次のリンク中で説明しています。
 link:https://docs.openshift.com/container-platform/3.11/admin_guide/limits.html[limit
 range documentation^]. 
 
 一般的には:
-=======
-The difference between requests and
-default limits is important, and is covered in the
-link:https://docs.openshift.com/container-platform/4.6/nodes/clusters/nodes-cluster-limit-ranges.html[limit
-range documentation^]. But, generally speaking:
->>>>>>> upstream/ocp4-dev
 
 <1> `max` は limits や requests に指定できる最高の値です。
 <2> `min` は limits と requests に指定できる最低の値です。
 <3> `default` は、何も指定されていない場合に、コンテナが消費できる最大量（制限）です。
 <4> `defaultRequest` は何も指定されてない場合に、コンテナが消費する最小量です。
 
-<<<<<<< HEAD
 これらのトピックに加えて、 *Quality of Service* や *Limit* : *Request* の比率 のようなものがあります。
 link:https://docs.openshift.com/container-platform/3.11/dev_guide/compute_resources.html[compute
 resources^] にはさらに多くの情報があります。
@@ -270,49 +214,6 @@ NOTE: Quota と Limits は、*プロジェクト* レベルで適用されるこ
 複数の *プロジェクト* に1つの Quota を適用したい場合は、
 link:https://docs.openshift.com/container-platform/3.11/admin_guide/multiproject_quota.html[multi-project
 quota^] を見て下さい。これらの演習では、複数プロジェクトのクォータをカバーすることはありません。
-=======
-In addition to these topics, there are things like *Quality of Service Tiers*
-as well as a *Limit* to *Request* ratio. There is additionally more information in the
-link:https://docs.openshift.com/container-platform/4.6/nodes/clusters/nodes-cluster-limit-ranges.html[limit
-range documentation^] section of the documentation.
-
-For the sake of brevity, suffice it to say that there is a complex and powerful
-system of Quality of Service and resource management in OpenShift. Understanding
-the types of workloads that will be run in your cluster will be important to
-coming up with sensible values for all of these settings.
-
-The settings we provide for you in these examples generally restrict projects to:
-
-* A total CPU quota of 4 cores (`4000m`) where
-** Individual containers
-*** must use 4 cores or less
-*** cannot be defined with less than 10 milicores
-*** will default to a request of 100 milicores (if not specified)
-*** may burst up to a limit of 4 cores (if not specified)
-* A total memory usage of 8 Gibibyte (8192 Megabytes) where
-** Individual containers
-*** must use 1 Gi or less
-*** cannot be defined with less than 5 Mi
-*** will default to a request of 512 Mi
-*** may burst up to a limit of 1024 Mi
-* Total storage claims of 25 Gi or less
-* A total number of 5 volume claims
-* 10 or less *Pods*
-
-In combination with quota, you can create very fine-grained controls, even
-across projects, for how users are allowed to request and utilize OpenShift's
-various resources.
-
-[Note]
-====
-Remember that quotas and limits are applied at the *Project* level. *Users*
-may have access to multiple *Projects*, but quotas and limits do not apply
-directly to *Users*. If you want to apply one quota across multiple *Projects*,
-then you should look at the
-link:https://docs.openshift.com/container-platform/4.6/applications/quotas/quotas-setting-across-multiple-projects.html[multi-project
-quota^] documentation. We will not cover multi-project quota in these exercises.
-====
->>>>>>> upstream/ocp4-dev
 
 ### プロジェクト・リクエスト・テンプレートをインストールする
 この背景を踏まえて、実際に OpenShift にこの新しい *プロジェクト・リクエスト・テンプレート* を使用するように指示してみましょう。
@@ -387,23 +288,8 @@ spec:
 oc apply -f {{ HOME_PATH }}/support/cr_project_request.yaml -n openshift-config
 ----
 
-<<<<<<< HEAD
 このコマンドを実行すると、OpenShift API Server の設定が Operator によって更新されます。
 これは実装された構成を見ることで確認できます。:
-=======
-Once this command is run, the OpenShift API Server configurations will be
-updated by the operator. This takes some time. You can monitor the rollout
-by waiting for the `apiserver` *Deployment* to finish:
-
-[source,bash,role="execute"]
-----
-sleep 30
-oc rollout status deploy apiserver -n openshift-apiserver
-----
-
-This can now be verified by viewing the implemented
-configuration:
->>>>>>> upstream/ocp4-dev
 
 [source,bash,role="execute"]
 ----
@@ -517,18 +403,8 @@ NAME                   CREATED AT
 template-test-limits   2020-12-16T00:16:39Z
 ----
 
-<<<<<<< HEAD
 NOTE: `project-request` テンプレートが `openshift-config` プロジェクト内に作成されていることを確認してください。
 テンプレートを作成せずに OpenShift API サーバー設定で定義すると、新規プロジェクトの作成に失敗します。
-=======
-[Note]
-====
-Please make sure that the `project-request` template is created in the
-`openshift-config` project. Defining it in the OpenShift API server
-configurion without having the template in place will cause new projects to
-fail to create.
-====
->>>>>>> upstream/ocp4-dev
 
 ### クリーンナップ
 必要であれば、アプリケーション管理の基礎ラボのアプリケーションをこの `template-test` プロジェクトの中にデプロイして、 *Quota* と *LimitRange* がどのように適用されているかを観察することができます。

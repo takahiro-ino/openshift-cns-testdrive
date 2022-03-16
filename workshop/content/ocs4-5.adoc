@@ -1,6 +1,6 @@
 :experimental:
 
-= OCS オプションLab
+= ODF オプションLab
 
 == Labの概要
 このLabはオプションで、前の4つのLabが終わった方を主な対象としています。 +
@@ -9,7 +9,7 @@
 
 * MCGを使用してObject Bucketを作成し、アプリケーションから使用する
 * 構成したCephクラスターにストレージ容量を追加する
-* OCSのモニタリングを行う
+* ODFのモニタリングを行う
 
 == Multi-Cloud Gatewayを使用する
 このセクションでは、Multi-Cloud Gateway (MCG)について説明します。現在、MCGを構成する最良の方法は、CLIを使用することです。
@@ -23,9 +23,9 @@ noobaa status -n openshift-storage
 ----
 .Example output:
 ----
-INFO[0000] CLI version: 2.1.1                           
-INFO[0000] noobaa-image: noobaa/noobaa-core:5.3.0       
-INFO[0000] operator-image: noobaa/noobaa-operator:2.1.1 
+INFO[0000] CLI version: 5.6.0                           
+INFO[0000] noobaa-image: noobaa/noobaa-core:5.6.0       
+INFO[0000] operator-image: noobaa/noobaa-operator:5.6.0 
 INFO[0000] Namespace: openshift-storage                 
 INFO[0000]                                              
 INFO[0000] CRD Status:                                  
@@ -38,10 +38,10 @@ INFO[0000]
 INFO[0000] Operator Status:                             
 INFO[0000] ✅ Exists: Namespace "openshift-storage"      
 INFO[0000] ✅ Exists: ServiceAccount "noobaa"            
-INFO[0000] ✅ Exists: Role "ocs-operator.v4.3.0-379.ci-hl98v" 
-INFO[0000] ✅ Exists: RoleBinding "ocs-operator.v4.3.0-379.ci-hl98v-noobaa-dntmk" 
-INFO[0000] ✅ Exists: ClusterRole "ocs-operator.v4.3.0-379.ci-vwg96" 
-INFO[0000] ✅ Exists: ClusterRoleBinding "ocs-operator.v4.3.0-379.ci-vwg96-noobaa-sm9pv" 
+INFO[0000] ✅ Exists: Role "ocs-operator.v4.6.3-379.ci-hl98v" 
+INFO[0000] ✅ Exists: RoleBinding "ocs-operator.v4.6.3-379.ci-hl98v-noobaa-dntmk" 
+INFO[0000] ✅ Exists: ClusterRole "ocs-operator.v4.6.3-379.ci-vwg96" 
+INFO[0000] ✅ Exists: ClusterRoleBinding "ocs-operator.v4.6.3-379.ci-vwg96-noobaa-sm9pv" 
 INFO[0000] ✅ Exists: Deployment "noobaa-operator"       
 INFO[0000]                                              
 INFO[0000] System Status:                               
@@ -170,7 +170,7 @@ oc get obc test21obc -o yaml -n openshift-storage
 apiVersion: objectbucket.io/v1alpha1
 kind: ObjectBucketClaim
 metadata:
-  creationTimestamp: "2019-10-24T13:30:07Z"
+  creationTimestamp: "2021-03-24T13:30:07Z"
   finalizers:
   - objectbucket.io/finalizer
   generation: 2
@@ -207,7 +207,7 @@ data:
   AWS_SECRET_ACCESS_KEY: Wi9kcFluSWxHRzlWaFlzNk1hc0xma2JXcjM1MVhqa051SlBleXpmOQ==
 kind: Secret
 metadata:
-  creationTimestamp: "2019-10-24T13:30:07Z"
+  creationTimestamp: "2021-03-24T13:30:07Z"
   finalizers:
   - objectbucket.io/finalizer
   labels:
@@ -245,7 +245,7 @@ data:
   BUCKET_SUBREGION: ""
 kind: ConfigMap
 metadata:
-  creationTimestamp: "2019-10-24T13:30:07Z"
+  creationTimestamp: "2021-03-24T13:30:07Z"
   finalizers:
   - objectbucket.io/finalizer
   labels:
@@ -396,18 +396,18 @@ oc logs -n obc-test $(oc get pods -n obc-test -l app=obc-test -o jsonpath='{.ite
 
 == Cephクラスタへのストレージの追加
 
-既存のOCSクラスタにストレージを追加することで、容量が追加されパフォーマンスが向上されます。 +
-このセクションでは、現在のストレージクラスターOCS worker nodeを追加する方法について説明します。
-その後、OCSクラスターを拡張してこれらの新しいノードにストレージをプロビジョニングする方法に関する次のサブセクションに続きます。
+既存のODFクラスタにストレージを追加することで、容量が追加されパフォーマンスが向上されます。 +
+このセクションでは、現在のストレージクラスターODF worker nodeを追加する方法について説明します。
+その後、ODFクラスターを拡張してこれらの新しいノードにストレージをプロビジョニングする方法に関する次のサブセクションに続きます。
 
-=== OCS worker nodeを追加する
+=== ODF worker nodeを追加する
 
-ノードを追加するには、1章のように *machinesets* を追加するか、既存のOCS *machiesets* をスケールアップします。
-このトレーニングでは、既存のOCS *machineset* をスケールアップして、より多くのworker nodeを生成します。
+ノードを追加するには、1章のように *machinesets* を追加するか、既存のODF *machiesets* をスケールアップします。
+このトレーニングでは、既存のODF *machineset* をスケールアップして、より多くのworker nodeを生成します。
 
 [NOTE]
 ====
-OCS worker nodeを追加するときは、既存のノードに十分なCPUやメモリがない場合などが挙げられます。
+ODF worker nodeを追加するときは、既存のノードに十分なCPUやメモリがない場合などが挙げられます。
 ====
 
 まずは現在の *machineset* を確認します。
@@ -470,28 +470,28 @@ NOTE: 新しく追加したworker nodeにも `cluster.ocs.openshift.io/openshift
 
 === ストレージ容量を追加する
 
-このセクションでは、構成済みのOCS worker nodeでストレージ容量とパフォーマンスを追加します。
-前のセクションを実行した場合は、6つのOCS worker nodeが存在するはずです。
+このセクションでは、構成済みのODF worker nodeでストレージ容量とパフォーマンスを追加します。
+前のセクションを実行した場合は、6つのODF worker nodeが存在するはずです。
 
-ストレージを追加するには、*Openshift Web Console* に移動し、手順にしたがってOCSストレージクラスターの概要を表示します。
+ストレージを追加するには、*Openshift Web Console* に移動し、手順にしたがってODFストレージクラスターの概要を表示します。
 
  - 左側のメニューから *Operators* -> *Installed Operators* をクリックする
  - `openshift-storage` Projectを選択する
  - `Openshift Container Storage Operator` をクリックする
- - 上部のナビゲーションバーで、右にスクロールして `Storage Cluster` をクリックする
-
-image::images/ocs/OCS4-OCP43-Storage-Cluster-overview-reachit.png[]
-
+ - 上部のナビゲーションバーで `Storage Cluster` をクリックする
  - 表示される `ocs-storagecluster` の右端にある3つのドットをクリックして、オプションメニューを表示する
  - `Add Capacity` を選択し、新しいダイアログを開く
+
+image::images/ocs/OCS4-OCP46-Storage-Cluster-overview-reachit.png[]
+
 
 .Add Capacity dialog
 image::images/ocs/OCS4-add-capacity.png[Add Capacity dialog]
 
 StorageClassは `gp2` を選びます。
-`Raw Capacity` に表示される容量を拡張できます。OCSは三重でレプリカを取るため、`Raw Capacity` は希望する追加容量はの3倍の容量になります。
+`Raw Capacity` に表示される容量を拡張できます。ODFは三重でレプリカを取るため、`Raw Capacity` は希望する追加容量はの3倍の容量になります。
 
-NOTE: *`Raw Capacity` は最初にOCSクラスタを構成した時点で選択したストレージ容量で決まるため、変更することはできません。*
+NOTE: *`Raw Capacity` は最初にODFクラスタを構成した時点で選択したストレージ容量で決まるため、変更することはできません。*
 
 設定が完了したら、 *Add* をクリックして続行します。ストレージクラスターのステータスが再び `Ready` になるまで変化します。
 
@@ -518,7 +518,7 @@ rook-ceph-osd-prepare-ocs-deviceset-2-0-qtbfv-j4nr4               Succeeded   ip
 rook-ceph-osd-prepare-ocs-deviceset-2-1-glsgj-x4k7t               Succeeded   ip-10-0-158-153.us-east-2.compute.internal
 ----
 
-以上でOCSクラスターを拡張することができました。
+以上でODFクラスターを拡張することができました。
 
 === 新しいストレージを確認する
 
@@ -599,7 +599,7 @@ ID  CLASS WEIGHT   TYPE NAME
 
 <1> worker nodeが追加されたことで、それぞれの `zone` の中で `host` が拡張されている。
 
-OCSで構成されたCephクラスターでは、それぞれのPoolごとにCRUSHルールが設定されています。どのルールでもデフォルトは `zone` でデータを複製するように設定されていて、高い冗長性を保ち、追加前のノードの負荷を緩和するために効果的な方法です。
+ODFで構成されたCephクラスターでは、それぞれのPoolごとにCRUSHルールが設定されています。どのルールでもデフォルトは `zone` でデータを複製するように設定されていて、高い冗長性を保ち、追加前のノードの負荷を緩和するために効果的な方法です。
 
 .演習
 次のコマンドで、それぞれのPoolごとのCRUSHルールを確認してみましょう。
@@ -620,9 +620,9 @@ kbd:[Ctrl+D] を押すか、`exit` を実行してtoolboxから出ることが�
 exit
 ----
 
-== OCS環境のモニタリング
+== ODF環境のモニタリング
 
-このセクションでは、モニタリングに関してOCSで使用できるさまざまなツールについて説明します。
+このセクションでは、モニタリングに関してODFで使用できるさまざまなツールについて説明します。
 
 各種ツールは、OpenShift Web Consoleの左側メニューバーからアクセスできます。*Monitoring* メニューを展開し、次の3つのアイテムにアクセスします。
 
@@ -652,16 +652,8 @@ image::images/ocs/metrics-alertinghomepage.png[OCP Alerting Homepage]
 
 NOTE: 定義された時間を超えて `Pending` が継続したアラートは、 `Firing` 状態に移行します。例えば `CephClusterWarningState` の場合は10分です。
 
-以下に示すように、表示されているアラートをその状態に基づいてフィルタリングすることができます。
-表示する状態をクリックするだけでフィルターを切り替えることができ、青でハイライトされた状態が表示されます。
-
-
-NOTE: 少なくとも1つの状態をハイライトする必要があります。
-
-.OCP Alerting Status Filtering
-image::images/ocs/metrics-alertingstatusfilter.png[OCP Alert Status Filtering]
-
-また以下に示すように、ウィンドウの右上にある *Filter* を使用して特定のアラートまたはアラートのセットを検索することで、名前でフィルタリングすることもできます。
+表示されているアラートをその状態に基づいてフィルタリングすることができます。表示する状態をクリックするだけでフィルターを切り替えることができます。 +
+また、ウィンドウにある *Filter* を使用して特定のアラートまたはアラートのセットを検索することで、名前でフィルタリングすることもできます。
 
 .OCP Alerting Name Filtering
 image::images/ocs/metrics-alertingnamefilter.png[OCP Alert Name Filtering]
@@ -693,7 +685,7 @@ image::images/ocs/metrics-metricsleftpanemenu.png[OCP Metrics Menu]
 image::images/ocs/metrics-queryfield.png[OCP Monitoring Metrics Homepage]
 
 クエリフィールドを使って、式を入力するか、名前でメトリクスを検索します。
-使用可能なメトリクスにより、OCP関連情報またはOCS関連情報の両方を照会できます。
+使用可能なメトリクスにより、OCP関連情報またはODF関連情報の両方を照会できます。
 クエリは、Prometheusクエリ構文とそのすべての利用可能な機能を使用することができます。
 
 
@@ -737,12 +729,12 @@ Query Documentation]を参照して下さい。
 [appendix]
 == Cephの概要
 
-このセクションでは、OCS 4で使用されるストレージソリューションの理解を深めるために、Cephの基礎知識を説明します
+このセクションでは、ODFで使用されるストレージソリューションの理解を深めるために、Cephの基礎知識を説明します
 
 [NOTE]
 ====
 この付録の内容は、Cephの重要なコンポーネントとCephの動作について学習することを目的としています。
-OCS 4ではOpenShiftアプリケーションにストレージを提供するために、 *Operators* と *CustomResourceDefinitions(CRDs)* を使用した方法でCephをデプロイおよび管理します。
+ODFではOpenShiftアプリケーションにストレージを提供するために、 *Operators* と *CustomResourceDefinitions(CRDs)* を使用した方法でCephをデプロイおよび管理します。
 これにより一般的なスタンドアロンのCephと比べて、Cephの高度な機能の一部が制限されていることがあります。
 ====
 
@@ -847,7 +839,7 @@ CephのネイティブAPIは、C, C++, Python, Java, Ruby, Erlang, Go, Rustな�
 *RADOS Block Device (RBD)*
 
 このアクセス方法は、Red Hat Enterprise LinuxまたはOpenShiftバージョン3.xまたは4.xで使用されます。
-RBDは、カーネルモジュール(RHEL、OCS 4) または `librbd` API(RHOSP)からアクセスできます。
+RBDは、カーネルモジュール(RHEL、OCP4) または `librbd` API(RHOSP)からアクセスできます。
 OCPの世界では、RBDはRWO PVCの必要性に対処するように設計されています。
 
 [.lead]
@@ -883,7 +875,7 @@ CephFSは通常RWXのPVCに使用されますが、RWO PVCもサポートしま�
 *_S3/Swiftオブジェクトストレージ (Ceph RADOS Gateway)_*
 
 このアクセス方法は、Cephクラスター上でAmazon S3およびOpenStack Swift互換のオブジェクトアクセスをサポートします。
-OCS MCGは、RADOSGWを活用してObject Bucket Claimを処理します。Multi-Cloud Gatewayの観点からは、RADOSGWは互換性のあるS3 endpointとしてタグ付けされます。
+ODF MCGは、RADOSGWを活用してObject Bucket Claimを処理します。Multi-Cloud Gatewayの観点からは、RADOSGWは互換性のあるS3 endpointとしてタグ付けされます。
 
 .Amazone S3 or OpenStack Swift (Ceph RADOS Gateway)
 image::images/ocs/ceph101-rgw.png[S3 and Swift Support]

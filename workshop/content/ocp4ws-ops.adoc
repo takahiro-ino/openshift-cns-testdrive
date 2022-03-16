@@ -2,43 +2,40 @@
 
 == 演習概要
 本演習は、演習1: Red Hat OpenShift 4 Ops ハンズオンです。 +
-本ハンズオンは2つのLabがあり、以下を学びます。
+演習1のハンズオンは5つのLabがあり、以下を学びます。
 
-* OpenShift4クラスターへのログインと動作確認
-* コンテナイメージのビルドとデプロイ
-* Operatorの導入
-* Operatorとアプリケーションの連携
-* Custom Resourceの設定
-* Operatorに対するCLI操作
+- **OpenShift4クラスターへのログインと動作確認**
+- **コンテナイメージのビルドとデプロイ**
+- **Operatorの導入**
+- **Operatorとアプリケーションの連携**
+- **Custom Resourceの設定**
 
-== Lab1
-事前に構築したOpenShift4クラスターを使用して、OpenShift4コンソールやコマンドを使用してクラスターの動作確認を行います。 +
-また，OpenShift4クラスターに対するコンテナイメージのビルドやデプロイ操作をOpenShift4の機能を使用して行います。
-
-作業は以下の手順どおりに進めます。
+---
 
 ==== Lab1-1: link:ocp4ws-ops-1-1[OpenShift4クラスターへのログインと動作確認]
+Lab1-1では、事前に構築したOpenShift4クラスターを使用して、OpenShift4 Webコンソールや``oc``コマンドを使用したクラスターの動作確認を行い、OpenShift4クラスターの基本的な操作を学ぶことができます。
 
 ==== Lab1-2: link:ocp4ws-ops-1-2[コンテナイメージのビルド&デプロイ]
+Lab1-2では、シンプルなアプリケーションを使って、OpenShift4クラスターでのコンテナイメージのビルドやデプロイの操作を学ぶことができます。
 
+==== Lab1-3: link:ocp4ws-ops-1-3[Prometheus JMX Exporterの展開]
+==== Lab1-4: link:ocp4ws-ops-1-4[Prometheus Operatorの展開]
+==== Lab1-5: link:ocp4ws-ops-1-5[CustomResourceの設定]
 
-== Lab2
-JBoss EAPのアプリケーションを立ち上げ、Prometheus JMX ExporterからJMXメトリクスを収集します。 +
-また、OpenShift4クラスターに付随しているOperatorHubから、Prometheus Operatorを活用して、JMXメトリクスの情報を可視化するなど、アプリケーションの監視の基礎を学びます。
-
-作業は以下の手順どおりに進めます。
-
-==== Lab2-1: link:ocp4ws-ops-2-1[Prometheus JMX Exporterの展開]
-==== Lab2-2: link:ocp4ws-ops-2-2[Prometheus Operatorの展開]
-==== Lab2-3: link:ocp4ws-ops-2-3[CustomResourceの設定]
+この3つのLabでは、オープンソースのモニタリングツールである"Prometheus"を取り上げます。 +
+Javaアプリケーションの監視の基礎と、OpenShift4に付随する"Operator Hub"から**Operator**をインストールする方法を学ぶことができます。 +
+**Operator**で管理される**CR(Custom Resource)**によって**Operator**がアプリケーションと連携できることを見ることができるでしょう。
 
 == ハンズオン環境
 
-本ハンズオンでは，OpenShift 4のクラスターを動作環境として使用します。今回は構築済みのクラスター環境ををひとり1クラスター（6台構成+踏台）ずつ使用します。
+本ハンズオンでは、OpenShift4のクラスターを動作環境として使用します。今回は構築済みのクラスター環境をひとり1クラスター (6台構成+踏み台サーバー) ずつ使用します。
 クラスター環境の詳細と使い方については、 link:environment[ハンズオン演習環境の紹介]を参照下さい。
 
-OpenShift4クラスターに対するCLI操作をを行う際は，クライアントPCから，踏み台サーバー(Bastion Server)にSSH接続し，*ocコマンド* を使って制御します。 +
+OpenShift4クラスターに対するCLI操作を行う際は、クライアントPCから踏み台サーバー(Bastion Server)にSSHで接続し、``oc``コマンド を使って制御します。
+
 `+クライントPC <--SSH--> 踏み台サーバー <--oc--> OpenShift4クラスター+`
+
+※クライアントPC上で開いているブラウザ右側のコンソールを使用して、SSHすると便利です。
 
 踏み台サーバーへのSSHログインは、以下のコマンドで行えます。
 

@@ -1,0 +1,51 @@
+= 演習2: Red Hat OpenShift Data Foundation ハンズオン
+
+== 演習概要
+本演習は、演習2: Red Hat OpenShift Data Foundation ハンズオンです。 +
+本ハンズオンは4つのLabがあり、以下を学びます。
+
+* OpenShift Data Foundation(ODF)をデプロイするためのnodeを準備する
+* ODFクラスターを作成する
+* ODFが提供するRWO PVを使用する
+* CephFSボリュームを使ってRWX PVを使用する
+
+== Lab
+事前に構築したOCPクラスターにODFをデプロイするためのnodeを準備し、ODFクラスターを作成します。 +
+作成したODFクラスターを使って、実際にPersistent Volume Claim(PVC)を発行して、Persistent Volume(PV)が割り当てられる様子を確認します。 +
+また、実際にアプリケーションからRWO(ReadWriteOnce) PVとRWX(ReadWriteMany) PVを使うことで、具体的なPVの使われ方を体験します。
+
+作業は以下の手順どおりに進めます。
+
+==== Lab1: link:ocs4-1[Lab2-1: OpenShift Data Foundationをデプロイするためのnodeを準備する]
+==== Lab2: link:ocs4-2[Lab2-2: ODFクラスターを作成する]
+==== Lab3: link:ocs4-3[Lab2-3: CSが提供するRWO PVを使用する]
+==== Lab4: link:ocs4-4[Lab2-4: CephFSボリュームを使ってRWX PVを使用する]
+
+== ハンズオン環境
+
+本ハンズオンでは，OpenShift 4のクラスターを動作環境として使用します。今回は構築済みのクラスター環境ををひとり1クラスター（6台構成+踏台）ずつ使用します。
+クラスター環境の詳細と使い方については、 link:environment[ハンズオン演習環境の紹介]を参照下さい。
+
+OpenShift4クラスターに対するCLI操作をを行う際は，クライアントPCから，踏み台サーバー(Bastion Server)にSSH接続し，*ocコマンド* を使って制御します。 +
+`+クライントPC <--SSH--> 踏み台サーバー <--oc--> OpenShift4クラスター+`
+
+踏み台サーバーへのSSHログインは、以下のコマンドで行えます。
+
+[source,bash,role="execute"]
+----
+ssh -l {{ SSH_USERNAME }} {{ BASTION_FQDN }} -o ServerAliveInterval=120
+----
+
+あなたの ssh パスワードはこれです。
+
+[source,bash,role="copypaste"]
+----
+{{ SSH_PASSWORD }}
+----
+
+踏み台サーバーでOpenShift 4クラスタにログインする場合は、以下のコマンドで行えます。
+
+[source,bash,role="execute"]
+----
+oc login -u kubeadmin -p {{ KUBEADMIN_PASSWORD }} {{ API_URL }} 
+----

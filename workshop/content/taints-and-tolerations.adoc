@@ -1,19 +1,11 @@
 = Taint と Toleration
 :experimental:
 
-<<<<<<< HEAD
 == 演習の概要
 以前の演習では、インフラノードを作成し、 https://docs.openshift.com/container-platform/4.3/nodes/scheduling/nodes-scheduler-node-selectors.html[nodeSelector] を使用して、ワークロードを配置する場所を制御しました。
 あるタスクを実行するために、どのようにノードをセットするかを見てきました。
  `nodePlacement` 内の `nodeSelector` は、あるノードのセットに Pod を引き寄せます。
 しかし、反対に、Pod をなるノードから遠ざけたい場合は、どうすればいいでしょう？
-=======
-In a previous lab, you created "infra" nodes leveraging https://docs.openshift.com/container-platform/latest/nodes/scheduling/nodes-scheduler-node-selectors.html[nodeSelector]
-to control where the workload lands. You saw how you can set nodes to perform
-certain tasks. The `nodeSelector` in  the `nodePlacement` attracts pods to a
-set of nodes. But what if you want the opposite? What if you want to repel
-pods?
->>>>>>> upstream/ocp4-dev
 
 Taint された(汚された)ノード上でポッドが動作しないようにする事ができます。
 
@@ -31,15 +23,11 @@ Taint された(汚された)ノード上でポッドが動作しないように
 
 ### 背景
 
-<<<<<<< HEAD
 Taint と Toleration は、協調して動作し、ワークロードが他のノードにスケジュールされないようにします。
 ノードが Taint になると、そのノードは Taint を許容しないワークロードを受け入れるべきではありません。
 ワークロードに適用された Toleration は、対応する Pod を、マッチする Taint をもったノードにスケジュールする事を可能にします。（ただし、必要ではありません）
  
 [NOTE]
-=======
-[Note]
->>>>>>> upstream/ocp4-dev
 ====
 ワークロードが常に特定のノードに配置されるようにするためには、`nodeSelector` を Taint と Toleration と一緒に使用する必要があります。
 ====
@@ -82,16 +70,7 @@ oc describe nodes -l 'node-role.kubernetes.io/worker,!node-role.kubernetes.io/in
 oc get nodes -l 'node-role.kubernetes.io/worker,!node-role.kubernetes.io/infra,!cluster.ocs.openshift.io/openshift-storage' -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}' | xargs -I{} oc label node {} appnode=welcome-php
 ----
 
-<<<<<<< HEAD
 ノードの名前をメモしながら、ノードがラベル付けされていることを確認します。
-=======
-[Note]
-====
-To label a node, you pass the node name with a `key=value` pair. Example: `oc label node worker.example.com appnode=welcome-php`
-====
-
-Verify that the nodes were labeled, taking note of the name of the node(s).
->>>>>>> upstream/ocp4-dev
 
 [source,bash,role="execute"]
 ----
@@ -131,7 +110,6 @@ oc scale deploy welcome-php --replicas=${NODE_NUMBER}
 oc rollout status deploy welcome-php
 ----
 
-<<<<<<< HEAD
 アプリケーションがロールアウトされたら、すべてのノードでリバランスされるように Pod を削除してみましょう。
 
 [source,bash,role="execute"]
@@ -139,13 +117,6 @@ oc rollout status deploy welcome-php
 oc delete pods --all
 oc rollout status deploy welcome-php
 ----
-=======
-[Note]
-====
-If the pods are not evenly distributed between nodes, you may have to run
-`oc delete pods --all` to let them rebalance.
-====
->>>>>>> upstream/ocp4-dev
 
 Pod が作業員に均等に広がっていることを確認してください。各ノードに1つの Pod があるはずです。
 
@@ -156,16 +127,12 @@ oc get pods -o=custom-columns=NAME:.metadata.name,NODE:.spec.nodeName
 oc get nodes -l appnode=welcome-php
 ----
 
-<<<<<<< HEAD
 [NOTE]
 ====
 Pod が均等に広がるようにするには、`oc delete pods --all` を何度か実行する必要があるかもしれません。
 ====
 
 #### ノードを Taint する
-=======
-#### Tainting nodes
->>>>>>> upstream/ocp4-dev
 
 これからノードを Taint して、ワークロードを拒否するようにします。
 最初に、それぞれの Taint が何をするのかを説明します。
@@ -202,17 +169,7 @@ TTNODE=$(oc get nodes -l 'node-role.kubernetes.io/worker,!node-role.kubernetes.i
 oc adm taint node ${TTNODE} welcome-php=run:NoSchedule
 ----
 
-<<<<<<< HEAD
 デプロイしたノードを調べて、そのうちの1つのノードに Taint が適用されていることを確認します。
-=======
-[Note]
-====
-The syntax is: `oc adm taint node ${nodename} key=value:Effect`
-====
-
-Examine the nodes we deployed on and see that the taint is applied to one of
-the nodes.
->>>>>>> upstream/ocp4-dev
 
 [source,bash,role="execute"]
 ----

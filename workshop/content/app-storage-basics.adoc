@@ -1,7 +1,6 @@
 =  アプリケーションストレージの基礎
 :experimental:
 
-<<<<<<< HEAD
 == 演習の概要
 OpenShiftの *Pod* がデータベースをホストするなど、信頼性の高いストレージを必要とする場合があります。 +
 こういった場合は、*Pod* に *永続的な(Persistent) Volume* を供給する必要があります。なぜならば *Pod*(コンテナ) 内部に保存されるデータは、*Pod* が消えると失われてしまうためです。 +
@@ -13,9 +12,6 @@ OpenShiftの *Pod* がデータベースをホストするなど、信頼性の�
 
 === Persistent Volume Claims
 [WARNING]
-=======
-[Warning]
->>>>>>> upstream/ocp4-dev
 ====
 これらの演習を行うには、「アプリケーション管理の基礎」の演習で紹介されているアプリケーションがすでにデプロイされている必要があります。
 ====
@@ -31,22 +27,7 @@ OpenShiftの *Pod* がデータベースをホストするなど、信頼性の�
 writableなレイヤーは、コンテナが削除されると破棄されます。これは動的なコンテナオーケストレーション環境では普通に起きることです。
 ====
 
-<<<<<<< HEAD
 OpenShiftに外部の永続ストレージを表す `PersistentVolume` オブジェクトを作成し、それをコンテナのファイルシステム内に *Mount* するよう指示する方法を以下に示します。
-=======
-You should be in the `app-management` project from the previous lab. To
-make sure, run the following command:
-
-[source,bash,role="execute"]
-----
-oc project app-management
-----
-
-### Adding Persistent Volume Claims
-Here's how you would instruct OpenShift to create a `PersistentVolume`
-object, which represents external, persistent storage, and have it *mounted*
-inside the container's filesystem:
->>>>>>> upstream/ocp4-dev
 
 [source,bash,role="execute"]
 ----
@@ -59,43 +40,24 @@ oc set volume deploy/mapit --add --name=mapit-storage -t pvc --claim-mode=ReadWr
 deployment.apps/mapit volume updated
 ----
 
-<<<<<<< HEAD
 最初のステップでは、*PersistentVolumeClaim* が作成されました。このオブジェクトは、ユーザーからOpenShiftへの一定の容量を持つ特定の種類のストレージのリクエストを表しています。
 次に、`mapit` の *DeploymentConfig* を更新して、このストレージを参照し、*Pod* 内の `/app-storage` ディレクトリで利用できるようにしています。
 
 このように新しい *DeploymentConfig* が表示されます。
-=======
-In the first step a *PersistentVolumeClaim* was created. This object
-represents a request for storage of a certain kind, with a certain capacity
-from the user to OpenShift.
-
-Next the `Deployment` of `mapit` is updated to reference this storage
-and make it available under the `/app-storage` directory inside the pod.
-
-You can see the new `Deployment` like this:
->>>>>>> upstream/ocp4-dev
 
 [source,bash,role="execute"]
 ----
 oc get deploy mapit
 ----
 
-<<<<<<< HEAD
 出力を見ると、ストレージの更新によって新しいリビジョンが作成されたことがわかります。
-=======
-The output will show that a new deployment was created by inspecting the `AGE` column.
->>>>>>> upstream/ocp4-dev
 
 ----
 NAME    READY   UP-TO-DATE   AVAILABLE   AGE
 mapit   1/1     1            1           14m
 ----
 
-<<<<<<< HEAD
 タイミングによっては、新しい *Pod* が生成されていることがわかるかもしれません。
-=======
-Likely, depending when you ran the command, you may or may not see that the new pod is still being spawned:
->>>>>>> upstream/ocp4-dev
 
 [source,bash,role="execute"]
 ----
@@ -109,11 +71,7 @@ mapit-4-d872b    0/1       ContainerCreating   0          5s
 mapit-4-deploy   1/1       Running             0          10s
 ----
 
-<<<<<<< HEAD
 *DeploymentConfig* を見てみましょう。
-=======
-Take a look at the `Deployment` now:
->>>>>>> upstream/ocp4-dev
 
 [source,bash,role="execute"]
 ----
@@ -198,11 +156,7 @@ mapit-storage   Bound    pvc-4397c6be-9f53-490e-960d-c1b77de6000c   1Gi        R
 
 ### 永続ストレージのテスト
 
-<<<<<<< HEAD
 `oc get pods` を使って *Pod* の名前を取得してから、`oc` クライアントのリモートシェル機能で *Pod* にログインします。
-=======
-Log on to the pod using the remote-shell capability of the `oc` client:
->>>>>>> upstream/ocp4-dev
 
 [source,bash,role="execute"]
 ----
@@ -271,12 +225,7 @@ oc rsh $(oc get pods -l deployment=mapit -o name) cat /app-storage/hello.txt
 oc delete pods -l deployment=mapit && oc get pod
 ----
 
-<<<<<<< HEAD
 しばらくすると、新しい *Pod* が準備され、実行できるようになります。その名前を探して、もう一度ファイルを確認してください。
-=======
-After some time, your new pod will be ready and running. Once it's
-running, check the file:
->>>>>>> upstream/ocp4-dev
 
 [source,bash,role="execute"]
 ----
@@ -287,13 +236,5 @@ oc rsh $(oc get pods -l deployment=mapit -o name) cat /app-storage/hello.txt
 新しい *Pod* は古い *Pod* と同じノードで実行されていない可能性もありますが、問題なく *Persistent Volume* は使えています。 +
 これはユーザーが意識しない形で、KubernetesとOpenShiftが自動的に外部ストレージを適切なタイミングで適切な場所にアタッチしたことを意味します。
 
-<<<<<<< HEAD
 また、Read-Write-Manyなストレージが必要な場合は、ファイルベースのストレージソリューションが利用できます。 +
 OpenShift Container Storageは、OpenShiftの内部で動作するハイパーコンバージドなストレージソリューションです。ローカルに接続されたストレージデバイスをストレージプールにして、そこからVolumeを作成することで、ファイル、ブロック、さらにはオブジェクトストレージを提供することができます。
-=======
-If you needed read-write-many storage, file-based storage solutions can
-provide it. OpenShift Container Storage is a hyperconverged storage solution
-that can run inside OpenShift and provide file, block and even object storage
-by turning locally attached storage devices into storage pools and then
-creating volumes out of them.
->>>>>>> upstream/ocp4-dev

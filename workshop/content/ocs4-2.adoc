@@ -1,22 +1,22 @@
 :experimental:
 
-= 演習2 Lab2: OCSクラスターを作成する
+= Lab 2-2: ODFクラスターを作成する
 
 == Labの概要
-このLabでは OpenShift Container Storage(OCS) Operatorをインストールし、OCSクラスターを作成します。 +
-OCS OperatorのインストールとOCSクラスターの作成は、CLIでも行えますが、本Labではより簡単なGUI(Web Console)を使って行います。
+このLabでは "OpenShift Container Storage(OCS) Operator"をインストールし、ODFクラスターを作成します。 +
+OCS Operatorのインストールとクラスターの作成は、CLIでも行えますが、本Labではより簡単なGUI(Web Console)を使って行います。
 
 === このLabで学習する内容
 
 * OCPクラスターにOCS Operatorをインストールする
-* OCS Operatorを使ってOCSクラスターを作成する
-* 作成したOCSクラスター(Ceph)を確認する。
+* OCS Operatorを使ってODFクラスターを作成する
+* 作成したODFクラスター(Ceph)を確認する。
 
 ---
 
 [[labexercises]]
 
-== 2-1. OCPクラスターにOCS Operatorをインストールする
+== 2-2-1. OCPクラスターにOCS Operatorをインストールする
 
 このセクションでは、Web ConsoleのOperatorHubからOCS Operatorをインストールします。 +
 
@@ -44,18 +44,17 @@ image::images/ocs/OCS4-OCP-OperatorHub-Filter.png[OCP OperatorHub Filter]
 表示された `OpenShift Container Storage Operator` を選択し、 *Install* ボタンを押します。
 
 .OCP OperatorHub Install OpenShift Container Storage
-image::images/ocs/OCS4.5-OCP-OperatorHub-Install.png[OCP OperatorHub Install]
+image::images/ocs/OCS4.7-OCP4-OperatorHub-Install.png[OCP OperatorHub Install]
 
 次の画面で、設定が下図に示す通りであることを確認し、*Subscribe* をクリックします。
 
 
 .OCP Subscribe to OpenShift Container Storage
-image::images/ocs/OCS4.5-OCP-OperatorHub-Subscribe.png[OCP OperatorHub Subscribe]
+image::images/ocs/OCS4.7-OCP4-OperatorHub-Subscribe.png[OCP OperatorHub Subscribe]
 
-CAUTION: `Installed Namespace` は上記のとおり、**"Operator recommended namespace: (PR) openshift-storage"** を選択して下さい。`openshift-storage` namespace以外では、OCSはインストールされません。 +
+CAUTION: `Installed Namespace` は上記のとおり、**"Operator recommended namespace: (PR) openshift-storage"** を選択して下さい。`openshift-storage` namespace以外では、ODFはインストールされません。 +
 
-NOTE: 事前に `openshift-storage` namespaceを作成していませんが、OCS Operatorが自動で作成するので問題ありません。 +
-また、**"Enable operator recommended cluster monitoring on this namespace"**のチェックボックスをチェックしておくと、OCSをOpenShift Monitoringの対象に加えることができるので、チェックしておきましょう。
+NOTE: 事前に `openshift-storage` namespaceを作成していませんが、OCS Operatorが自動で作成するので問題ありません。
 
 
 次はターミナルに戻って、下のコマンドを実行してOCS Operatorのインストール状況を確認できます。
@@ -67,7 +66,7 @@ watch oc get csv -n openshift-storage
 .出力例:
 ----
 NAME                            DISPLAY                       VERSION   REPLACES   PHASE
-ocs-operator.v4.5.2             OpenShift Container Storage   4.5.2                Succeeded
+ocs-operator.v4.7.2             OpenShift Container Storage   4.7.2                Succeeded
 ----
 kbd:[Ctrl+C]を押すと終了できます。
 
@@ -84,66 +83,59 @@ oc get pods -n openshift-storage
 ----
 NAME                                     READY   STATUS    RESTARTS   AGE
 noobaa-operator-58d8fbb457-hg495         1/1     Running   0          2m6s
+ocs-metrics-exporter-54d5cc6c79-f4h79    1/1     Running   0          2m6s
 ocs-operator-66c778887d-8qkqm            1/1     Running   0          2m6s
 rook-ceph-operator-98b4c45c9-zxlxz       1/1     Running   0          2m6s
 ----
 
-ここでは3つのOperator Podが表示されています。最初にOCS Operator Podが実行されます。OCS Operatorが実行されることでRook-Ceph OperatorとNooBaa Operatorの2つのOperator Podがデプロイされます。
-
 以上で、OCS Operatorのインストールができました。
 
-== 2-2. OCS Operatorを使ってOCSクラスターを作成する
 
-それではOCPのPersistent Storageとなる、OCSクラスターを作成します。 +
-*Openshift Web Console* に戻ってOCSのインストールを確認してみましょう。
+== 2-2-2. OCS Operatorを使ってストレージクラスターを作成する
 
-左側のメニューから *Operators* -> *Installed
-Operators* を選択します。Projectは `openshift-storage` を選択します。 +
-以下のような画面になっているはずです。
+それでは続いてストレージクラスターを作成します。 +
+*Openshift Web Console* に戻ってOCS Operatorのインストールを確認してみましょう。Opeartorのインストール直後は次のような画面になっています。
 
-.Installed Operators in the openshift-storage namespace
-image::images/ocs/OCS4.5-installed-operators.png[Openshift showing the installed operators in namespace openshift-storage]
+.Create storage cluster in openshift-storage namespace
+image::images/ocs/OCS4.7-OCP4-View-Operator.png[OCP View Operator]
 
-`Openshift Container Storage Operator` をクリックすると、次のようなOCS Operatorの詳細画面に移動します。
+この画面で `Create Storage Cluster` をクリックすると、クラスター作成の画面に移ります。
 
-.OCS configuration screen
-image::images/ocs/OCS4.5-config-screen-all.png[OCS configuration screen]
+.ODF create a new storage cluster
+image::images/ocs/OCS4.7-config-screen-partial1.png[ODF create a new storage cluster]
 
-画面に表示される `Storage Cluster` の中にある、 *Create instance* をクリックします。 +
-次のような画面が表示されます。
+以下の手順でODFクラスターの設定をします。
 
-.OCS create a new storage cluster
-image::images/ocs/OCS4.5-config-screen.png[OCS create a new storage cluster]
-
-以下の手順でOCSクラスターの設定をします。
-
-. *Select Mode* では `Internal`を選択します。
+. *Select Mode* では `Internal` を選択します。
 +
-NOTE: 他の *Select Mode* の `Internal - Attached Devices` は、Baremetal方式でインストールしたOCPクラスターでOCSを構成する場合や、AWS EBSではないEC2 Instanceに元から存在するデバイスを使ってOCSクラスターを構成する場合に使います。 +
-また `External` は、OCPクラスターの外に存在する Red Hat Ceph Storage をOCSクラスターとして使用する、External Mode という特殊なケースで使います。
+NOTE: 他の *Select Mode* の `Internal - Attached Devices` は、Baremetal方式でインストールしたOCPクラスターでODFを構成する場合や、AWS EBSではないEC2 Instanceに元から存在するデバイスを使ってODFクラスターを構成する場合に使います。 +
+また `External` は、OCPクラスターの外に存在する Red Hat Ceph Storage をODFクラスターとして使用する、External Mode という特殊なケースで使います。
 +
-. *Storage Class* には `gp2` を指定し、*OCS Service Capacity* には `2 TiB` を指定します。
+. *Storage Class* には `gp2` を指定し、*Requested Capacity* には `2 TiB` を指定します。
 +
 NOTE: *Storage Class* は作っていませんが、デフォルトで `gp2` が指定されています。これは、OCPのCluster Storage OperatorがOCPクラスターが稼働するプラットフォーム(このLabではAWS)を自動で認識し、そのプラットフォームに相応しいデフォルトのStorage Classを自動的に設定するためです。 +
-また *OCS Service Capacity* は、AWSの環境では、0.5 TiB, 2 TiB, 4 TiB の3つから選択できます。
+また *Requested Capacity* は、AWSの環境では、0.5 TiB, 2 TiB, 4 TiB の3つから選択できます。
 +
-CAUTION: *ここで選択した OCS Service Capacity は、将来容量を拡張する際の最小単位として利用されます。* +
+CAUTION: *ここで選択した Requested Capacity は、将来容量を拡張する際の最小単位として利用されます。* +
 例えば初めに2 TiBを選択した場合は、以降は 2TiB 単位で拡張することになります。
 +
-. OCSクラスターで使うnodeを指定します。
+. ODFクラスターで使うnodeを指定します。
 +
-はじめから3つのworker nodeが選択されているはずです。これはOCS用のラベル `cluster.ocs.openshift.io/openshift-storage` が付けられたnodeが自動で選択されています。以下のコマンドを実行して、確かに間違いがないことを確認してみましょう。
+.Select nodes for new storage cluster
+image::images/ocs/OCS4.7-config-screen-partial2.png[Select nodes for new storage cluster]
++
+ODF用のラベル `cluster.ocs.openshift.io/openshift-storage` が付けられたnodeは、ここで自動で選択されるようになっています。そのため、はじめから3つのworker nodeが選択されているはずです。以下のコマンドを実行して、間違いがないことを確認してみましょう。
 +
 [source,role="execute"]
 ----
 oc get nodes -l 'cluster.ocs.openshift.io/openshift-storage' | cut -d' ' -f1
 ----
 +
-CAUTION: *OCSクラスターを構成するには、3つの異なるAvailability Zoneのworker nodeを選択することが必要です。異なるAvailability Zoneではないworker nodeを選択することはサポートされません。*
+CAUTION: *ODFクラスターを構成するには、3つの異なるAvailability Zoneのworker nodeを選択することが必要です。異なるAvailability Zoneではないworker nodeを選択することはサポートされません。*
 +
 4. 全て指定したら、*Create* をクリックします。
 
-これで、自動的にOCSクラスターが作成されます。+
+これで、自動的にODFクラスターが作成されます。+
 ターミナルで次のコマンドを実行しておくと、次々とPodが作成される様子が確認できます。
 
 [source,role="execute"]
@@ -173,6 +165,7 @@ noobaa-core-0                                                     1/1     Runnin
 noobaa-db-0                                                       1/1     Running     0          14m
 noobaa-endpoint-7f5fff7d49-554qs                                  1/1     Running     0          12m
 noobaa-operator-b77ccff86-4lvks                                   1/1     Running     0          93m
+ocs-metrics-exporter-54d5cc6c79-f4h79                             1/1     Running     0          93m
 ocs-operator-6dd9fd9d8d-8gpj5                                     1/1     Running     0          93m
 rook-ceph-crashcollector-ip-10-0-141-60-85445fcd84-4lcbv          1/1     Running     0          15m
 rook-ceph-crashcollector-ip-10-0-147-83-54cf7f47c9-msjgn          1/1     Running     0          16m
@@ -200,7 +193,7 @@ kbd:[Ctrl+C]を押すと終了できます。
 
 OperatorとOpenShiftの素晴らしいところは、デプロイされたコンポーネントに関するインテリジェンスをOperatorが内蔵していることです。
 また、Operatorは `CustomResource` を定義します。そのため `CustomResource` 自体を見ることでステータスを確認することができます。 +
-OCSを例にすると、OCSクラスターをデプロイすると最終的には `StorageCluster` のインスタンスが生成されていることが分かります。この `StorageCluster` は OCS Operator によって定義された `CustomeResource` です。
+ODFを例にすると、ODFクラスターをデプロイすると最終的には `StorageCluster` のインスタンスが生成されていることが分かります。この `StorageCluster` は OCS Operator によって定義された `CustomeResource` です。
 
 [source,role="execute"]
 ----
@@ -216,21 +209,21 @@ oc get storagecluster -n openshift-storage ocs-storagecluster -o jsonpath='{.sta
 
 `Ready` となっていれば、続けることができます。
 
-以上で、OCSクラスターの作成ができました。
+以上で、ODFクラスターの作成ができました。
 
-== 2-3. 作成したOCSクラスター(Ceph)を確認する。
-このLabでは、作成したOCSクラスターを *Web Console* に作られるダッシュボードを使って確認します。 +
-また、CLIでOCSクラスターのコア部分であるCephを操作して、より詳細な構成を確認してみます。
+== 2-2-3. 作成したODFクラスター(Ceph)を確認する。
+このLabでは、作成したODFクラスターを *Web Console* に作られるダッシュボードを使って確認します。 +
+また、CLIでODFクラスターのコア部分であるCephを操作して、より詳細な構成を確認してみます。
 
-=== ストレージダッシュボードを使用する
+=== 2-2-3-1. ストレージダッシュボードを使用する
 
-このセクションでは、*Web Console* に含まれている、OCS独自のダッシュボードを使ってストレージクラスターのステータスを確認します。 +
+このセクションでは、*Web Console* に含まれている、ODF独自のダッシュボードを使ってストレージクラスターのステータスを確認します。 +
 ダッシュボードは左側のメニューバーから *Home* -> *Overview* とクリックし、 `Persistent Storage` タブを選択することでアクセスできます。
 
-NOTE: OCSのデプロイが完了したばかりの場合、ダッシュボードが完全に表示されるまでに5〜10分かかります。
+NOTE: ODFのデプロイが完了したばかりの場合、ダッシュボードが完全に表示されるまでに5〜10分かかります。
 
-.OCS Dashboard after successful backing storage installation
-image::images/ocs/OCS4.5-dashboard-healthy.png[OCS Dashboard after successful backing storage installation]
+.ODF Dashboard after successful backing storage installation
+image::images/ocs/OCS4.5-dashboard-healthy.png[ODF Dashboard after successful backing storage installation]
 
 [cols="0,1,10a"]
 |===
@@ -243,8 +236,8 @@ image::images/ocs/OCS4.5-dashboard-healthy.png[OCS Dashboard after successful ba
 
 MCGによって提供されるObject Storeサービスのダッシュボードも付属しています。`Persistent Storage` の横にある `Object Service` のタブを選択することでアクセスできます。
 
-.OCS Multi-Cloud-Gateway Dashboard after successful installation
-image::images/ocs/OCS4.5-noobaa-dashboard-healthy.png[OCS Multi-Cloud-Gateway Dashboard after successful installation]
+.ODF Multi-Cloud-Gateway Dashboard after successful installation
+image::images/ocs/OCS4.5-noobaa-dashboard-healthy.png[ODF Multi-Cloud-Gateway Dashboard after successful installation]
 
 [cols="0,1,10a"]
 |===
@@ -255,7 +248,7 @@ image::images/ocs/OCS4.5-noobaa-dashboard-healthy.png[OCS Multi-Cloud-Gateway Da
 |⑤ | Activity | クラスターで起きている全ての変更の概要
 |===
 
-すべて正常なステータスになったら、OCSのデプロイ中に作成された3つの新しい *StorageClass* を使用できるようになります。
+すべて正常なステータスになったら、ODFのデプロイ中に作成された3つの新しい *StorageClass* を使用できるようになります。
 
 - ocs-storagecluster-ceph-rbd
 - ocs-storagecluster-cephfs
@@ -271,9 +264,9 @@ oc get sc -n openshift-storage
 
 先に進む前に、3つのStorageClassが使用可能であることを確認してください。
 
-NOTE: NooBaaは `noobaa-core` Pod内部の `db` コンテナで利用するために `ocs-storagecluster-ceph-rbd` StorageClassを使用してPVCを作成しています。
+NOTE: MCGは `noobaa-core` Pod内部の `db` コンテナで利用するために `ocs-storagecluster-ceph-rbd` StorageClassを使用してPVCを作成しています。
 
-=== Rook-Ceph toolboxを利用してCephクラスターを確認する
+=== 2-2-3-2. Rook-Ceph toolboxを利用してCephクラスターを確認する
 
 このセクションでは、Rook-Ceph *toolbox* を利用して作成されたCephクラスターに対してcephコマンドを実行し、クラスター構成を確認します。
 
@@ -355,5 +348,5 @@ exit
 ----
 
 ---
-以上で、「Lab2: OCSクラスターを作成する」は完了です。 +
-次は link:ocs4-3[Lab3: OCSが提供するRWO PVを使用する] に進みます。
+以上で、「Lab 2-2: ODFクラスターを作成する」は完了です。 +
+次は link:ocs4-3[Lab 2-3: ODFが提供するRWO PVを使用する] に進みます。

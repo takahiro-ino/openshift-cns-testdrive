@@ -24,20 +24,7 @@ ssh -l {{ SSH_USERNAME }} {{ BASTION_FQDN }} -o ServerAliveInterval=120
 {{ SSH_PASSWORD }}
 ----
 
-<<<<<<< HEAD
 ホスト名に4桁の英数字文字列(例:f4a3)があることに気づくでしょう。この文字列が `GUID` です。`GUID` はよく使うものなので、環境変数としてエクスポートしておくのがよいです。
-=======
-Once you've SSH-ed into the bastion host, become the `ec2-user`:
-
-[source,bash,role="execute"]
-----
-sudo su - ec2-user
-----
-
-You'll notice that there is a 4-digit alphanumeric string (eg: f4a3) in the hostname. This
-string is your `GUID`. Since you will often use `GUID`, it makes sense to
-export it as an environment variable:
->>>>>>> upstream/ocp4-dev
 
 [source,bash,role="execute"]
 ----
@@ -81,13 +68,7 @@ Liveness ProbeはPodが健康かどうかをシステムに知らせます。Pod
 
 Readiness ProbeはPodがトラフィックを受ける準備ができているかどうかをシステムに知らせます。これは例えば、クラスタがPodをロードバランサに入れるタイミングを知るために使用できます。
 
-<<<<<<< HEAD
 OpenShift Masterの責任範囲の詳細については、製品ドキュメントのlink:https://docs.openshift.com/container-platform/3.11/architecture/infrastructure_components/kubernetes_infrastructure.html[infrastructure components section] を参照してください。
-=======
-For more information on the OpenShift Master's areas of responsibility, please refer to
-the
-link:https://docs.openshift.com/container-platform/4.6/architecture/control-plane.html[infrastructure components section] of the product documentation.
->>>>>>> upstream/ocp4-dev
 
 ### インストールで作られる成果物
 OpenShift 4は2つのスーパーユーザでインストールします。
@@ -168,13 +149,8 @@ oc get clusterversion
 
 ----
 NAME      VERSION   AVAILABLE   PROGRESSING   SINCE   STATUS
-<<<<<<< HEAD
 version   4.3.1     True        False         15m     Cluster version is 4.3.1
 ----
-=======
-version   4.6.3     True        False         71m     Cluster version is 4.6.3
-```
->>>>>>> upstream/ocp4-dev
 
 詳細については、以下のコマンドを実行します。
 
@@ -294,22 +270,8 @@ ip-10-0-203-93.us-west-2.compute.internal    Ready    master   4h26m   v1.19.0+d
 
 3つのmasterと3つのworkerがあります。OpenShift *Master* はSDN（Software Defined Network）に参加する必要があるため、*Node* でもあります。追加の目的でノードが必要な場合は、IPIでクラウドプロバイダーのOperatorを活用すると、非常に簡単にノードを作成できます。OpenShiftのインフラコンポーネント(レジストリ、ルーターなど)を実行するためのノードを作成するのは、後の演習で行います。
 
-<<<<<<< HEAD
 #### Webコンソールを確認する
 OpenShiftでは、ユーザ、開発者、アプリケーション運用者、管理者が環境とインタラクションするためのWebコンソールを提供しています。クラスタ自体のアップグレードを含むクラスタ管理機能の多くは、Webコンソールを使用するだけで実行できます。
-=======
-Exit out of the `ec2-user` user shell.
-[source,role="execute"]
-----
-exit
-----
-
-#### Check the Web Console
-OpenShift provides a web console for users, developers, application
-operators, and administrators to interact with the environment. Many of the
-cluster administration functions, including upgrading the cluster itself, can
-be performed simply by using the web console.
->>>>>>> upstream/ocp4-dev
 
 Webコンソールは実際にはOpenShift環境内でアプリケーションとして実行され、OpenShift Routerを介して公開されます。ルーターについては、この後の演習で詳しく説明します。今は、リンクをkbd:[Ctrl]+クリックするだけでOKです。
 
@@ -324,15 +286,5 @@ exit
 
 [Warning]
 ====
-<<<<<<< HEAD
 最初にWebコンソールにアクセスすると、ブラウザに自己署名証明書エラーが表示されます。OpenShiftをインストールすると、デフォルトでは、Webコンソールを含むOpenShift内のすべてのコンポーネント間通信に対してCA証明書とSSL証明書が生成されます。
 ====
-=======
-You might receive a self-signed certificate error in your browser when you
-first visit the web console. When OpenShift is installed, by default, a CA
-and SSL certificates are generated for all inter-component communication
-within OpenShift, including the web console. Some lab instances were
-installed with Let's Encrypt certificates, so not all will get this
-warning.
-====
->>>>>>> upstream/ocp4-dev

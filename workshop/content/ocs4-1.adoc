@@ -1,32 +1,31 @@
 // Activate experimental attribute for Keyboard Shortcut keys
 :experimental:
 
-= 演習2 Lab1: OpenShift Container Storageをデプロイするためのnodeを準備する
+= Lab 2-1: OpenShift Data Foundationをデプロイするためのnodeを準備する
 
 == Labの概要
-このLabでは Red Hat OpenShift Container Storage(OCS) 4をデプロイするための新しいnodeを準備します。 +
-OCSは、通常ユーザーアプリケーションが稼働するworker nodeで共存して稼働することも可能ですが、本LabではOCS専用のworker nodeを作成します。
+このLabでは Red Hat OpenShift Data Foundation(ODF) 4をデプロイするための新しいnodeを準備します。 +
+ODFは、通常ユーザーアプリケーションが稼働するworker nodeで共存して稼働することも可能ですが、本LabではODF専用のworker nodeを作成します。
 
 IPI(Installer Provisioned Infrastructure)方式でインストールしたOpenShift Container Platform(OCP)クラスターでは、**Machine Set**を使用することで、簡単に新しいnodeを追加することが可能です。 +
 本Labでも**Machine Set**を使って新しいnodeを追加します。
 
 === このLabで学習する内容
 
-* OCPクラスターに新規の**Machine Set**を追加し、OCS用のworker nodeを追加する
-* 追加したworker nodeに、OCSで使用するためのラベルを付ける
+* OCPクラスターに新規の**Machine Set**を追加し、ODF用のworker nodeを追加する
+* 追加したworker nodeに、ODFで使用するためのラベルを付ける
 
 
 [[labexercises]]
 
-== 1-0. Bastionサーバーからログアウトする
+== 2-1-0. Bastionサーバーからログアウトする
 
 **もしBastionサーバーにログインしている場合は、ログアウトして下さい。** +
 Bastionサーバー上では以下の作業ができないものがあります。
 
+== 2-1-1. OCPクラスターでMachine Setを作成してworker nodeを追加する
 
-== 1-1. OCPクラスターでMachine Setを作成してworker nodeを追加する
-
-このセクションでは、OCS用に3つの *Machine Set* を追加します。 +
+このセクションでは、ODF用に3つの *Machine Set* を追加します。 +
 はじめにOCPクラスターに3つのworker nodeがあることを確認します。
 
 [source,role="execute"]
@@ -38,9 +37,9 @@ oc get nodes -l node-role.kubernetes.io/worker -l '!node-role.kubernetes.io/mast
 
 ----
 NAME                                         STATUS   ROLES    AGE   VERSION
-ip-10-0-138-9.us-east-2.compute.internal     Ready    worker   77m   v1.16.2
-ip-10-0-150-39.us-east-2.compute.internal    Ready    worker   77m   v1.16.2
-ip-10-0-170-49.us-east-2.compute.internal    Ready    worker   77m   v1.16.2
+ip-10-0-138-9.us-east-2.compute.internal     Ready    worker   77m   v1.19.0+9c69bdc
+ip-10-0-150-39.us-east-2.compute.internal    Ready    worker   77m   v1.19.0+9c69bdc
+ip-10-0-170-49.us-east-2.compute.internal    Ready    worker   77m   v1.19.0+9c69bdc
 ----
 
 ここで *Machine Set* を使用して、さらに3つのworker nodeをクラスターに追加します。 +
@@ -60,7 +59,7 @@ cluster-ocs-0ec4-dgwqc-worker-us-east-2b   1         1         1       1        
 cluster-ocs-0ec4-dgwqc-worker-us-east-2c   1         1         1       1           86m
 ----
 
-それでは、次を実行してOCSで使用する新しい *Machine Set* を作成します。
+それでは、次を実行してODFで使用する新しい *Machine Set* を作成します。
 
 [source,role="execute"]
 ----
@@ -116,7 +115,8 @@ watch "oc get machinesets -n openshift-machine-api"
 NAME                                          DESIRED   CURRENT   READY   AVAILABLE   AGE
 cluster-ocs-0ec4-dgwqc-worker-us-east-2a      1         1         1       1           86m
 cluster-ocs-0ec4-dgwqc-worker-us-east-2b      1         1         1       1           86m
-cluster-ocs-0ec4-dgwqc-worker-us-east-2c      1         1         1       1           86m   cluster-ocs-0ec4-dgwqc-workerocs-us-east-2a   1         1         1       1           8m26s
+cluster-ocs-0ec4-dgwqc-worker-us-east-2c      1         1         1       1           86m
+cluster-ocs-0ec4-dgwqc-workerocs-us-east-2a   1         1         1       1           8m26s
 cluster-ocs-0ec4-dgwqc-workerocs-us-east-2b   1         1         1       1           8m26s
 cluster-ocs-0ec4-dgwqc-workerocs-us-east-2c   1         1         1       1           8m25s
 ----
@@ -140,7 +140,7 @@ cluster-ocs-0ec4-dgwqc-workerocs-us-east-2c-rx4v8   Running   m5.4xlarge   us-ea
 
 workerocs *Machine* が使用しているAWS EC2インスタンスタイプが `m5.4xlarge` であることがわかります。
 
-NOTE: `m5.4xlarge` インスタンスタイプは、16 vCPUと64GB MEMのリソースを持ちます。このリソース量はOCSで推奨されるスペックです。 +
+NOTE: `m5.4xlarge` インスタンスタイプは、16 vCPUと64GB MEMのリソースを持ちます。このリソース量はODFで推奨されるスペックです。 +
 
 最後に、3つのworker nodeが追加されて6つになっていることを確認します。全てのworker nodeの `STATUS` が `Ready` であることを確認します。
 
@@ -151,22 +151,22 @@ oc get nodes -l node-role.kubernetes.io/worker -l '!node-role.kubernetes.io/mast
 .出力例:
 ----
 NAME                                         STATUS   ROLES    AGE     VERSION
-ip-10-0-131-209.us-east-2.compute.internal   Ready    worker   2m21s   v1.16.2
-ip-10-0-138-9.us-east-2.compute.internal     Ready    worker   128m    v1.16.2
-ip-10-0-150-39.us-east-2.compute.internal    Ready    worker   128m    v1.16.2
-ip-10-0-155-12.us-east-2.compute.internal    Ready    worker   2m22s   v1.16.2
-ip-10-0-162-215.us-east-2.compute.internal   Ready    worker   2m14s   v1.16.2
-ip-10-0-170-49.us-east-2.compute.internal    Ready    worker   128m    v1.16.2
+ip-10-0-131-209.us-east-2.compute.internal   Ready    worker   2m21s   v1.19.0+9c69bdc
+ip-10-0-138-9.us-east-2.compute.internal     Ready    worker   128m    v1.19.0+9c69bdc
+ip-10-0-150-39.us-east-2.compute.internal    Ready    worker   128m    v1.19.0+9c69bdc
+ip-10-0-155-12.us-east-2.compute.internal    Ready    worker   2m22s   v1.19.0+9c69bdc
+ip-10-0-162-215.us-east-2.compute.internal   Ready    worker   2m14s   v1.19.0+9c69bdc
+ip-10-0-170-49.us-east-2.compute.internal    Ready    worker   128m    v1.19.0+9c69bdc
 ----
 
 以上で、worker nodeの追加ができました。
 
 NOTE: UPI(User Provisioned Infrastructure)方式でインストールしたOCPクラスターでは、Machine SetおよびMachineは利用できません。その場合は手作業でクラスターにnodeを追加して下さい。
 
-== 1-2. 追加したworker nodeにOCSで使用するためのラベルを付ける
+== 2-1-2. 追加したworker nodeにODFで使用するためのラベルを付ける
 
-OCSを稼働させるnodeには、`cluster.ocs.openshift.io/openshift-storage` という特定のラベルが付いている必要があります。 +
-後段のLabで学習する、"OCS Operator"によって様々なOCSを構成するPodがデプロイされますが、これらのPodはこのラベルが付いているnodeで稼働するようになっているためです。
+ODFを稼働させるnodeには、`cluster.ocs.openshift.io/openshift-storage` という特定のラベルが付いている必要があります。 +
+後段のLabで学習する、"OCS Operator"によって様々なODFを構成するPodがデプロイされますが、これらのPodはこのラベルが付いているnodeで稼働するようになっているためです。
 
 新しいworker nodeに、`cluster.ocs.openshift.io/openshift-storage` のラベルを付けます。
 
@@ -177,7 +177,7 @@ oc label $(oc get node -l 'role=storage-node','topology.kubernetes.io/zone=us-ea
 oc label $(oc get node -l 'role=storage-node','topology.kubernetes.io/zone=us-east-2c' -o name) cluster.ocs.openshift.io/openshift-storage=""
 ----
 
-OCS用のラベルが付いていることを確認してみましょう。
+ODF用のラベルが付いていることを確認してみましょう。
 
 [source,role="execute"]
 ----
@@ -186,12 +186,12 @@ oc get nodes -l cluster.ocs.openshift.io/openshift-storage=
 .出力例:
 ----
 NAME                                         STATUS   ROLES    AGE    VERSION
-ip-10-0-131-209.us-east-2.compute.internal   Ready    worker   5m25s   v1.16.2
-ip-10-0-155-12.us-east-2.compute.internal    Ready    worker   5m26s   v1.16.2
-ip-10-0-162-215.us-east-2.compute.internal   Ready    worker   5m19s   v1.16.2
+ip-10-0-131-209.us-east-2.compute.internal   Ready    worker   5m25s   v1.19.0+9c69bdc
+ip-10-0-155-12.us-east-2.compute.internal    Ready    worker   5m26s   v1.19.0+9c69bdc
+ip-10-0-162-215.us-east-2.compute.internal   Ready    worker   5m19s   v1.19.0+9c69bdc
 ----
 
 ---
-以上で、「Lab1: OpenShift Container Storageをデプロイするためのnodeを準備する」は完了です。 +
-次は link:ocs4-2[Lab2: OCSクラスターを作成する] に進みます。
+以上で、「Lab 2-1: OpenShift Data Foundationをデプロイするためのnodeを準備する」は完了です。 +
+次は link:ocs4-2[Lab 2-2: ODFクラスターを作成する] に進みます。
 

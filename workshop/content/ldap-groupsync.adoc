@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 = 外部認証プロバイダ(LDAP)の設定
 
 == 演習の概要
@@ -28,41 +27,6 @@ OpenShiftはLDAPサーバーに対してユーザ認証を実行することが�
 
 #### OAuth の設定を調べる
 この環境は何も手を加えていない「バニラ」なOpenShift 4のインストールなので、デフォルトのOAuthリソースを持っています。そのOAuth設定を以下で調べることができます。
-=======
-## Configuring External Authentication Providers
-
-OpenShift supports a number of different authentication providers, and you can
-find the complete list in the
-link:https://docs.openshift.com/container-platform/4.6/authentication/understanding-identity-provider.html[understanding
-identity provider configuration]. One of the most commonly used authentication
-providers is LDAP, whether provided by Microsoft Active Directory or by other
-sources.
-
-OpenShift can perform user authentication against an LDAP server, and can also
-configure group membership and certain RBAC attributes based on LDAP group
-membership.
-
-### Background: LDAP Structure
-
-In this environment we are providing LDAP with the following user groups:
-
-* `ose-user`: Users with OpenShift access
-** Any users who should be able to log-in to OpenShift must be members of this
-group
-** All of the below mentioned users are in this group
-* `ose-normal-dev`: Normal OpenShift users
-** Regular users of OpenShift without special permissions
-** Contains: `normaluser1`, `teamuser1`, `teamuser2`
-* `ose-fancy-dev`: Fancy OpenShift users
-** Users of OpenShift that are granted some special privileges
-** Contains: `fancyuser1`, `fancyuser2`
-* `ose-teamed-app`: Teamed app users
-** A group of users that will have access to the same OpenShift *Project*
-** Contains: `teamuser1`, `teamuser2`
-
-#### Examine the OAuth configuration
-Since this is a pure, vanilla OpenShift 4 installation, it has the default OAuth resource. You can examine that OAuth configuration with the following:
->>>>>>> upstream/ocp4-dev
 
 [source,bash,role="execute"]
 ----
@@ -177,14 +141,7 @@ spec:
 
 <1> `name`: プロバイダの一意のID。OpenShift環境では複数の認証プロバイダを持つことが可能で、OpenShiftはそれらを区別することができます。
 
-<<<<<<< HEAD
 <2> `mappingMethod: claim`: このセクションは、複数のプロバイダが構成されている場合に、OpenShiftクラスタ内でユーザ名がどのように割り当てられるかに関係しています。詳細については、link:https://docs.openshift.com/container-platform/4.5/authentication/understanding-identity-provider.html#identity-provider-parameters-understanding-identity-provider[Identity provider parameters] のセクションを参照してください。
-=======
-<2> `mappingMethod: claim`: This section has to do with how usernames are
-assigned within an OpenShift cluster when multiple providers are configured. See
-the
-link:https://docs.openshift.com/container-platform/4.6/authentication/understanding-identity-provider.html#identity-provider-parameters_understanding-identity-provider[Identity provider parameters] section for more information.
->>>>>>> upstream/ocp4-dev
 
 <3> `attributes`: このセクションでは、OpenShiftユーザの「アカウント」のフィールドに反復して割り当てるLDAPフィールドを定義します。リストを検索する際に属性が見つからない場合や、属性が入力されていない場合は認証全体が失敗します。上の例の場合は、LDAP `dn` からidを、LDAP `mail` からemailアドレスを、LDAP `cn` からの名前を、LDAP `uid` からユーザ名を、それぞれ関連付けます。
 
@@ -196,15 +153,8 @@ link:https://docs.openshift.com/container-platform/4.6/authentication/understand
 
 <7> `url`: LDAPサーバーと実行する検索。
 
-<<<<<<< HEAD
 OpenShiftにおけるLDAP認証の具体的な詳細については、link:https://docs.openshift.com/container-platform/4.5/authentication/identity_providers/configuring-ldap-identity-provider.html[Configuring
 an LDAP identity provider]のドキュメントを参照してください。
-=======
-For more information on the specific details of LDAP authentication in
-OpenShift you can refer to the
-link:https://docs.openshift.com/container-platform/4.6/authentication/identity_providers/configuring-ldap-identity-provider.html[Configuring
-an LDAP identity provider^] documentation.
->>>>>>> upstream/ocp4-dev
 
 LDAP IDプロバイダを設定するには、以下を行う必要があります。
 
@@ -227,20 +177,9 @@ oc apply -f {{ HOME_PATH }}/support/oauth-cluster.yaml
 `apply` を使うのは既存の `OAuth` オブジェクトがあるためです。もし `create` を使用した場合、オブジェクトが既に存在しているというエラーが発生するでしょう。`apply` でも警告が表示されますが、それは問題ありません。
 ====
 
-<<<<<<< HEAD
 #### LDAPグループをOpenShiftグループに同期する
 OpenShiftでは、グループを使用してユーザを管理し、複数のユーザの権限を一度に制御することができます。LDAPでグループを同期する方法については、link:https://docs.openshift.com/container-platform/3.11/install_config/syncing_groups_with_ldap.html[sync
 groups with LDAP]の中にセクションがあります。グループを同期するには、`cluster-admin` 権限を持つユーザとしてOpenShiftにログインした状態で `groupsync` というプログラムを実行し、OpenShiftが様々なグループ内で見つけたユーザをどうするかを指示する設定ファイルを使う必要があります。
-=======
-#### Syncing LDAP Groups to OpenShift Groups
-In OpenShift, groups can be used to manage users and control permissions for
-multiple users at once. There is a section in the documentation on how to
-link:https://docs.openshift.com/container-platform/4.6/authentication/ldap-syncing.html[sync
-groups with LDAP^]. Syncing groups involves running a program called `groupsync`
-when logged into OpenShift as a user with `cluster-admin` privileges, and using
-a configuration file that tells OpenShift what to do with the users it finds in
-the various groups.
->>>>>>> upstream/ocp4-dev
 
 このラボでは次のような `groupsync` の設定ファイルを提供しています。
 
@@ -354,13 +293,7 @@ oc adm policy add-cluster-role-to-group cluster-reader ose-fancy-dev
 
 [Note]
 ====
-<<<<<<< HEAD
 OpenShiftに付属するさまざまなロールに興味がある方は、link:https://docs.openshift.com/container-platform/4.5/authentication/using-rbac.html[Role-Based Access Control (RBAC)^] のドキュメントを参照してください。
-=======
-If you are interested in the different roles that come with OpenShift, you can
-learn more about them in the
-link:https://docs.openshift.com/container-platform/4.6/authentication/using-rbac.html[role-based access control (RBAC)^] documentation.
->>>>>>> upstream/ocp4-dev
 ====
 
 #### cluster-reader ポリシーを調べる
@@ -391,18 +324,7 @@ No resources found.
 oc login -u fancyuser1 -p Op#nSh1ft
 ----
 
-<<<<<<< HEAD
 同じ `oc get projects` を実行すると、クラスタ内のすべての *Projects* のリストが表示されます。
-=======
-And then perform the same `oc get projects` command: 
-
-[source,bash,role="execute"]
-----
-oc get projects
-----
-
-You will now see the list of all of the projects in the cluster:
->>>>>>> upstream/ocp4-dev
 
 ----
 NAME                                                    DISPLAY NAME                        STATUS
@@ -566,29 +488,7 @@ prometheus-k8s-openshift-monitoring.{{ ROUTE_SUBDOMAIN }}
 link:https://prometheus-k8s-openshift-monitoring.{{ ROUTE_SUBDOMAIN }}[Prometheus Link]
 をcontrol+クリックしてブラウザで開きます。ログイン画面が出てきたら *Log in with OpenShift* ボタンをクリックして `ldap auth` を選択し、先ほど `cluster-reader` 権限を付与した `fancyuser1` ユーザを使用します。より細かく言えば、`ose-fancy-dev` グループに `cluster-reader` 権限があり、`fancyuser1` がメンバーです。これらのユーザのパスワードはすべて `openshift` です。自己署名証明書のため、証明書エラーが出ると思います。必ず承諾するようにしましょう。
 
-<<<<<<< HEAD
 ログインすると、最初にauthプロキシのパーミッションの承認画面が表示されます。
-=======
-The installer configured a `Route` for Prometheus by default. Go ahead and
-control+click the link:https://prometheus-k8s-openshift-monitoring.{{
-ROUTE_SUBDOMAIN }}[Prometheus link] to open it in your browser. You'll be
-greeted with a login screen. Click the *Log in with OpenShift* button, then
-select the `ldap` auth mechanism, and use the `fancyuser1` user that you gave
-`cluster-reader` privileges to earlier.
-
-More specifically, the `ose-fancy-dev` group has `cluster-reader`
-permissions, and `fancyuser1` is a member. Remember that the password
-for all of these users is `Op#nSh1ft`.
-
-[Warning]
-====
-You might get a certificate error because of a self-signed certificate
-(depending on how the cluster was installed).  Make sure to accept it.
-====
-
-After logging in, the first time you will be presented with an auth proxy
-permissions acknowledgement:
->>>>>>> upstream/ocp4-dev
 
 .Auth Proxy Acceptance.
 image::images/prometheus-auth-proxy.png[]

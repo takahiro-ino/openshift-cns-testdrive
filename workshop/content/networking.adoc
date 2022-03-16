@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 = OpenShift の Network Policy ベースの SDN
 :experimental:
 
@@ -20,56 +19,17 @@ link:https://docs.openshift.com/container-platform/3.11/architecture/networking/
 ### Project の切り替え
 続行する前に、実際に存在するプロジェクトを使用していることを確認してください。
 前の演習で最後にプロジェクトを削除した場合、この演習のスクリプトでエラーが発生します。
-=======
-## OpenShift Network Policy Based SDN
-OpenShift has a software defined network (SDN) inside the platform that is based
-on Open vSwitch. This SDN is used to provide connectivity between application
-components inside of the OpenShift environment. It comes with default network
-ranges pre-configured, although you can make changes to these should they
-conflict with your existing infrastructure, or for whatever other reason you may
-have.
-
-The OpenShift Network Policy SDN plug-in allows projects to truly isolate their
-network infrastructure inside OpenShift’s software defined network. While you
-have seen projects isolate resources through OpenShift’s RBAC, the network policy
-SDN plugin is able to isolate pods in projects using pod and namespace label selectors.
-
-The network policy SDN plugin was introduced in OpenShift 3.7, and more
-information about it and its configuration can be found in the
-link:https://docs.openshift.com/container-platform/4.6/networking/understanding-networking.html[networking
-documentation^]. Additionally, other vendors are working with the upstream
-Kubernetes community to implement their own SDN plugins, and several of these
-are supported by the vendors for use with OpenShift. These plugin
-implementations make use of appc/CNI, which is outside the scope of this lab.
-
-### Switch Your Project
-Before continuing, make sure you are using a project that actually exists. If
-the last thing you did in the previous lab was delete a project, this will
-cause errors in the scripts in this lab.
->>>>>>> upstream/ocp4-dev
 
 [source,bash,role="execute"]
 ----
 oc project default
 ----
 
-<<<<<<< HEAD
 ### 生成スクリプトの実行 Execute the Creation Script
 プロジェクトまたはクラスタ管理権限を持つユーザーのみが、プロジェクトのネットワークを操作できます。
 
 それでは、用意されているスクリプトを実行します。
 2つの *Project* が作成され、 *DeploymentConfig* を使って、*Pod* が展開されます。
-=======
-### Execute the Creation Script
-[Note]
-====
-Only users with project or cluster administration privileges can manipulate *Project*
-network policies.
-====
-
-Execute a script that we have prepared for you. It will create two
-*Projects* and then deploy a *DeploymentConfig* with a *Pod* for you:
->>>>>>> upstream/ocp4-dev
 
 [source,bash,role="execute"]
 ----
@@ -185,30 +145,8 @@ Checking connectivity between Pod A and Pod B............ FAILED!
 最後の行が、 `FAILED!` である事に注意してください。
 これは、`netproj-a` プロジェクトの Pod が `netproj-b` プロジェクトの　Pod に接続できなかったことを意味します (期待通りの動作です)。
 
-<<<<<<< HEAD
 ### アクセス許可
 Network Policy ベースの SDN では、複数の `NetworkPolicy` CR を作成することで、プロジェクト内の個々の Pod や　Pod のグループへのアクセスを許可することができます。
-=======
-To list all the `NetworkPolicy` objects, run the following:
-
-[source,bash,role="execute"]
-----
-oc get networkpolicy -n netproj-b
-----
-
-You should see something like the following:
-
-[source]
-----
-NAME              POD-SELECTOR   AGE
-deny-by-default   <none>         3m19s
-----
-
-### Allow Access
-With the Network Policy based SDN, it's possible to allow access to
-individual or groups of pods in a project by creating multiple
-`NetworkPolicy` CRs.
->>>>>>> upstream/ocp4-dev
 
 以下は、`run: ose` というラベルを持つ プロジェクト 内のすべての Pod に対して、TCP 上の 5000 番ポートへのアクセスを許可します。
 `netproj-b` プロジェクトの Pod はこのラベルを持っています。
@@ -248,31 +186,8 @@ spec:
 oc create -n netproj-b -f {{ HOME_PATH }}/support/network-policy-allow-all-from-netproj-a.yaml
 ----
 
-<<<<<<< HEAD
 ### 接続性のテスト #3 (should work again)
 "5000番ポートの `netproj-a` からのアクセスを許可する" という NetworkPolicy が適用されているので、`netproj-a` プロジェクト内の Pod と、`netproj-b` プロジェクト内の Pod の接続性は再び許可されるはずです。
-=======
-Listing the *NetworkPolicies*:
-
-[source,bash,role="execute"]
-----
-oc get networkpolicy -n netproj-b
-----
-
-This should show the new policy in place
-
-[source]
-----
-NAME                                      POD-SELECTOR   AGE
-allow-tcp-5000-from-netproj-a-namespace   run=ose        81s
-deny-by-default                           <none>         7m11s
-----
-
-### Test Connectivity #3 (should work again)
-Since the "allow access from `netproj-a` on port 5000" NetworkPolicy has been applied,
-connectivity between the pod in the `netproj-a` *Project* and the pod in the
-`netproj-b` *Project* should be allowed again.
->>>>>>> upstream/ocp4-dev
 
 次を実行する事でテストします。:
 
@@ -290,11 +205,5 @@ Getting Pod A's Name... ose-1-66dz2
 Checking connectivity between Pod A and Pod B... worked
 ----
 
-<<<<<<< HEAD
 最後の行が、 `worked` になっている事に注目してください。
 これは、`netproj-a` プロジェクトの Pod が `netproj-b` プロジェクトの Pod に接続できたことを意味します (期待通りの動作です)。
-=======
-Note the last line that says `worked`. This means that the pod in the
-`netproj-a` *Project* was able to connect to the pod in the `netproj-b`
-*Project* (as expected).
->>>>>>> upstream/ocp4-dev

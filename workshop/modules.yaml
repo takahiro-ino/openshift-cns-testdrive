@@ -6,27 +6,27 @@ modules:
   ocp4ws-ops:
     name: 演習1 OpenShift 4 Ops ハンズオン
   ocp4ws-ops-1-1:
-    name: 　Lab1-1.クラスターログイン
+    name: 　Lab1-1. OpenShift4クラスターへのログインと動作確認
   ocp4ws-ops-1-2:
-    name: 　Lab1-2. アプリケーションのビルド/デプロイ
-  ocp4ws-ops-2-1:
-    name: 　Lab2-1. Prometheus 1/2
-  ocp4ws-ops-2-2:
-    name: 　Lab2-2. Prometheus 2/2
-  ocp4ws-ops-2-3:
-    name: 　Lab2-3. CRDの設定
+    name: 　Lab1-2. コンテナイメージのビルドとデプロイ
+  ocp4ws-ops-1-3:
+    name: 　Lab1-3. Prometheus(1/3) JMX Exporterの展開
+  ocp4ws-ops-1-4:
+    name: 　Lab1-4. Prometheus(2/3) Operatorの展開
+  ocp4ws-ops-1-5:
+    name: 　Lab1-5. Prometheus(3/3) CRの設定
   ocs4:
-    name: 演習2 OpenShift Container Storage ハンズオン
+    name: 演習2 OpenShift Data Foundation ハンズオン
   ocs4-1:
-    name: 　Lab1. OCS nodeの準備
+    name: 　Lab2-1. ODF nodeの準備
   ocs4-2:
-    name: 　Lab2. OCSクラスターの作成
+    name: 　Lab2-2. ODFクラスターの作成
   ocs4-3:
-    name: 　Lab3. RWO PV
+    name: 　Lab2-3. RWO PV
   ocs4-4:
-    name: 　Lab4. RWX PV
+    name: 　Lab2-4. RWX PV
   ocs4-5:
-    name:
+    name: 　ODF オプションLab
   option-placeholder:
     name: --- オプション演習 ---
   installation:

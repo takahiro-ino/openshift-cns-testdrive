@@ -272,7 +272,7 @@
                                     },
                                     {
                                         "name": "CONSOLE_URL",
-                                        "value": "http://0.0.0.0:10083"
+                                        "value": "${CONSOLE_URL}"
                                     },
                                     {
                                         "name": "OC_VERSION",
