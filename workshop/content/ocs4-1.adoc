@@ -37,9 +37,9 @@ oc get nodes -l node-role.kubernetes.io/worker -l '!node-role.kubernetes.io/mast
 
 ----
 NAME                                         STATUS   ROLES    AGE   VERSION
-ip-10-0-138-9.us-east-2.compute.internal     Ready    worker   77m   v1.19.0+9c69bdc
-ip-10-0-150-39.us-east-2.compute.internal    Ready    worker   77m   v1.19.0+9c69bdc
-ip-10-0-170-49.us-east-2.compute.internal    Ready    worker   77m   v1.19.0+9c69bdc
+ip-10-0-128-156.us-east-2.compute.internal   Ready    worker   21h   v1.22.3+b93fd35
+ip-10-0-181-21.us-east-2.compute.internal    Ready    worker   21h   v1.22.3+b93fd35
+ip-10-0-214-18.us-east-2.compute.internal    Ready    worker   21h   v1.22.3+b93fd35
 ----
 
 ここで *Machine Set* を使用して、さらに3つのworker nodeをクラスターに追加します。 +
@@ -53,10 +53,10 @@ oc get machinesets -n openshift-machine-api
 .出力例:
 
 ----
-NAME                                       DESIRED   CURRENT   READY   AVAILABLE   AGE
-cluster-ocs-0ec4-dgwqc-worker-us-east-2a   1         1         1       1           86m
-cluster-ocs-0ec4-dgwqc-worker-us-east-2b   1         1         1       1           86m
-cluster-ocs-0ec4-dgwqc-worker-us-east-2c   1         1         1       1           86m
+NAME                                    DESIRED   CURRENT   READY   AVAILABLE   AGE
+cluster-58kkd-nmncw-worker-us-east-2a   1         1         1       1           21h
+cluster-58kkd-nmncw-worker-us-east-2b   1         1         1       1           21h
+cluster-58kkd-nmncw-worker-us-east-2c   1         1         1       1           21h
 ----
 
 それでは、次を実行してODFで使用する新しい *Machine Set* を作成します。
@@ -76,13 +76,13 @@ oc get machinesets -n openshift-machine-api
 .出力例:
 
 ----
-NAME                                          DESIRED   CURRENT   READY   AVAILABLE   AGE
-cluster-ocs-0ec4-dgwqc-worker-us-east-2a      1         1         1       1           86m
-cluster-ocs-0ec4-dgwqc-worker-us-east-2b      1         1         1       1           86m
-cluster-ocs-0ec4-dgwqc-worker-us-east-2c      1         1         1       1           86m
-cluster-ocs-0ec4-dgwqc-workerocs-us-east-2a   0         0                             15s
-cluster-ocs-0ec4-dgwqc-workerocs-us-east-2b   0         0                             15s
-cluster-ocs-0ec4-dgwqc-workerocs-us-east-2c   0         0                             15s
+NAME                                       DESIRED   CURRENT   READY   AVAILABLE   AGE
+cluster-58kkd-nmncw-worker-us-east-2a      1         1         1       1           21h
+cluster-58kkd-nmncw-worker-us-east-2b      1         1         1       1           21h
+cluster-58kkd-nmncw-worker-us-east-2c      1         1         1       1           21h
+cluster-58kkd-nmncw-workerocs-us-east-2a   0         0                             36s
+cluster-58kkd-nmncw-workerocs-us-east-2b   0         0                             36s
+cluster-58kkd-nmncw-workerocs-us-east-2c   0         0                             36s
 ----
 
 この時点では `DESIRED` と `CURRENT` が 0、つまり *Machine* がないため、nodeは作成されません。 +
@@ -97,9 +97,9 @@ oc get machinesets -n openshift-machine-api -l machine.openshift.io/cluster-api-
 .出力例:
 
 ----
-machineset.machine.openshift.io/cluster-ocs-0ec4-dgwqc-workerocs-us-east-2a scaled
-machineset.machine.openshift.io/cluster-ocs-0ec4-dgwqc-workerocs-us-east-2b scaled
-machineset.machine.openshift.io/cluster-ocs-0ec4-dgwqc-workerocs-us-east-2c scaled
+machineset.machine.openshift.io/cluster-58kkd-nmncw-workerocs-us-east-2a scaled
+machineset.machine.openshift.io/cluster-58kkd-nmncw-workerocs-us-east-2b scaled
+machineset.machine.openshift.io/cluster-58kkd-nmncw-workerocs-us-east-2c scaled
 ----
 
 新しい workerocs *Machine Set* の全てで `READY` と `AVAILABLE` のカラムに数値(この場合は `1` )が表示されるまで待ちます。このステップには10分ほどかかる場合があります。
@@ -112,13 +112,13 @@ watch "oc get machinesets -n openshift-machine-api"
 .出力例:
 
 ----
-NAME                                          DESIRED   CURRENT   READY   AVAILABLE   AGE
-cluster-ocs-0ec4-dgwqc-worker-us-east-2a      1         1         1       1           86m
-cluster-ocs-0ec4-dgwqc-worker-us-east-2b      1         1         1       1           86m
-cluster-ocs-0ec4-dgwqc-worker-us-east-2c      1         1         1       1           86m
-cluster-ocs-0ec4-dgwqc-workerocs-us-east-2a   1         1         1       1           8m26s
-cluster-ocs-0ec4-dgwqc-workerocs-us-east-2b   1         1         1       1           8m26s
-cluster-ocs-0ec4-dgwqc-workerocs-us-east-2c   1         1         1       1           8m25s
+NAME                                       DESIRED   CURRENT   READY   AVAILABLE   AGE
+cluster-58kkd-nmncw-worker-us-east-2a      1         1         1       1           21h
+cluster-58kkd-nmncw-worker-us-east-2b      1         1         1       1           21h
+cluster-58kkd-nmncw-worker-us-east-2c      1         1         1       1           21h
+cluster-58kkd-nmncw-workerocs-us-east-2a   1         1         1       1           3m55s
+cluster-58kkd-nmncw-workerocs-us-east-2b   1         1         1       1           3m55s
+cluster-58kkd-nmncw-workerocs-us-east-2c   1         1         1       1           3m55s
 ----
 kbd:[Ctrl+C]を押すと終了できます。
 
@@ -132,10 +132,10 @@ oc get machines -n openshift-machine-api | egrep 'NAME|workerocs'
 .出力例:
 
 ----
-NAME                                                STATE     TYPE         REGION      ZONE         AGE
-cluster-ocs-0ec4-dgwqc-workerocs-us-east-2a-cqvwj   Running   m5.4xlarge   us-east-2   us-east-2a   70s
-cluster-ocs-0ec4-dgwqc-workerocs-us-east-2b-g5p5v   Running   m5.4xlarge   us-east-2   us-east-2b   70s
-cluster-ocs-0ec4-dgwqc-workerocs-us-east-2c-rx4v8   Running   m5.4xlarge   us-east-2   us-east-2c   70s
+NAME                                             PHASE     TYPE         REGION      ZONE         AGE
+cluster-58kkd-nmncw-workerocs-us-east-2a-sn8zd   Running   m5.4xlarge   us-east-2   us-east-2a   4m13s
+cluster-58kkd-nmncw-workerocs-us-east-2b-f5bwx   Running   m5.4xlarge   us-east-2   us-east-2b   4m13s
+cluster-58kkd-nmncw-workerocs-us-east-2c-9lctx   Running   m5.4xlarge   us-east-2   us-east-2c   4m13s
 ----
 
 workerocs *Machine* が使用しているAWS EC2インスタンスタイプが `m5.4xlarge` であることがわかります。
@@ -151,12 +151,12 @@ oc get nodes -l node-role.kubernetes.io/worker -l '!node-role.kubernetes.io/mast
 .出力例:
 ----
 NAME                                         STATUS   ROLES    AGE     VERSION
-ip-10-0-131-209.us-east-2.compute.internal   Ready    worker   2m21s   v1.19.0+9c69bdc
-ip-10-0-138-9.us-east-2.compute.internal     Ready    worker   128m    v1.19.0+9c69bdc
-ip-10-0-150-39.us-east-2.compute.internal    Ready    worker   128m    v1.19.0+9c69bdc
-ip-10-0-155-12.us-east-2.compute.internal    Ready    worker   2m22s   v1.19.0+9c69bdc
-ip-10-0-162-215.us-east-2.compute.internal   Ready    worker   2m14s   v1.19.0+9c69bdc
-ip-10-0-170-49.us-east-2.compute.internal    Ready    worker   128m    v1.19.0+9c69bdc
+ip-10-0-128-156.us-east-2.compute.internal   Ready    worker   21h     v1.22.3+b93fd35
+ip-10-0-157-232.us-east-2.compute.internal   Ready    worker   2m18s   v1.22.3+b93fd35
+ip-10-0-171-65.us-east-2.compute.internal    Ready    worker   2m14s   v1.22.3+b93fd35
+ip-10-0-181-21.us-east-2.compute.internal    Ready    worker   21h     v1.22.3+b93fd35
+ip-10-0-206-84.us-east-2.compute.internal    Ready    worker   2m17s   v1.22.3+b93fd35
+ip-10-0-214-18.us-east-2.compute.internal    Ready    worker   21h     v1.22.3+b93fd35
 ----
 
 以上で、worker nodeの追加ができました。
@@ -166,7 +166,7 @@ NOTE: UPI(User Provisioned Infrastructure)方式でインストールしたOCP�
 == 2-1-2. 追加したworker nodeにODFで使用するためのラベルを付ける
 
 ODFを稼働させるnodeには、`cluster.ocs.openshift.io/openshift-storage` という特定のラベルが付いている必要があります。 +
-後段のLabで学習する、"OCS Operator"によって様々なODFを構成するPodがデプロイされますが、これらのPodはこのラベルが付いているnodeで稼働するようになっているためです。
+後段のLabで学習する、"ODF Operator"によって様々なODFを構成するPodがデプロイされますが、これらのPodはこのラベルが付いているnodeで稼働するようになっているためです。
 
 新しいworker nodeに、`cluster.ocs.openshift.io/openshift-storage` のラベルを付けます。
 
@@ -185,10 +185,10 @@ oc get nodes -l cluster.ocs.openshift.io/openshift-storage=
 ----
 .出力例:
 ----
-NAME                                         STATUS   ROLES    AGE    VERSION
-ip-10-0-131-209.us-east-2.compute.internal   Ready    worker   5m25s   v1.19.0+9c69bdc
-ip-10-0-155-12.us-east-2.compute.internal    Ready    worker   5m26s   v1.19.0+9c69bdc
-ip-10-0-162-215.us-east-2.compute.internal   Ready    worker   5m19s   v1.19.0+9c69bdc
+NAME                                         STATUS   ROLES    AGE     VERSION
+ip-10-0-157-232.us-east-2.compute.internal   Ready    worker   4m10s   v1.22.3+b93fd35
+ip-10-0-171-65.us-east-2.compute.internal    Ready    worker   4m6s    v1.22.3+b93fd35
+ip-10-0-206-84.us-east-2.compute.internal    Ready    worker   4m9s    v1.22.3+b93fd35
 ----
 
 ---
