@@ -371,6 +371,7 @@ openshift-vsphere-infra                                                Active
 CAUTION: 作成したProjectの名前が"lab1-1"でない場合は、各自のProject名に置き替えてください。
 ====
 +
+
 +
 [source,bash,role="copypaste"]
 ----
