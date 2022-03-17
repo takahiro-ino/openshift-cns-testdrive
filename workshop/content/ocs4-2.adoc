@@ -3,22 +3,22 @@
 = Lab 2-2: ODFクラスターを作成する
 
 == Labの概要
-このLabでは "OpenShift Container Storage(OCS) Operator"をインストールし、ODFクラスターを作成します。 +
-OCS Operatorのインストールとクラスターの作成は、CLIでも行えますが、本Labではより簡単なGUI(Web Console)を使って行います。
+このLabでは "OpenShift Data Foundation(ODF) Operator"をインストールし、ODFクラスターを作成します。 +
+ODF Operatorのインストールとクラスターの作成は、CLIでも行えますが、本Labではより簡単なGUI(Web Console)を使って行います。
 
 === このLabで学習する内容
 
-* OCPクラスターにOCS Operatorをインストールする
-* OCS Operatorを使ってODFクラスターを作成する
+* OCPクラスターにODF Operatorをインストールする
+* ODF Operatorを使ってODFクラスターを作成する
 * 作成したODFクラスター(Ceph)を確認する。
 
 ---
 
 [[labexercises]]
 
-== 2-2-1. OCPクラスターにOCS Operatorをインストールする
+== 2-2-1. OCPクラスターにODF Operatorをインストールする
 
-このセクションでは、Web ConsoleのOperatorHubからOCS Operatorをインストールします。 +
+このセクションでは、Web ConsoleのOperatorHubからODF Operatorをインストールします。 +
 
 はじめに *Openshift Web Console* を開きます。
 
@@ -36,28 +36,28 @@ OCS Operatorのインストールとクラスターの作成は、CLIでも行�
 .OCP OperatorHub
 image::images/ocs/OCS-OCP-OperatorHub.png[OCP OperatorHub]
 
-*Filter by _keyword..._* のボックスに、`openshift container storage` と入力すると、`OpenShift Container Storage Operator` が表示されます。
+*Filter by _keyword..._* のボックスに、`ODF` と入力すると、`OpenShift Data Foundation Operator` が表示されます。
 
-.OCP OperatorHub filter on OpenShift Container Storage Operator
-image::images/ocs/OCS4-OCP-OperatorHub-Filter.png[OCP OperatorHub Filter]
+.OCP OperatorHub filter on OpenShift Data Foundation Operator
+image::images/ocs/ODF4.9-OCP-OperatorHub-Filter.png[OCP OperatorHub Filter]
 
-表示された `OpenShift Container Storage Operator` を選択し、 *Install* ボタンを押します。
+表示された `OpenShift Data Foundation Operator` を選択し、 *Install* ボタンを押します。
 
-.OCP OperatorHub Install OpenShift Container Storage
-image::images/ocs/OCS4.7-OCP4-OperatorHub-Install.png[OCP OperatorHub Install]
+.OCP OperatorHub Install OpenShift Data Foundation 
+image::images/ocs/ODF4.9-OCP4-OperatorHub-Install.png[OCP OperatorHub Install]
 
 次の画面で、設定が下図に示す通りであることを確認し、*Subscribe* をクリックします。
 
 
-.OCP Subscribe to OpenShift Container Storage
-image::images/ocs/OCS4.7-OCP4-OperatorHub-Subscribe.png[OCP OperatorHub Subscribe]
+.OCP Subscribe to OpenShift Data Foundation 
+image::images/ocs/ODF4.9-OCP4-OperatorHub-Subscribe.png[OCP OperatorHub Subscribe]
 
 CAUTION: `Installed Namespace` は上記のとおり、**"Operator recommended namespace: (PR) openshift-storage"** を選択して下さい。`openshift-storage` namespace以外では、ODFはインストールされません。 +
 
-NOTE: 事前に `openshift-storage` namespaceを作成していませんが、OCS Operatorが自動で作成するので問題ありません。
+NOTE: 事前に `openshift-storage` namespaceを作成していませんが、ODF Operatorが自動で作成するので問題ありません。
 
 
-次はターミナルに戻って、下のコマンドを実行してOCS Operatorのインストール状況を確認できます。
+次はターミナルに戻って、下のコマンドを実行してODF Operatorと付随するOperatorのインストール状況を確認できます。
 
 [source,role="execute"]
 ----
@@ -65,15 +65,17 @@ watch oc get csv -n openshift-storage
 ----
 .出力例:
 ----
-NAME                            DISPLAY                       VERSION   REPLACES   PHASE
-ocs-operator.v4.7.2             OpenShift Container Storage   4.7.2                Succeeded
+NAME                  DISPLAY                       VERSION   REPLACES              PHASE
+mcg-operator.v4.9.4   NooBaa Operator               4.9.4     mcg-operator.v4.9.3   Succeeded
+ocs-operator.v4.9.4   OpenShift Container Storage   4.9.4     ocs-operator.v4.9.3   Installing
+odf-operator.v4.9.4   OpenShift Data Foundation     4.9.4     odf-operator.v4.9.3   Succeeded
 ----
 kbd:[Ctrl+C]を押すと終了できます。
 
-.Operatorの `PHASE` が `Succeeded` に変わるまで待って下さい。
+.全てのOperatorの `PHASE` が `Succeeded` に変わるまで待って下さい。
 CAUTION: 変わるまで数分かかる場合があります。
 
-OCS Operatorのインストールが終わると、いくつかの新しいPodが `openshift-storage` namespaceに作成されていることが確認できます。
+ODF Operatorのインストールが終わると、いくつかの新しいPodが `openshift-storage` namespaceに作成されていることが確認できます。
 
 [source,role="execute"]
 ----
@@ -81,48 +83,48 @@ oc get pods -n openshift-storage
 ----
 .出力例:
 ----
-NAME                                     READY   STATUS    RESTARTS   AGE
-noobaa-operator-58d8fbb457-hg495         1/1     Running   0          2m6s
-ocs-metrics-exporter-54d5cc6c79-f4h79    1/1     Running   0          2m6s
-ocs-operator-66c778887d-8qkqm            1/1     Running   0          2m6s
-rook-ceph-operator-98b4c45c9-zxlxz       1/1     Running   0          2m6s
+NAME                                               READY   STATUS    RESTARTS   AGE
+noobaa-operator-56446d689d-vbcdw                   1/1     Running   0          2m5s
+ocs-metrics-exporter-7c8fdd9558-c5hhp              1/1     Running   0          106s
+ocs-operator-7ccd9dcbc6-d85nz                      1/1     Running   0          107s
+odf-console-6b4cc8d99d-7hhzq                       1/1     Running   0          2m12s
+odf-operator-controller-manager-74b4f5c479-tgsr2   2/2     Running   0          2m12s
+rook-ceph-operator-9d5c7b68-p2zw5                  1/1     Running   0          106s
 ----
 
-以上で、OCS Operatorのインストールができました。
+以上で、ODF Operatorのインストールができました。
 
 
-== 2-2-2. OCS Operatorを使ってストレージクラスターを作成する
+== 2-2-2. ODF Operatorを使ってストレージクラスターを作成する
 
 それでは続いてストレージクラスターを作成します。 +
-*Openshift Web Console* に戻ってOCS Operatorのインストールを確認してみましょう。Opeartorのインストール直後は次のような画面になっています。
+*Openshift Web Console* に戻ってODF Operatorのインストールを確認してみましょう。Opeartorのインストール直後は次のような画面になっています。
 
-.Create storage cluster in openshift-storage namespace
-image::images/ocs/OCS4.7-OCP4-View-Operator.png[OCP View Operator]
+.Create storage system in openshift-storage namespace
+image::images/ocs/ODF4.9-OCP4-View-Operator.png[OCP View Operator]
 
-この画面で `Create Storage Cluster` をクリックすると、クラスター作成の画面に移ります。
+この画面で `Create StorageSystem` をクリックすると、クラスター作成の画面に移ります。クラスター作成はウィザード形式になっており、手順にしたがって設定します。
 
-.ODF create a new storage cluster
-image::images/ocs/OCS4.7-config-screen-partial1.png[ODF create a new storage cluster]
-
-以下の手順でODFクラスターの設定をします。
-
-. *Select Mode* では `Internal` を選択します。
+. *Backing storage* では `Use an existing StorageClass` を選択します。
 +
-NOTE: 他の *Select Mode* の `Internal - Attached Devices` は、Baremetal方式でインストールしたOCPクラスターでODFを構成する場合や、AWS EBSではないEC2 Instanceに元から存在するデバイスを使ってODFクラスターを構成する場合に使います。 +
-また `External` は、OCPクラスターの外に存在する Red Hat Ceph Storage をODFクラスターとして使用する、External Mode という特殊なケースで使います。
+NOTE: 他のメニューの `Create a new StorageClass using local storage devices` は、Baremetal方式でインストールしたOCPクラスターでODFを構成する場合や、AWS EBSではないEC2 Instanceに元から存在するデバイスを使ってODFクラスターを構成する場合に使います。 +
+また `Connect an external storage platform` は、外部ストレージとコントロールプレーンを統一する特殊なケースで使います。(2022/03時点ではIBM FlashSystemのみ選択できます)
 +
-. *Storage Class* には `gp2` を指定し、*Requested Capacity* には `2 TiB` を指定します。
+. *Storage Class* には `gp2` を指定して *Next* をクリックします 。
 +
-NOTE: *Storage Class* は作っていませんが、デフォルトで `gp2` が指定されています。これは、OCPのCluster Storage OperatorがOCPクラスターが稼働するプラットフォーム(このLabではAWS)を自動で認識し、そのプラットフォームに相応しいデフォルトのStorage Classを自動的に設定するためです。 +
-また *Requested Capacity* は、AWSの環境では、0.5 TiB, 2 TiB, 4 TiB の3つから選択できます。
+NOTE: *Storage Class* は作っていませんが、デフォルトで `gp2` が指定されています。これは、OCPのCluster Storage OperatorがOCPクラスターが稼働するプラットフォーム(このLabではAWS)を自動で認識し、そのプラットフォームに相応しいデフォルトのStorage Classを自動的に設定するためです。
++
+.ODF create a new storage cluster: Backing storage
+image::images/ocs/ODF4.9-config-screen-partial1.png[ODF create a new storage cluster]
+
+. *Select Capacity* では、`2 TiB` を指定します。
++
+*Requested Capacity* は、AWSの環境では、0.5 TiB, 2 TiB, 4 TiB の3つから選択できます。
 +
 CAUTION: *ここで選択した Requested Capacity は、将来容量を拡張する際の最小単位として利用されます。* +
 例えば初めに2 TiBを選択した場合は、以降は 2TiB 単位で拡張することになります。
 +
-. ODFクラスターで使うnodeを指定します。
-+
-.Select nodes for new storage cluster
-image::images/ocs/OCS4.7-config-screen-partial2.png[Select nodes for new storage cluster]
+. *Select nodes* で、ODFクラスターで使うnodeを指定して *Next* をクリックします。
 +
 ODF用のラベル `cluster.ocs.openshift.io/openshift-storage` が付けられたnodeは、ここで自動で選択されるようになっています。そのため、はじめから3つのworker nodeが選択されているはずです。以下のコマンドを実行して、間違いがないことを確認してみましょう。
 +
@@ -133,9 +135,28 @@ oc get nodes -l 'cluster.ocs.openshift.io/openshift-storage' | cut -d' ' -f1
 +
 CAUTION: *ODFクラスターを構成するには、3つの異なるAvailability Zoneのworker nodeを選択することが必要です。異なるAvailability Zoneではないworker nodeを選択することはサポートされません。*
 +
-4. 全て指定したら、*Create* をクリックします。
+.ODF create a new storage cluster: Capacity and nodes
+image::images/ocs/ODF4.9-config-screen-partial2.png[ODF create a new storage cluster]
++
+. *Encryption* では、何も選択しません。
++
+クラスター全体、または部分的な暗号化を利用したい場合は、ここでチェックを入れます。今回の Lab では暗号化はしないので、チェックを外したままで構いません。 + 
+（興味のある方は、チェックしてみてどのようなメニューが表示されるか確認されて構いません。*最後はチェックを外すよう注意してください*)
++
+. *Network* では、`Default (SDN)` を選択して *Next* をクリックします。
++
+Multus CNIを使ってPodで複数のネットワークを使用できる構成になっているOpenShiftクラスターでは、ODFでPublic NetworkとCluster Networkを分離することが可能です。 +
+ここでは一般的な構成である、ネットワークを分離しないODFクラスターを構成するため、`Default (SDN)` を選択します。
++
+.ODF create a new storage cluster: Security and network
+image::images/ocs/ODF4.9-config-screen-partial3.png[ODF create a new storage cluster]
++
+. 設定した内容をレビューし、問題がなければ *Create StorageSystem* をクリックします。
++
+.ODF create a new storage cluster: Review and create
+image::images/ocs/ODF4.9-config-screen-partial4.png[ODF create a new storage cluster]
 
-これで、自動的にODFクラスターが作成されます。+
+これで、自動的にODFクラスターが作成されます。 +
 ターミナルで次のコマンドを実行しておくと、次々とPodが作成される様子が確認できます。
 
 [source,role="execute"]
@@ -145,47 +166,45 @@ watch oc get pods -n openshift-storage
 .出力例
 ----
 NAME                                                              READY   STATUS      RESTARTS   AGE
-csi-cephfsplugin-6qvmf                                            3/3     Running     0          17m
-csi-cephfsplugin-8rqr5                                            3/3     Running     0          17m
-csi-cephfsplugin-ctr66                                            3/3     Running     0          17m
-csi-cephfsplugin-m7xfp                                            3/3     Running     0          17m
-csi-cephfsplugin-provisioner-65b59d9dc9-bb9c5                     5/5     Running     0          17m
-csi-cephfsplugin-provisioner-65b59d9dc9-tclkw                     5/5     Running     0          17m
-csi-cephfsplugin-wslm9                                            3/3     Running     0          17m
-csi-cephfsplugin-zt76r                                            3/3     Running     0          17m
-csi-rbdplugin-5dx5r                                               3/3     Running     0          17m
-csi-rbdplugin-5kg88                                               3/3     Running     0          17m
-csi-rbdplugin-g8tzm                                               3/3     Running     0          17m
-csi-rbdplugin-gn27b                                               3/3     Running     0          17m
-csi-rbdplugin-jrnh9                                               3/3     Running     0          17m
-csi-rbdplugin-provisioner-86c8bc888d-6xfbr                        5/5     Running     0          17m
-csi-rbdplugin-provisioner-86c8bc888d-ks6zv                        5/5     Running     0          17m
-csi-rbdplugin-x9nqb                                               3/3     Running     0          17m
-noobaa-core-0                                                     1/1     Running     0          14m
-noobaa-db-0                                                       1/1     Running     0          14m
-noobaa-endpoint-7f5fff7d49-554qs                                  1/1     Running     0          12m
-noobaa-operator-b77ccff86-4lvks                                   1/1     Running     0          93m
-ocs-metrics-exporter-54d5cc6c79-f4h79                             1/1     Running     0          93m
-ocs-operator-6dd9fd9d8d-8gpj5                                     1/1     Running     0          93m
-rook-ceph-crashcollector-ip-10-0-141-60-85445fcd84-4lcbv          1/1     Running     0          15m
-rook-ceph-crashcollector-ip-10-0-147-83-54cf7f47c9-msjgn          1/1     Running     0          16m
-rook-ceph-crashcollector-ip-10-0-166-106-9d874cdb4-cjrrt          1/1     Running     0          15m
-rook-ceph-drain-canary-69e8faf0c5145b285b2bef426fecc57e-66glnz5   1/1     Running     0          14m
-rook-ceph-drain-canary-930e025127d0657f5254c19f87943be3-bdx9sh6   1/1     Running     0          14m
-rook-ceph-drain-canary-cd3910173d92c098f7310ab3eb082fce-56j2pkd   1/1     Running     0          14m
-rook-ceph-mds-ocs-storagecluster-cephfilesystem-a-7646cc945x56v   1/1     Running     0          13m
-rook-ceph-mds-ocs-storagecluster-cephfilesystem-b-58b5fd94rww7b   1/1     Running     0          13m
-rook-ceph-mgr-a-97f7f799b-d9fhk                                   1/1     Running     0          14m
-rook-ceph-mon-a-b5cd8d595-njmzk                                   1/1     Running     0          16m
-rook-ceph-mon-b-d89df794d-cpj6n                                   1/1     Running     0          15m
-rook-ceph-mon-c-5f989bbff-lc8b8                                   1/1     Running     0          15m
-rook-ceph-operator-599dbd974f-nm4nz                               1/1     Running     0          93m
-rook-ceph-osd-0-7795b7c779-glk4g                                  1/1     Running     0          14m
-rook-ceph-osd-1-7877cd76c5-dxxzg                                  1/1     Running     0          14m
-rook-ceph-osd-2-7544dc9db-vq7gj                                   1/1     Running     0          14m
-rook-ceph-osd-prepare-ocs-deviceset-0-0-wlsqw-bg5bl               0/1     Completed   0          14m
-rook-ceph-osd-prepare-ocs-deviceset-1-0-nxc46-p7s97               0/1     Completed   0          14m
-rook-ceph-osd-prepare-ocs-deviceset-2-0-qxd7g-h9hkb               0/1     Completed   0          14m
+csi-cephfsplugin-2ck2s                                            3/3     Running     0          12m
+csi-cephfsplugin-7dg5t                                            3/3     Running     0          12m
+csi-cephfsplugin-bh97v                                            3/3     Running     0          12m
+csi-cephfsplugin-provisioner-856694dc5-2jkgv                      6/6     Running     0          12m
+csi-cephfsplugin-provisioner-856694dc5-t8hjq                      6/6     Running     0          12m
+csi-cephfsplugin-tml87                                            3/3     Running     0          12m
+csi-cephfsplugin-wwwcd                                            3/3     Running     0          12m
+csi-cephfsplugin-zccf8                                            3/3     Running     0          12m
+csi-rbdplugin-2jrgw                                               3/3     Running     0          12m
+csi-rbdplugin-8b7wp                                               3/3     Running     0          12m
+csi-rbdplugin-bfvp5                                               3/3     Running     0          12m
+csi-rbdplugin-c48sp                                               3/3     Running     0          12m
+csi-rbdplugin-cb8kc                                               3/3     Running     0          12m
+csi-rbdplugin-provisioner-6bbcbcc6b7-hg5rj                        6/6     Running     0          12m
+csi-rbdplugin-provisioner-6bbcbcc6b7-wstwp                        6/6     Running     0          12m
+csi-rbdplugin-r694f                                               3/3     Running     0          12m
+noobaa-core-0                                                     1/1     Running     0          78s
+noobaa-db-pg-0                                                    1/1     Running     0          78s
+noobaa-operator-56446d689d-vbcdw                                  1/1     Running     1          18h
+ocs-metrics-exporter-7c8fdd9558-c5hhp                             1/1     Running     1          18h
+ocs-operator-7ccd9dcbc6-d85nz                                     1/1     Running     1          18h
+odf-console-6b4cc8d99d-7hhzq                                      1/1     Running     1          18h
+odf-operator-controller-manager-74b4f5c479-tgsr2                  2/2     Running     2          18h
+rook-ceph-crashcollector-8853b2f3863cd21ee3a10232344a5666-qnflb   1/1     Running     0          3m5s
+rook-ceph-crashcollector-a0521d2bc14854535070ce5242ac5468-fgw8q   1/1     Running     0          2m56s
+rook-ceph-crashcollector-a195747dbec4a189150d6bf5a1f445d9-nljxn   1/1     Running     0          3m8s
+rook-ceph-mds-ocs-storagecluster-cephfilesystem-a-b566684c9vftw   2/2     Running     0          2m1s
+rook-ceph-mds-ocs-storagecluster-cephfilesystem-b-c7d9ffbdddwv8   2/2     Running     0          2m
+rook-ceph-mgr-a-65cf4b956c-h4qhb                                  2/2     Running     0          3m8s
+rook-ceph-mon-a-7f99546965-6nf4s                                  2/2     Running     0          12m
+rook-ceph-mon-b-b6448649-hm4nc                                    2/2     Running     0          6m37s
+rook-ceph-mon-c-bb75c8bff-h2gd5                                   2/2     Running     0          5m29s
+rook-ceph-operator-9d5c7b68-p2zw5                                 1/1     Running     1          18h
+rook-ceph-osd-0-9b4c7bbcc-z6cxb                                   2/2     Running     0          2m30s
+rook-ceph-osd-1-78db6df7f4-jrrxg                                  2/2     Running     0          2m28s
+rook-ceph-osd-2-84dfb6db48-jd2nl                                  2/2     Running     0          2m20s
+rook-ceph-osd-prepare-ocs-deviceset-gp2-0-data-04hwvs--1-966n4    0/1     Completed   0          3m2s
+rook-ceph-osd-prepare-ocs-deviceset-gp2-1-data-0vwlkv--1-hwg9b    0/1     Completed   0          3m2s
+rook-ceph-osd-prepare-ocs-deviceset-gp2-2-data-0s9hdp--1-w442h    0/1     Completed   0          3m2s
 ----
 kbd:[Ctrl+C]を押すと終了できます。
 
@@ -193,21 +212,16 @@ kbd:[Ctrl+C]を押すと終了できます。
 
 OperatorとOpenShiftの素晴らしいところは、デプロイされたコンポーネントに関するインテリジェンスをOperatorが内蔵していることです。
 また、Operatorは `CustomResource` を定義します。そのため `CustomResource` 自体を見ることでステータスを確認することができます。 +
-ODFを例にすると、ODFクラスターをデプロイすると最終的には `StorageCluster` のインスタンスが生成されていることが分かります。この `StorageCluster` は OCS Operator によって定義された `CustomeResource` です。
+ODFを例にすると、ODFクラスターをデプロイすると最終的には `StorageSystem` と `StorageCluster` のインスタンスが生成されていることが分かります。この `StorageSystem` と `StorageCluster` は ODF Operator によって定義された `CustomeResource` です。
+
+`StorageCluster` のステータスは次のようにチェックできます。
 
 [source,role="execute"]
 ----
 oc get storagecluster -n openshift-storage
 ----
 
-`StorageCluster` のステータスは次のようにチェックできます。
-
-[source,role="execute"]
-----
-oc get storagecluster -n openshift-storage ocs-storagecluster -o jsonpath='{.status.phase}{"\n"}'
-----
-
-`Ready` となっていれば、続けることができます。
+`Phase` のカラムが `Ready` となっていれば、続けることができます。
 
 以上で、ODFクラスターの作成ができました。
 
@@ -215,40 +229,37 @@ oc get storagecluster -n openshift-storage ocs-storagecluster -o jsonpath='{.sta
 このLabでは、作成したODFクラスターを *Web Console* に作られるダッシュボードを使って確認します。 +
 また、CLIでODFクラスターのコア部分であるCephを操作して、より詳細な構成を確認してみます。
 
-=== 2-2-3-1. ストレージダッシュボードを使用する
+=== 2-2-3-1. ダッシュボードを使用する
 
 このセクションでは、*Web Console* に含まれている、ODF独自のダッシュボードを使ってストレージクラスターのステータスを確認します。 +
-ダッシュボードは左側のメニューバーから *Home* -> *Overview* とクリックし、 `Persistent Storage` タブを選択することでアクセスできます。
+まず、ODF Operatorのインストール後に画面右上に次のようなポップアップが表示されている場合は、*Refersh web console* をクリックして画面を更新してください。
+
+.ODF Dashboard after successful operator installation
+image::images/ocs/ODF4.9-refresh-webconsole.png[ODF Dashboard after successful operator installation]
+
+ダッシュボードは左側のメニューバーから *Storage* -> *OpenShift Data Foundation* とクリックすることでアクセスできます。
 
 NOTE: ODFのデプロイが完了したばかりの場合、ダッシュボードが完全に表示されるまでに5〜10分かかります。
 
 .ODF Dashboard after successful backing storage installation
-image::images/ocs/OCS4.5-dashboard-healthy.png[ODF Dashboard after successful backing storage installation]
+image::images/ocs/ODF4.9-dashboard-healthy.png[ODF Dashboard after successful backing storage installation]
 
-[cols="0,1,10a"]
+[cols="0,5,8a"]
 |===
 |① | Status | クラスターの全体的なステータス
-|② | Details | デプロイされたクラスターのバージョンとプロバイダーの概要
-|③ | Inventory | ストレージシステムによって使用および提供されるすべてのリソースのリスト
+|② | System Capacity | デプロイされたクラスターと容量の使用状況
+|③ | External Object Provider Used Capacity | MCGのバックエンドストアの容量使用状況
 |④ | Activity | クラスターで起きている全ての変更の概要
-|⑤ | Utilization | ストレージクラスターの使用とパフォーマンスの概要
+|⑤ | Performance | ストレージシステム全体のパフォーマンスの概要
 |===
 
-MCGによって提供されるObject Storeサービスのダッシュボードも付属しています。`Persistent Storage` の横にある `Object Service` のタブを選択することでアクセスできます。
+また、② System Capacity のボックスに表示されている、`Name` のリンクをクリックすると、クラスターのより詳細な情報が見られます。
 
-.ODF Multi-Cloud-Gateway Dashboard after successful installation
-image::images/ocs/OCS4.5-noobaa-dashboard-healthy.png[ODF Multi-Cloud-Gateway Dashboard after successful installation]
+.ODF Dashboard details
+image::images/ocs/ODF4.9-dashboard-details.png[ODF Dashboard details]
 
-[cols="0,1,10a"]
-|===
-|① | Status | Multi-Cloud Gateway(MCG)の全体的なステータス
-|② | Details | MCGダッシュボードへのリンクを含む、デプロイされたMCGバージョンとプロバイダーの概要
-|③ | Buckets | すべてのObjectBucketとそれらに接続されているObjectBucketClaimsのリスト
-|④ | Resource Providers | MCGのバックエンドストレージとして利用可能な設定済みのリソースプロバイダーのリスト
-|⑤ | Activity | クラスターで起きている全ての変更の概要
-|===
-
-すべて正常なステータスになったら、ODFのデプロイ中に作成された3つの新しい *StorageClass* を使用できるようになります。
+それでは、先に進む前にODFによって作成された *StorageClass* が使用可能であることを確認します。
+ODFはクラスターのデプロイ中に3つの新しい *StorageClass* を作成します。
 
 - ocs-storagecluster-ceph-rbd
 - ocs-storagecluster-cephfs
@@ -262,9 +273,9 @@ image::images/ocs/OCS4.5-noobaa-dashboard-healthy.png[ODF Multi-Cloud-Gateway Da
 oc get sc -n openshift-storage
 ----
 
-先に進む前に、3つのStorageClassが使用可能であることを確認してください。
-
 NOTE: MCGは `noobaa-core` Pod内部の `db` コンテナで利用するために `ocs-storagecluster-ceph-rbd` StorageClassを使用してPVCを作成しています。
+
+上記の3つの *StorageClass* が表示されていることが確認しましょう。
 
 === 2-2-3-2. Rook-Ceph toolboxを利用してCephクラスターを確認する
 
