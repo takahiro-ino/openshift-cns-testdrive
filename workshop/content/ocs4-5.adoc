@@ -23,101 +23,133 @@ noobaa status -n openshift-storage
 ----
 .Example output:
 ----
-INFO[0000] CLI version: 5.6.0                           
-INFO[0000] noobaa-image: noobaa/noobaa-core:5.6.0       
-INFO[0000] operator-image: noobaa/noobaa-operator:5.6.0 
-INFO[0000] Namespace: openshift-storage                 
-INFO[0000]                                              
-INFO[0000] CRD Status:                                  
-INFO[0000] ✅ Exists: CustomResourceDefinition "noobaas.noobaa.io" 
-INFO[0000] ✅ Exists: CustomResourceDefinition "backingstores.noobaa.io" 
-INFO[0000] ✅ Exists: CustomResourceDefinition "bucketclasses.noobaa.io" 
-INFO[0000] ✅ Exists: CustomResourceDefinition "objectbucketclaims.objectbucket.io" 
-INFO[0000] ✅ Exists: CustomResourceDefinition "objectbuckets.objectbucket.io" 
-INFO[0000]                                              
-INFO[0000] Operator Status:                             
-INFO[0000] ✅ Exists: Namespace "openshift-storage"      
-INFO[0000] ✅ Exists: ServiceAccount "noobaa"            
-INFO[0000] ✅ Exists: Role "ocs-operator.v4.6.3-379.ci-hl98v" 
-INFO[0000] ✅ Exists: RoleBinding "ocs-operator.v4.6.3-379.ci-hl98v-noobaa-dntmk" 
-INFO[0000] ✅ Exists: ClusterRole "ocs-operator.v4.6.3-379.ci-vwg96" 
-INFO[0000] ✅ Exists: ClusterRoleBinding "ocs-operator.v4.6.3-379.ci-vwg96-noobaa-sm9pv" 
-INFO[0000] ✅ Exists: Deployment "noobaa-operator"       
-INFO[0000]                                              
-INFO[0000] System Status:                               
-INFO[0000] ✅ Exists: NooBaa "noobaa"                    
-INFO[0000] ✅ Exists: StatefulSet "noobaa-core"          
-INFO[0000] ✅ Exists: StatefulSet "noobaa-db"            
-INFO[0000] ✅ Exists: Service "noobaa-mgmt"              
-INFO[0000] ✅ Exists: Service "s3"                       
-INFO[0000] ✅ Exists: Service "noobaa-db"                
-INFO[0000] ✅ Exists: Secret "noobaa-server"             
-INFO[0000] ✅ Exists: Secret "noobaa-operator"           
-INFO[0000] ✅ Exists: Secret "noobaa-endpoints"          
-INFO[0000] ✅ Exists: Secret "noobaa-admin"              
-INFO[0000] ✅ Exists: StorageClass "openshift-storage.noobaa.io" 
-INFO[0000] ✅ Exists: BucketClass "noobaa-default-bucket-class" 
-INFO[0000] ✅ Exists: Deployment "noobaa-endpoint"       
-INFO[0000] ✅ Exists: HorizontalPodAutoscaler "noobaa-endpoint" 
-INFO[0000] ✅ (Optional) Exists: BackingStore "noobaa-default-backing-store" 
-INFO[0000] ✅ (Optional) Exists: CredentialsRequest "noobaa-cloud-creds" 
-INFO[0000] ✅ (Optional) Exists: PrometheusRule "noobaa-prometheus-rules" 
-INFO[0000] ✅ (Optional) Exists: ServiceMonitor "noobaa-service-monitor" 
-INFO[0000] ✅ (Optional) Exists: Route "noobaa-mgmt"     
-INFO[0000] ✅ (Optional) Exists: Route "s3"              
-INFO[0000] ✅ Exists: PersistentVolumeClaim "db-noobaa-db-0" 
-INFO[0000] ✅ System Phase is "Ready"                    
-INFO[0000] ✅ Exists:  "noobaa-admin"                    
+INFO[0000] CLI version: 5.9.0
+INFO[0000] noobaa-image: registry.redhat.io/odf4/mcg-core-rhel8@sha256:62c322de8d9818008b846778b2e2b51dede990c9cbf33cfe9dae23d7
+44ec80d2
+INFO[0000] operator-image: registry.redhat.io/odf4/mcg-rhel8-operator@sha256:ca66f681fb5435837543995440661e1ef67a5dce85ae3bf91c
+afe2f0b66b6e5b
+INFO[0000] noobaa-db-image: registry.redhat.io/rhel8/postgresql-12@sha256:b006af9af125adce28546d0ed9d77421abe54182741f6b5e1d31c
+88dd763580b
+INFO[0000] Namespace: openshift-storage
+INFO[0000]
+INFO[0000] CRD Status:
+INFO[0000] ✅ Exists: CustomResourceDefinition "noobaas.noobaa.io"
+INFO[0000] ✅ Exists: CustomResourceDefinition "backingstores.noobaa.io"
+INFO[0000] ✅ Exists: CustomResourceDefinition "namespacestores.noobaa.io"
+INFO[0000] ✅ Exists: CustomResourceDefinition "bucketclasses.noobaa.io"
+INFO[0000] ✅ Exists: CustomResourceDefinition "objectbucketclaims.objectbucket.io"
+INFO[0000] ✅ Exists: CustomResourceDefinition "objectbuckets.objectbucket.io"
+INFO[0000]
+INFO[0000] Operator Status:
+INFO[0000] ✅ Exists: Namespace "openshift-storage"
+INFO[0000] ✅ Exists: ServiceAccount "noobaa"
+INFO[0000] ✅ Exists: ServiceAccount "noobaa-endpoint"
+INFO[0000] ✅ Exists: Role "mcg-operator.v4.9.4-noobaa-6987cf795b"
+INFO[0000] ✅ Exists: Role "mcg-operator.v4.9.4-noobaa-endpoint-854658d7fc"
+INFO[0000] ✅ Exists: RoleBinding "mcg-operator.v4.9.4-noobaa-6987cf795b"
+INFO[0000] ✅ Exists: RoleBinding "mcg-operator.v4.9.4-noobaa-endpoint-854658d7fc"
+INFO[0000] ✅ Exists: ClusterRole "mcg-operator.v4.9.4-5c7bd8bb7"
+INFO[0000] ✅ Exists: ClusterRoleBinding "mcg-operator.v4.9.4-5c7bd8bb7"
+INFO[0000] ✅ Exists: Deployment "noobaa-operator"
+INFO[0000]
+INFO[0000] System Wait Ready:
+INFO[0000] ✅ System Phase is "Ready".
+INFO[0000]
+INFO[0000]
+INFO[0000] System Status:
+INFO[0000] ✅ Exists: NooBaa "noobaa"
+INFO[0000] ✅ Exists: StatefulSet "noobaa-core"
+INFO[0000] ✅ Exists: ConfigMap "noobaa-config"
+INFO[0000] ✅ Exists: Service "noobaa-mgmt"
+INFO[0000] ✅ Exists: Service "s3"
+INFO[0000] ✅ Exists: Secret "noobaa-db"
+INFO[0000] ✅ Exists: ConfigMap "noobaa-postgres-config"
+INFO[0000] ✅ Exists: ConfigMap "noobaa-postgres-initdb-sh"
+INFO[0000] ✅ Exists: StatefulSet "noobaa-db-pg"
+INFO[0000] ✅ Exists: Service "noobaa-db-pg"
+INFO[0000] ✅ Exists: Secret "noobaa-server"
+INFO[0000] ✅ Exists: Secret "noobaa-operator"
+INFO[0000] ✅ Exists: Secret "noobaa-endpoints"
+INFO[0000] ✅ Exists: Secret "noobaa-admin"
+INFO[0000] ✅ Exists: Secret "noobaa-root-master-key"
+INFO[0001] ✅ Exists: StorageClass "openshift-storage.noobaa.io"
+INFO[0001] ✅ Exists: BucketClass "noobaa-default-bucket-class"
+INFO[0001] ✅ Exists: Deployment "noobaa-endpoint"
+INFO[0001] ✅ Exists: HorizontalPodAutoscaler "noobaa-endpoint"
+INFO[0001] ✅ (Optional) Exists: BackingStore "noobaa-default-backing-store"
+INFO[0001] ✅ (Optional) Exists: CredentialsRequest "noobaa-aws-cloud-creds"
+INFO[0001] ⬛ (Optional) Not Found: CredentialsRequest "noobaa-azure-cloud-creds"
+INFO[0001] ⬛ (Optional) Not Found: Secret "noobaa-azure-container-creds"
+INFO[0001] ⬛ (Optional) Not Found: Secret "noobaa-gcp-bucket-creds"
+INFO[0001] ⬛ (Optional) Not Found: CredentialsRequest "noobaa-gcp-cloud-creds"
+INFO[0001] ✅ (Optional) Exists: PrometheusRule "noobaa-prometheus-rules"
+INFO[0001] ✅ (Optional) Exists: ServiceMonitor "noobaa-mgmt-service-monitor"
+INFO[0001] ✅ (Optional) Exists: ServiceMonitor "s3-service-monitor"
+INFO[0001] ✅ (Optional) Exists: Route "noobaa-mgmt"
+INFO[0001] ✅ (Optional) Exists: Route "s3"
+INFO[0001] ✅ Exists: PersistentVolumeClaim "db-noobaa-db-pg-0"
+INFO[0001] ✅ System Phase is "Ready"
+INFO[0001] ✅ Exists:  "noobaa-admin"
 
 #------------------#
 #- Mgmt Addresses -#
 #------------------#
 
-ExternalDNS : [https://noobaa-mgmt-openshift-storage.apps.ocp43.makestoragegreatagain.com https://a81f4015a847b410c9ed68338c26b654-444130336.us-east-2.elb.amazonaws.com:443]
+ExternalDNS : [https://noobaa-mgmt-openshift-storage.apps.cluster-58kkd.58kkd.sandbox557.opentlc.com https://aaad6c7c4d6134f5a8
+f1d4e9212795a1-994027600.us-east-2.elb.amazonaws.com:443]
 ExternalIP  : []
-NodePorts   : [https://10.0.156.225:30445]
+NodePorts   : [https://10.0.171.65:32602]
 InternalDNS : [https://noobaa-mgmt.openshift-storage.svc:443]
-InternalIP  : [https://172.30.11.223:443]
-PodPorts    : [https://10.129.2.21:8443]
+InternalIP  : [https://172.30.250.183:443]
+PodPorts    : [https://10.128.4.38:8443]
 
 #--------------------#
 #- Mgmt Credentials -#
 #--------------------#
 
 email    : admin@noobaa.io
-password : ORS2csCe2bz8B7B3Pzp9/A==
+password : YQuNVOJpUAz889bowYPkWg==
 
 #----------------#
 #- S3 Addresses -#
 #----------------#
 
-ExternalDNS : [https://s3-openshift-storage.apps.ocp43.makestoragegreatagain.com https://a620dcd7cf7f94ab2b0f66c3dc58b305-1999213520.us-east-2.elb.amazonaws.com:443]
+ExternalDNS : [https://s3-openshift-storage.apps.cluster-58kkd.58kkd.sandbox557.opentlc.com https://aec656477ef794b4da9f449ec3c
+1fafa-693580646.us-east-2.elb.amazonaws.com:443]
 ExternalIP  : []
-NodePorts   : [https://10.0.169.39:31682]
+NodePorts   : [https://10.0.171.65:31108]
 InternalDNS : [https://s3.openshift-storage.svc:443]
-InternalIP  : [https://172.30.231.73:443]
-PodPorts    : [https://10.130.2.20:6443]
+InternalIP  : [https://172.30.69.3:443]
+PodPorts    : [https://10.128.4.40:6443]
 
 #------------------#
 #- S3 Credentials -#
 #------------------#
 
-AWS_ACCESS_KEY_ID     : JmE0a2yPGOLEoz8qTnGF
-AWS_SECRET_ACCESS_KEY : wf/XM2TScK93pBD+pj93185OSA8vff19KmVN/n/I
+AWS_ACCESS_KEY_ID     : XXXXXXXXXXXXXXXXXXX
+AWS_SECRET_ACCESS_KEY : XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 #------------------#
 #- Backing Stores -#
 #------------------#
 
-NAME                           TYPE     TARGET-BUCKET                                           PHASE   AGE       
-noobaa-default-backing-store   aws-s3   nb.1585673526229.apps.ocp43.makestoragegreatagain.com   Ready   3h1m40s   
+NAME                           TYPE     TARGET-BUCKET                                                 PHASE   AGE
+noobaa-default-backing-store   aws-s3   nb.1647475869927.cluster-58kkd.58kkd.sandbox557.opentlc.com   Ready   1h42m9s
+
+#--------------------#
+#- Namespace Stores -#
+#--------------------#
+
+No namespace stores found.
 
 #------------------#
 #- Bucket Classes -#
 #------------------#
 
-NAME                          PLACEMENT                                                             PHASE   AGE       
-noobaa-default-bucket-class   {Tiers:[{Placement: BackingStores:[noobaa-default-backing-store]}]}   Ready   3h1m40s   
+NAME                          PLACEMENT                                                        NAMESPACE-POLICY   PHASE   AGE
+
+noobaa-default-bucket-class   {"tiers":[{"backingStores":["noobaa-default-backing-store"]}]}   null               Ready   1h42m
+9s
 
 #-----------------#
 #- Bucket Claims -#
@@ -129,7 +161,9 @@ No OBCs found.
 NooBaa CLIは最初に環境をチェックし、次に環境に関するすべての情報を出力します。MCGのステータスに加えて、MCG bucketへの接続に使用できる使用可能なS3アドレスとS3クレデンシャルが表示されます。 +
 S3アドレスはOpenShiftクラスタ内で内部的にルーティングするか、外部DNSを使用するかを選択できます。 +
 
-ところで、*Openshift Web Console* のダッシュボード使用することでも、MCGステータスの概要を取得できます。左側のメニューから、*Home* -> *Overview* 選択し、`Object Service` タブをクリックします。
+ところで、*OpenShift Web Console* のダッシュボード使用することでも、MCGステータスの概要を取得できます。 +
+左側のメニューから、*Storage* -> *OpenShift Data Foundation* 選択します。ダッシュボードの画面で `Status` ボックスの `1 Storage System` のリンクをクリックして、`ocs-storagecluster-storagesystem` のリンクをクリックします。 +
+ODFクラスターの詳細な情報が表示される画面に移りますが、`Object` タブをクリックします。
 このダッシュボードではS3 endpointの接続情報を提供しませんが、S3バックエンドの使用に関するグラフとランタイム情報を提供します。
 
 === Object Bucket Claimの作成
@@ -145,7 +179,9 @@ noobaa obc create test21obc -n openshift-storage
 ----
 .出力例:
 ----
-INFO[0001] ✅ Created: ObjectBucketClaim "test21obc"
+INFO[0000] ✅ Exists: StorageClass "openshift-storage.noobaa.io"
+INFO[0000] ✅ Created: ObjectBucketClaim "test21obc"
+...(省略)
 ----
 
 NooBaa CLIによって作られたOBCはOpenShiftからも確認できます。
@@ -170,27 +206,27 @@ oc get obc test21obc -o yaml -n openshift-storage
 apiVersion: objectbucket.io/v1alpha1
 kind: ObjectBucketClaim
 metadata:
-  creationTimestamp: "2021-03-24T13:30:07Z"
+  creationTimestamp: "2022-03-17T02:00:46Z"
   finalizers:
   - objectbucket.io/finalizer
-  generation: 2
+  generation: 3
   labels:
     app: noobaa
     bucket-provisioner: openshift-storage.noobaa.io-obc
     noobaa-domain: openshift-storage.noobaa.io
   name: test21obc
   namespace: openshift-storage
-  resourceVersion: "40756"
-  selfLink: /apis/objectbucket.io/v1alpha1/namespaces/openshift-storage/objectbucketclaims/test21obc
-  uid: 64f04cba-f662-11e9-bc3c-0295250841af
+  resourceVersion: "879838"
+  uid: da953376-c37a-40d5-93fb-508acdb2a19e
 spec:
-  ObjectBucketName: obc-openshift-storage-test21obc
-  bucketName: test21obc-933348a6-e267-4f82-82f1-e59bf4fe3bb4
+  bucketName: test21obc-13343e64-886a-4163-98ec-82916c13fcf3
   generateBucketName: test21obc
+  objectBucketName: obc-openshift-storage-test21obc
   storageClassName: openshift-storage.noobaa.io
 status:
   phase: Bound
 ----
+
 `openshift-storage` namespaceの中に、このOBCを使用するための *Secret* と *ConfigMap* がありますのでこれらを確認します。
 *Secret* と *ConfigMap(CM)* の名前はOBCと同じです。
 
@@ -203,11 +239,11 @@ oc get -n openshift-storage secret test21obc -o yaml
 ----
 apiVersion: v1
 data:
-  AWS_ACCESS_KEY_ID: c0M0R2xVanF3ODR3bHBkVW94cmY=
-  AWS_SECRET_ACCESS_KEY: Wi9kcFluSWxHRzlWaFlzNk1hc0xma2JXcjM1MVhqa051SlBleXpmOQ==
+  AWS_ACCESS_KEY_ID: XXXXXXXXXXXXXXXXXXXXXXXXXX
+  AWS_SECRET_ACCESS_KEY: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 kind: Secret
 metadata:
-  creationTimestamp: "2021-03-24T13:30:07Z"
+  creationTimestamp: "2022-03-17T02:00:46Z"
   finalizers:
   - objectbucket.io/finalizer
   labels:
@@ -222,10 +258,9 @@ metadata:
     controller: true
     kind: ObjectBucketClaim
     name: test21obc
-    uid: 64f04cba-f662-11e9-bc3c-0295250841af
-  resourceVersion: "40751"
-  selfLink: /api/v1/namespaces/openshift-storage/secrets/test21obc
-  uid: 65117c1c-f662-11e9-9094-0a5305de57bb
+    uid: da953376-c37a-40d5-93fb-508acdb2a19e
+  resourceVersion: "879832"
+  uid: 2e34e696-6ed8-4427-8d6d-321b35194a57
 type: Opaque
 ----
 
@@ -238,14 +273,14 @@ oc get -n openshift-storage cm test21obc -o yaml
 ----
 apiVersion: v1
 data:
-  BUCKET_HOST: 10.0.171.35
-  BUCKET_NAME: test21obc-933348a6-e267-4f82-82f1-e59bf4fe3bb4
-  BUCKET_PORT: "31242"
+  BUCKET_HOST: s3.openshift-storage.svc
+  BUCKET_NAME: test21obc-13343e64-886a-4163-98ec-82916c13fcf3
+  BUCKET_PORT: "443"
   BUCKET_REGION: ""
   BUCKET_SUBREGION: ""
 kind: ConfigMap
 metadata:
-  creationTimestamp: "2021-03-24T13:30:07Z"
+  creationTimestamp: "2022-03-17T02:00:46Z"
   finalizers:
   - objectbucket.io/finalizer
   labels:
@@ -260,10 +295,9 @@ metadata:
     controller: true
     kind: ObjectBucketClaim
     name: test21obc
-    uid: 64f04cba-f662-11e9-bc3c-0295250841af
-  resourceVersion: "40752"
-  selfLink: /api/v1/namespaces/openshift-storage/configmaps/test21obc
-  uid: 651c6501-f662-11e9-9094-0a5305de57bb
+    uid: da953376-c37a-40d5-93fb-508acdb2a19e
+  resourceVersion: "879833"
+  uid: edbd5e8c-3a67-49fe-99bb-0f4d7228b8f4
 ----
 
 以上のようにSecretはS3アクセス用の認証情報を提供し、ConfigMapはアプリケーションのS3 endpointの情報を含んでいます。
@@ -307,9 +341,10 @@ spec:
       containers:
         - image: mesosphere/aws-cli:latest
           command: ["sh"]
-          args: 
+          args:
             - '-c'
-            - 'set -x && s3cmd --no-check-certificate --signature-v2 --host $BUCKET_HOST:$BUCKET_PORT --host-bucket $BUCKET_HOST:$BUCKET_PORT du'
+            - 'set -x && s3cmd --no-check-certificate --signature-v2 --host $BUCKET_HOST:$BUCKET_PORT --host-bucket $BUCKET_HOS
+T:$BUCKET_PORT du'
           name: obc-test
           env:
             - name: BUCKET_NAME
@@ -362,7 +397,7 @@ objectbucketclaim.objectbucket.io/obc-test created
 job.batch/obc-test created
 ----
 
-*Pod*が作成/実行され、最終的に `STATUS` が `Completed` になることを確認します。
+*Pod* が作成/実行され、最終的に `STATUS` が `Completed` になることを確認します。
 
 
 [source,role="execute"]
@@ -417,10 +452,10 @@ oc get machinesets -n openshift-machine-api | egrep 'NAME|workerocs'
 ----
 .出力例:
 ----
-NAME                                          DESIRED   CURRENT   READY   AVAILABLE   AGE
-cluster-ocs-0ec4-dgwqc-workerocs-us-east-2a   1         1         1       1           3h50m
-cluster-ocs-0ec4-dgwqc-workerocs-us-east-2b   1         1         1       1           3h50m
-cluster-ocs-0ec4-dgwqc-workerocs-us-east-2c   1         1         1       1           3h50m
+NAME                                       DESIRED   CURRENT   READY   AVAILABLE   AGE
+cluster-58kkd-nmncw-workerocs-us-east-2a   1         1         1       1           19h
+cluster-58kkd-nmncw-workerocs-us-east-2b   1         1         1       1           19h
+cluster-58kkd-nmncw-workerocs-us-east-2c   1         1         1       1           19h
 ----
 
 次のコマンドでworkerocs machinesetをスケールアップしましょう。
@@ -431,12 +466,12 @@ oc get machinesets -n openshift-machine-api -o name | grep workerocs | xargs -n1
 ----
 .出力例:
 ----
-oc scale -n openshift-machine-api --replicas=2 machineset.machine.openshift.io/cluster-ocs-0ec4-dgwqc-workerocs-us-east-2a
-machineset.machine.openshift.io/cluster-ocs-0ec4-dgwqc-workerocs-us-east-2a scaled
-oc scale -n openshift-machine-api --replicas=2 machineset.machine.openshift.io/cluster-ocs-0ec4-dgwqc-workerocs-us-east-2b
-machineset.machine.openshift.io/cluster-ocs-0ec4-dgwqc-workerocs-us-east-2b scaled
-oc scale -n openshift-machine-api --replicas=2 machineset.machine.openshift.io/cluster-ocs-0ec4-dgwqc-workerocs-us-east-2c
-machineset.machine.openshift.io/cluster-ocs-0ec4-dgwqc-workerocs-us-east-2c scaled
+oc scale -n openshift-machine-api --replicas=2 machineset.machine.openshift.io/cluster-58kkd-nmncw-workerocs-us-east-2a
+machineset.machine.openshift.io/cluster-58kkd-nmncw-workerocs-us-east-2a scaled
+oc scale -n openshift-machine-api --replicas=2 machineset.machine.openshift.io/cluster-58kkd-nmncw-workerocs-us-east-2b
+machineset.machine.openshift.io/cluster-58kkd-nmncw-workerocs-us-east-2b scaled
+oc scale -n openshift-machine-api --replicas=2 machineset.machine.openshift.io/cluster-58kkd-nmncw-workerocs-us-east-2c
+machineset.machine.openshift.io/cluster-58kkd-nmncw-workerocs-us-east-2c scaled
 ----
 
 新しいworker nodeが使用可能になるまで待ちます。全てのカラムで `2` と表示されるまで待ちましょう。
@@ -473,20 +508,20 @@ NOTE: 新しく追加したworker nodeにも `cluster.ocs.openshift.io/openshift
 このセクションでは、構成済みのODF worker nodeでストレージ容量とパフォーマンスを追加します。
 前のセクションを実行した場合は、6つのODF worker nodeが存在するはずです。
 
-ストレージを追加するには、*Openshift Web Console* に移動し、手順にしたがってODFストレージクラスターの概要を表示します。
+ストレージを追加するには、*OpenShift Web Console* に移動し、手順にしたがってODFストレージクラスターの概要を表示します。
 
  - 左側のメニューから *Operators* -> *Installed Operators* をクリックする
  - `openshift-storage` Projectを選択する
- - `Openshift Container Storage Operator` をクリックする
- - 上部のナビゲーションバーで `Storage Cluster` をクリックする
- - 表示される `ocs-storagecluster` の右端にある3つのドットをクリックして、オプションメニューを表示する
+ - `OpenShift Data Foundation Operator` をクリックする
+ - 上部のナビゲーションバーで `Storage System` をクリックする
+ - 表示される `ocs-storagecluster-storagesystem` の右端にある3つのドットをクリックして、オプションメニューを表示する
  - `Add Capacity` を選択し、新しいダイアログを開く
 
-image::images/ocs/OCS4-OCP46-Storage-Cluster-overview-reachit.png[]
+image::images/ocs/ODF-add-capacity.png[]
 
 
 .Add Capacity dialog
-image::images/ocs/OCS4-add-capacity.png[Add Capacity dialog]
+image::images/ocs/ODF-add-capacity-dialog.png[Add Capacity dialog]
 
 StorageClassは `gp2` を選びます。
 `Raw Capacity` に表示される容量を拡張できます。ODFは三重でレプリカを取るため、`Raw Capacity` は希望する追加容量はの3倍の容量になります。
@@ -495,7 +530,7 @@ NOTE: *`Raw Capacity` は最初にODFクラスタを構成した時点で選択�
 
 設定が完了したら、 *Add* をクリックして続行します。ストレージクラスターのステータスが再び `Ready` になるまで変化します。
 
-新しいOSD Podが追加されていることが分かります。
+新しいOSD Podが追加されていることが分かります。新しいOSD Podが、新規に追加したODF worker nodeの上で動いていることに注目して下さい。
 
 [source,role="execute"]
 ----
@@ -503,19 +538,18 @@ oc get pod -o=custom-columns=NAME:.metadata.name,STATUS:.status.phase,NODE:.spec
 ----
 .出力例:
 ----
-NAME                                                              STATUS      NODE
-rook-ceph-osd-0-8675cf4f4-7gpbv                                   Running     ip-10-0-155-12.us-east-2.compute.internal
-rook-ceph-osd-1-58b9d954cf-9s6bw                                  Running     ip-10-0-162-215.us-east-2.compute.internal
-rook-ceph-osd-2-6994dd5f44-hsqrv                                  Running     ip-10-0-131-209.us-east-2.compute.internal
-rook-ceph-osd-3-6675d5495c-7p68z                                  Running     ip-10-0-133-99.us-east-2.compute.internal
-rook-ceph-osd-4-8665bfc79b-xn8xg                                  Running     ip-10-0-160-200.us-east-2.compute.internal
-rook-ceph-osd-5-8ffff58d6-kscbt                                   Running     ip-10-0-158-153.us-east-2.compute.internal
-rook-ceph-osd-prepare-ocs-deviceset-0-0-d2ppm-vvlt8               Succeeded   ip-10-0-131-209.us-east-2.compute.internal
-rook-ceph-osd-prepare-ocs-deviceset-0-1-869tk-btn8x               Succeeded   ip-10-0-133-99.us-east-2.compute.internal
-rook-ceph-osd-prepare-ocs-deviceset-1-0-9tmc6-svb84               Succeeded   ip-10-0-162-215.us-east-2.compute.internal
-rook-ceph-osd-prepare-ocs-deviceset-1-1-7qsxd-lppp6               Succeeded   ip-10-0-160-200.us-east-2.compute.internal
-rook-ceph-osd-prepare-ocs-deviceset-2-0-qtbfv-j4nr4               Succeeded   ip-10-0-155-12.us-east-2.compute.internal
-rook-ceph-osd-prepare-ocs-deviceset-2-1-glsgj-x4k7t               Succeeded   ip-10-0-158-153.us-east-2.compute.internal
+rook-ceph-osd-0-9b4c7bbcc-z6cxb                                   Running     ip-10-0-171-65.us-east-2.compute.internal
+rook-ceph-osd-1-78db6df7f4-jrrxg                                  Running     ip-10-0-206-84.us-east-2.compute.internal
+rook-ceph-osd-2-84dfb6db48-jd2nl                                  Running     ip-10-0-157-232.us-east-2.compute.internal
+rook-ceph-osd-3-55c498d8cf-hwksl                                  Running     ip-10-0-136-35.us-east-2.compute.internal
+rook-ceph-osd-4-69bbb47b6b-kdmvq                                  Running     ip-10-0-179-98.us-east-2.compute.internal
+rook-ceph-osd-5-5f878df68-rnsjx                                   Running     ip-10-0-202-126.us-east-2.compute.internal
+rook-ceph-osd-prepare-ocs-deviceset-gp2-0-data-04hwvs--1-966n4    Succeeded   ip-10-0-157-232.us-east-2.compute.internal
+rook-ceph-osd-prepare-ocs-deviceset-gp2-0-data-1gckv8--1-nskp5    Succeeded   ip-10-0-136-35.us-east-2.compute.internal
+rook-ceph-osd-prepare-ocs-deviceset-gp2-1-data-0vwlkv--1-hwg9b    Succeeded   ip-10-0-206-84.us-east-2.compute.internal
+rook-ceph-osd-prepare-ocs-deviceset-gp2-1-data-1q6v7s--1-4fsr4    Succeeded   ip-10-0-202-126.us-east-2.compute.internal
+rook-ceph-osd-prepare-ocs-deviceset-gp2-2-data-0s9hdp--1-w442h    Succeeded   ip-10-0-171-65.us-east-2.compute.internal
+rook-ceph-osd-prepare-ocs-deviceset-gp2-2-data-1jrkxd--1-w5p4n    Succeeded   ip-10-0-179-98.us-east-2.compute.internal
 ----
 
 以上でODFクラスターを拡張することができました。
@@ -540,25 +574,22 @@ ceph status
 ----
 .出力例:
 ----
-sh-4.2# ceph status
   cluster:
-    id:     bcc52257-12b7-4401-9f8d-c7b5bf4b5d6f
+    id:     8b73e67b-6278-477a-a370-1da50f09db37
     health: HEALTH_OK
- 
+
   services:
-    mon: 3 daemons, quorum a,b,c (age 25m)
-    mgr: a(active, since 24m)
-    mds: ocs-storagecluster-cephfilesystem:1 {0=ocs-storagecluster-cephfilesystem-a=up:active} 1 up:standby-replay
-    osd: 6 osds: 6 up (since 38s), 6 in (since 38s)
- 
+    mon: 3 daemons, quorum a,b,c (age 2h)
+    mgr: a(active, since 2h)
+    mds: 1/1 daemons up, 1 hot standby
+    osd: 6 osds: 6 up (since 107s), 6 in (since 2m)   <--- <1>
+
   data:
-    pools:   3 pools, 24 pgs
-    objects: 92 objects, 81 MiB
-    usage:   6.1 GiB used, 12 TiB / 12 TiB avail
-    pgs:     24 active+clean
- 
-  io:
-    client:   1.2 KiB/s rd, 1.7 KiB/s wr, 2 op/s rd, 0 op/s wr
+    volumes: 1/1 healthy
+    pools:   4 pools, 289 pgs
+    objects: 150 objects, 219 MiB
+    usage:   594 MiB used, 12 TiB / 12 TiB avail      <--- <2>
+    pgs:     289 active+clean
 ----
 
 この出力から次のことがわかります。
@@ -577,24 +608,24 @@ ceph osd crush tree
 ----
 .出力例:
 ----
-ID  CLASS WEIGHT   TYPE NAME                                
- -1       11.99396 root default                             
- -5       11.99396     region us-east-1                     
--14        3.99799         zone us-east-1a                  
--13        1.99899             host ocs-deviceset-1-0-6z8c2 
-  2   ssd  1.99899                 osd.2                    
--19        1.99899             host ocs-deviceset-1-1-zszws 
-  4   ssd  1.99899                 osd.4                    
- -4        3.99799         zone us-east-1b                  
- -3        1.99899             host ocs-deviceset-0-0-xnm9c 
-  0   ssd  1.99899                 osd.0                    
--17        1.99899             host ocs-deviceset-0-1-9xng5 
-  3   ssd  1.99899                 osd.3                    
--10        3.99799         zone us-east-1c                  
- -9        1.99899             host ocs-deviceset-2-0-fhp7l 
-  1   ssd  1.99899                 osd.1                    
--21        1.99899             host ocs-deviceset-2-1-xvjmb 
-  5   ssd  1.99899                 osd.5
+ID   CLASS  WEIGHT    TYPE NAME
+ -1         12.00000  root default
+ -5         12.00000      region us-east-2
+-14          4.00000          zone us-east-2a
+-13          2.00000              host ocs-deviceset-gp2-0-data-04hwvs
+  2    ssd   2.00000                  osd.2
+-17          2.00000              host ocs-deviceset-gp2-0-data-1gckv8
+  3    ssd   2.00000                  osd.3
+ -4          4.00000          zone us-east-2b
+ -3          2.00000              host ocs-deviceset-gp2-2-data-0s9hdp
+  0    ssd   2.00000                  osd.0
+-21          2.00000              host ocs-deviceset-gp2-2-data-1jrkxd
+  4    ssd   2.00000                  osd.4
+-10          4.00000          zone us-east-2c
+ -9          2.00000              host ocs-deviceset-gp2-1-data-0vwlkv
+  1    ssd   2.00000                  osd.1
+-19          2.00000              host ocs-deviceset-gp2-1-data-1q6v7s
+  5    ssd   2.00000                  osd.5
 ----
 
 <1> worker nodeが追加されたことで、それぞれの `zone` の中で `host` が拡張されている。
@@ -624,7 +655,7 @@ exit
 
 このセクションでは、モニタリングに関してODFで使用できるさまざまなツールについて説明します。
 
-各種ツールは、OpenShift Web Consoleの左側メニューバーからアクセスできます。*Monitoring* メニューを展開し、次の3つのアイテムにアクセスします。
+各種ツールは、*OpenShift Web Console* の左側メニューバーからアクセスできます。*Observe* メニューを展開し、次の3つのアイテムにアクセスします。
 
 * Alerting
 * Metrics
@@ -632,10 +663,7 @@ exit
 
 === Alerting
 
-以下のスクリーンキャプチャに示すように、 *Alerting* をクリックしてアラートウィンドウを開きます。
-
-.OCP Monitoring Menu
-image::images/ocs/metrics-alertingleftpanemenu.png[OCP Monitoring Menu]
+*Observe* -> *Alerting* をクリックしてアラートウィンドウを開きます。
 
 以下に示すように *Alerting* のページに移動します。
 
@@ -674,12 +702,7 @@ NOTE: 必要に応じて、アラートに埋め込まれたPrometheusクエリ�
 
 === Metrics
 
-以下に示すように、*Metrics* をクリックします。
-
-.OCP Metrics Menu
-image::images/ocs/metrics-metricsleftpanemenu.png[OCP Metrics Menu]
-
-*Metrics* のページに移動します。
+*Observe* -> *Metris* をクリックし、*Metrics* のページに移動します。
 
 .OCP UI Metrics Homepage
 image::images/ocs/metrics-queryfield.png[OCP Monitoring Metrics Homepage]
