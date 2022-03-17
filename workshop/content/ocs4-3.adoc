@@ -32,14 +32,22 @@ oc get pv
 ----
 .出力例
 ----
-NAME                                       CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM                                                STORAGECLASS                  REASON   AGE
-pvc-039b458a-7614-4ff5-833a-41b5561c47ff   50Gi       RWO            Delete           Bound    openshift-storage/db-noobaa-db-0                     ocs-storagecluster-ceph-rbd            19h
-pvc-3960cb8b-c1b3-4bf1-9175-146429585399   10Gi       RWO            Delete           Bound    openshift-storage/rook-ceph-mon-c                    gp2                                    19h
-pvc-5e08a53f-f62b-4d1a-a563-71fdab68f718   2Ti        RWO            Delete           Bound    openshift-storage/ocs-deviceset-gp2-1-data-0-7vht6   gp2                                    19h
-pvc-c77c8837-92c2-4eed-961c-0c89eb481076   2Ti        RWO            Delete           Bound    openshift-storage/ocs-deviceset-gp2-0-data-0-sqzdk   gp2                                    19h
-pvc-d1af3be5-5bc4-429a-af0d-d515c4d834fa   10Gi       RWO            Delete           Bound    openshift-storage/rook-ceph-mon-b                    gp2                                    19h
-pvc-d1b2f456-2ae3-4355-bfcd-565cf9319054   2Ti        RWO            Delete           Bound    openshift-storage/ocs-deviceset-gp2-2-data-0-xrq6d   gp2                                    19h
-pvc-fa0dbb7a-1796-4bc0-a495-2b4af4f7fa4f   10Gi       RWO            Delete           Bound    openshift-storage/rook-ceph-mon-a                    gp2                                    19h
+NAME                                       CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM
+                                       STORAGECLASS                  REASON   AGE
+pvc-1e2b927e-afc0-4132-b95a-d8c761529200   50Gi       RWO            Delete           Bound    openshift-sto
+rage/rook-ceph-mon-b                   gp2                                    57m
+pvc-34f039fb-1d22-4332-a9ec-0dc42b7e4275   50Gi       RWO            Delete           Bound    openshift-sto
+rage/rook-ceph-mon-a                   gp2                                    57m
+pvc-47f8c6ba-cf0b-4d99-8d66-2f055627ce35   2Ti        RWO            Delete           Bound    openshift-sto
+rage/ocs-deviceset-gp2-2-data-0s9hdp   gp2                                    48m
+pvc-8988551a-8f22-4a2f-bfb8-d68b55b38758   2Ti        RWO            Delete           Bound    openshift-sto
+rage/ocs-deviceset-gp2-0-data-04hwvs   gp2                                    48m
+pvc-8ae00cde-f2f6-4d48-95a5-80725cacef06   50Gi       RWO            Delete           Bound    openshift-sto
+rage/db-noobaa-db-pg-0                 ocs-storagecluster-ceph-rbd            46m
+pvc-ada6bd42-caec-4d58-b3b7-42bc8c69635c   50Gi       RWO            Delete           Bound    openshift-sto
+rage/rook-ceph-mon-c                   gp2                                    57m
+pvc-f48dfb9e-f01f-40c0-b5ce-84f5d1aa7b6e   2Ti        RWO            Delete           Bound    openshift-sto
+rage/ocs-deviceset-gp2-1-data-0vwlkv   gp2                                    48m
 ----
 
 いくつかのPVが表示されますが、これらはODFクラスターを構成するために作られたPVです。ユーザーアプリケーション向けにはPVはまだありません。
