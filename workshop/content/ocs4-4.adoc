@@ -211,7 +211,10 @@ oc get route file-uploader -n my-shared-storage -o jsonpath --template="{.spec.h
 file-uploader-my-shared-storage.apps.cluster-ocs-9b06.ocs-9b06.example.opentlc.com
 ----
 
-出力されたURLを使用してブラウザでWebアプリケーションを指定します。 +
+出力されたURLを使用してブラウザでWebアプリケーションを指定します。
+
+*Example*  `http://file-uploader-my-shared-storage.apps.cluster-ocs-9b06.ocs-9b06.example.opentlc.com`
+
 Webアプリは、アップロードされたすべてのファイルをリストし、新しいファイルをアップロードする機能と、
 既存のデータをダウンロードする機能を提供します。現時点では何もありません。
 
@@ -223,7 +226,14 @@ image::images/ocs/uploader_screen_upload.png[]
 完了したら、*List uploaded files* をクリックして、現在アップロードされているすべてのファイルのリストを表示します。 +
 
 .演習
-また、先のコマンドで確認したfile-uploader Podのmount pathに同じファイルが保存されていることを確認してみましょう。
+また、先のコマンドで確認した3つの `file-uploader` Podの `MOUNTPOINT` に同じファイルが保存されていることを確認してみましょう。 +
+`oc rsh` コマンドを使って、それぞれの `file-uploader` Pod に対して `MOUNTPOINT` のパスに対して `ls` コマンドを実行することで確認できます。
+
+ヒント:
+
+----
+oc -n my-shared-storage rsh <Pod name> ls <MOUNTPOINT>
+----
 
 ---
 以上で、「Lab 2-4: CephFSボリュームを使ってRWX PVを使用する」は完了です。
