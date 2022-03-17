@@ -58,7 +58,7 @@ OpenShift4 Webコンソールにログインし、[Operators]>[OperatorHub]か�
 image::images/ocp4ws-ops/operator-hub.png[OperatorHub]
 
 OperatorHubの中から、Prometheus Operator(Community)を選択して、[Install]を行います。 +
-※コミュニティ版を利用すると、警告が表示されるので、一旦[Continue]で続けます。(OCP 4.6現在)
+※コミュニティ版を利用すると、警告が表示されるので、一旦[Continue]で続けます。
 
 image::images/ocp4ws-ops/prometheus-operator.png[Prometheus Operator]
 
@@ -79,11 +79,11 @@ image::images/ocp4ws-ops/prometheus-operator-subscription.png[]
 
 image::images/ocp4ws-ops/create-subscription.png[]
 
-正しく設定されると、[UPGRADE STATUS]がInstalledになりOperatorが展開されます。また、以下のように[Operators]>[Installed Operators]>[Operator Details]>[Subscription]から、概要が確認できます。
+正しく設定されると、[View Operator]からPrometheus Operatorが確認できます。また、下図のように[Operators]>[Installed Operators]からでも辿ることができます。
 
 image::images/ocp4ws-ops/prometheus-subscription.png[Prometheus Subscription]
 
-image::images/ocp4ws-ops/create-subscription-overview.png[]
+image::images/ocp4ws-ops/prometheus-operator-overview.png[]
 
 これで、Prometheus Operatorがインストールされました。なおこの時点では、Custom Resource Definition(CRD)の登録やPrometheus Operatorの配置が行われるだけで、Prometheusのプロセス自体はまだ構築されません。
 
@@ -143,10 +143,10 @@ oc describe packagemanifest prometheus -n openshift-marketplace
 
 == 1-4-3. Custom Resource Definition(CRD)とOperatorの確認
 
-Prometheus Operatorをインストールすると、CRD(Custom Resource Definition)が作成されます。Promethus Operatorは、標準で5つのCRDを保持しています。 +
+Prometheus Operatorをインストールすると、CRD(Custom Resource Definition)が作成されます。Promethus Operatorは、標準で8つのCRDを保持しています。 +
 Webコンソールでは [Operators]>[Installed Operators]>[Prometheus Operator] から、デプロイされたPromethus OperatorのCRDが確認できます。
 
-image::images/ocp4ws-ops/prometheus-catalog.png[Prometheus Catalog]
+image::images/ocp4ws-ops/prometheus-operator-overview.png[Prometheus Catalog]
 
 [TIPS]
 ====
@@ -160,7 +160,7 @@ oc get crd
 このコマンドの出力は、今回インストールしたPrometheus Operatorで作成されたCRD以外のものも表示していることがわかるでしょう。どうも、クラスターで作成されている全てのCRDが表示されているようです。これはなぜでしょうか？
 
 それはCRDが、どのProjectでも利用できる**"Cluster-scoped"**なリソースであることが理由です。 +
-通常、リソースは他のアプリケーションから分離されることが望ましいため、作成されたProject(Namespace)内で管理されます。こういったリソースは"Namespace-scoped"なリソースと呼ばれ、OpenShiftおよびKubernetesで利用される大半のリソースはこれにあたります。 +
+通常、リソースは他のアプリケーションから分離されることが望ましいため、作成されたProject(Namespace)内で管理されます。こういったリソースは**"Namespace-scoped"**なリソースと呼ばれ、OpenShiftおよびKubernetesで利用される大半のリソースはこれにあたります。 +
 一方で、Projectをまたいでクラスター全体で利用される方が効率的で望ましいリソースも中には存在し、こういったものが"Cluster-scoped"なリソースとして定義されています。CRDの他に例を挙げると、**StorageClass**や**ClusterRoles**などです。
 
 幸い、今回インストールしたPrometheus Operatorで作成されたCRDにはlabelが付けられているため、label selectorで絞ることができます。
@@ -173,12 +173,15 @@ oc get crd --show-labels -l operators.coreos.com/prometheus.jmx-monitor
 
 ----
 $ oc get crd --show-labels -l operators.coreos.com/prometheus.jmx-monitor
-NAME                                    CREATED AT             LABELS
-alertmanagers.monitoring.coreos.com     2021-03-20T11:47:24Z   operators.coreos.com/prometheus.jmx-monitor=
-podmonitors.monitoring.coreos.com       2021-03-20T11:47:27Z   operators.coreos.com/prometheus.jmx-monitor=
-prometheuses.monitoring.coreos.com      2021-03-20T11:47:32Z   operators.coreos.com/prometheus.jmx-monitor=
-prometheusrules.monitoring.coreos.com   2021-03-20T11:47:34Z   operators.coreos.com/prometheus.jmx-monitor=
-servicemonitors.monitoring.coreos.com   2021-03-20T11:47:37Z   operators.coreos.com/prometheus.jmx-monitor=
+NAME                                        CREATED AT             LABELS
+alertmanagerconfigs.monitoring.coreos.com   2022-03-17T03:17:16Z   operators.coreos.com/prometheus.jmx-monitor=
+alertmanagers.monitoring.coreos.com         2022-03-17T03:17:19Z   operators.coreos.com/prometheus.jmx-monitor=
+podmonitors.monitoring.coreos.com           2022-03-17T03:17:21Z   operators.coreos.com/prometheus.jmx-monitor=
+probes.monitoring.coreos.com                2022-03-17T03:17:23Z   operators.coreos.com/prometheus.jmx-monitor=
+prometheuses.monitoring.coreos.com          2022-03-17T03:17:26Z   operators.coreos.com/prometheus.jmx-monitor=
+prometheusrules.monitoring.coreos.com       2022-03-17T03:17:28Z   operators.coreos.com/prometheus.jmx-monitor=
+servicemonitors.monitoring.coreos.com       2022-03-17T03:17:30Z   operators.coreos.com/prometheus.jmx-monitor=
+thanosrulers.monitoring.coreos.com          2022-03-17T03:17:33Z   operators.coreos.com/prometheus.jmx-monitor=
 ----
 ====
 
