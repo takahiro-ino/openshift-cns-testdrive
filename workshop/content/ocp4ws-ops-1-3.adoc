@@ -164,12 +164,15 @@ NAME                     TYPE     FROM          STATUS     STARTED              
 jboss-eap-prometheus-1   Docker   Git@23160b8   Complete   About a minute ago   47s
 
 $ oc get imagestream
-NAME                   IMAGE REPOSITORY                                                                  TAGS     UPDATED
-eap70-openshift        image-registry.openshift-image-registry.svc:5000/odh-abcde/eap70-openshift        latest   About a minute ago
-jboss-eap-prometheus   image-registry.openshift-image-registry.svc:5000/odh-abcde/jboss-eap-prometheus   latest   About a minute ago
+NAME                   IMAGE REPOSITORY                                                            TAGS
+  UPDATED
+eap70-openshift        image-registry.openshift-image-registry.svc:5000/jmx/eap70-openshift        latest
+  About a minute ago
+jboss-eap-prometheus   image-registry.openshift-image-registry.svc:5000/jmx/jboss-eap-prometheus   latest
+  56 seconds ago
 ----
 +
-OpenShift4コンソールにログインして、[Builds]>[Image Streams]から、ビルドしたイメージがImageStreamに登録されていることも確認しましょう。
+OpenShift4コンソールにログインして、[Administrator]>[Builds]>[Image Streams]から、ビルドしたイメージがImageStreamに登録されていることも確認しましょう。Projectは `jmx` を選択します。
 +
 image::images/ocp4ws-ops/ocp4-i-lab1-1-imagestream-jboss.png[]
 
@@ -214,7 +217,7 @@ $ oc new-app -i jboss-eap-prometheus:latest \
 . 展開したアプリケーションの確認
 +
 この時点で「jboss-eap-prometheus-1」がRunning状態になれば、デプロイ成功です。 +
- JMX Exporter はデフォルトで9404ポートを公開します。
+JMX Exporter はデフォルトで9404ポートを公開します。
 +
 [source,bash,role="execute"]
 ----
@@ -279,7 +282,7 @@ tcp-8080   tcp-8080-jmx.apps.cluster-3adc.3adc.sandbox691.opentlc.com          j
 次のコマンドの出力で表示されるURLにブラウザでアクセスしてみましょう。JBoss EAPの画面が表示されるはずです。
 [source,bash,role="execute"]
 ----
-oc get route tcp-8080 -ojsonpath='{.spec.host}'
+echo http://$(oc get route tcp-8080 -ojsonpath='{.spec.host}')
 ----
 
 image::images/ocp4ws-ops/jboss-eap-prometheus-8080.jpg[Jboss Application]
@@ -310,7 +313,7 @@ tcp-9404   tcp-9404-jmx.apps.cluster-3adc.3adc.sandbox691.opentlc.com          j
 先と同様に``HOST/PORT``のカラムに表示されるURLにブラウザからアクセスしてみましょう。JMX Exporterから取得したPromSQLのクエリが確認できます。
 [source,bash,role="execute"]
 ----
-oc get route tcp-9404 -ojsonpath='{.spec.host}'
+echo http://$(oc get route tcp-9404 -ojsonpath='{.spec.host}')
 ----
 
 image::images/ocp4ws-ops/jboss-eap-prometheus-9404.jpg[Jboss Application]
