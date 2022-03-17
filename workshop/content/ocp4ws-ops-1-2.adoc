@@ -79,11 +79,11 @@ NOTE: OpenShift4ではProjectを作成することで、Projectと同じ名前�
 
 === 1-2-3-2. カタログでソースを指定してビルド&デプロイ
 
-. [</> Developer] > [+Add] > [From Catalog] を選択します。
+. [</> Developer] > [+Add] > [Developer Catalog] > [All services] を選択します。Projectには先ほど作成したProject(例: `blog` )が指定されていることに注意してください。
 +
 image::images/ocp4ws-ops/ocp4-lab1-3-from-catalog.png[]
 
-. 次に [Python] テンプレート を選択します。
+. 次に [Python] テンプレート を選択します。Developer Catalogの画面で、*Filter by keyword...* のボックスに *Python* と入力して探すと早いです。
 +
 image::images/ocp4ws-ops/ocp4-lab1-3-from-catalog-python.png[]
 +
@@ -110,7 +110,7 @@ NOTE: Developer CatalogからPythonアプリケーションを作成すること
 +
 次に、*[リポジトリなどいくつかの項目]* を指定し、最後に *[Create]* を選択します。
 
- ** Builder Image Version: `3.6-ubi8`
+ ** Builder Image Version: `3.9-ubi8`
  ** Git Repo URL: `+https://github.com/openshift-katacoda/blog-django-py+`
  ** Applicaiton Name:``任意の名前(例: blog)``
  ** Name:``任意の名前(例: blog)``
@@ -118,13 +118,11 @@ NOTE: Developer CatalogからPythonアプリケーションを作成すること
 +
 image::images/ocp4ws-ops/ocp4-lab1-3-from-catalog-python-create-detail.png[]
 +
-以上の手順で、blogアプリケーションをOpenShift4上にデプロイできました。
+以上の手順で、blogアプリケーションをOpenShift4上にデプロイできます。
 +
 [TIPS]
 ====
-NOTE: [</> Developer] > [Topology] から、アプリケーションのアイコンをクリックすると、稼働状態を確認できます。ビルドおよびデプロイが完了するまでに少し時間(約30秒)がかかります。"Running" のステータスを確認できるまで待ちます。
-
-image::images/ocp4ws-ops/ocp4-lab1-3-topology.png[]
+NOTE: [</> Developer] > [Topology] から、アプリケーションのアイコンをクリックすると、稼働状態を確認できます。ビルドおよびデプロイが完了するまでに少し時間がかかります。"Running" のステータスを確認できるまで待ちます。
 ====
 
 ---
@@ -133,9 +131,9 @@ image::images/ocp4ws-ops/ocp4-lab1-3-topology.png[]
 
 . [</> Developer] > [Topology] \-> [アプリケーションのアイコン] から、Pod名のリンクをクリックします。
 +
-image::images/ocp4ws-ops/ocp4-lab1-3-topology-pod.png[]
+image::images/ocp4ws-ops/ocp4-lab1-3-topology.png[]
 +
-コンテナが作成され、起動していると以下のように表示されます。
+コンテナが作成され、起動していると[Metrics]タブでは以下のように表示されます。
 +
 image::images/ocp4ws-ops/ocp4-lab1-3-topology-pod-detail.png[]
 +
@@ -155,16 +153,13 @@ image::images/ocp4ws-ops/ocp4-lab1-3-topology-pod-terminal.png[]
 現在のblogアプリケーションは、OpenShift4クラスター内に閉じた状態ですので、外部からアクセスできるように Route を作成しましょう。
 
 . コンソールを Administation Console に切り替えます。
-+
-image::images/ocp4ws-ops/ocp4-lab1-3-create-route-admin-console.png[]
-
-. [Administrator] > [Networking] > [Routes] > [Create Route] を選択します。
+. [Administrator] > [Networking] > [Routes] > [Create Route] を選択します。選択しているProjectに注意してください。
 +
 image::images/ocp4ws-ops/ocp4-lab1-3-create-route.png[]
 
 . *Name*、対象アプリ用の**Service**、*Port* を指定します。
  ** Name: `任意の名前 (例: blog)`
- ** Service: `指定済のアプリ名 (例: blog`
+ ** Service: `指定済のアプリ名 (例: blog)`
  ** Target Port: `8080 → 8080(TCP)`
 
 +
@@ -196,7 +191,8 @@ image::images/ocp4ws-ops/ocp4-lab1-3-create-route-result.png[]
 === 1-2-3-5. アプリケーションの動作確認
 
 . [Networking] > [Routes] を選択し、blog用のRoute(例: `blog`)の行にある *Location欄のリンク* を開きます。
- 例) `+http://blog-blog.apps.cluster-391b.391b.example.opentlc.com/+`
+ 例) `+	
+http://blog-blog.apps.cluster-8jz2n.8jz2n.sandbox1903.opentlc.com+`
 +
 image::images/ocp4ws-ops/ocp4-lab1-3-create-route-confirm.png[]
 
@@ -217,7 +213,7 @@ image::images/ocp4ws-ops/ocp4-lab1-3-create-route-confirm-result-pod.png[]
 コンテンツ:
 
 * Project名(NameSpace): `trial` (例: `trial`)
-* BaseImage(BuilderImage): `Python 3.6-ubi8`
+* BaseImage(BuilderImage): `Python 3.9-ubi8`
 * Git Repository: `+https://github.com/sclorg/django-ex+`
 * Routes名: `trial`
 
