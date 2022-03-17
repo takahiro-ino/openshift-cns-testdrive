@@ -157,9 +157,9 @@ NAME                                READY   STATUS      RESTARTS   AGE
 postgresql-1-deploy                 0/1     Completed   0          5m48s
 postgresql-1-lf7qt                  1/1     Running     0          5m40s
 rails-pgsql-persistent-1-build      0/1     Completed   0          5m49s
-rails-pgsql-persistent-1-deploy     0/1     Completed   0          3m36s
-rails-pgsql-persistent-1-hook-pre   0/1     Completed   0          3m28s
-rails-pgsql-persistent-1-pjh6q      1/1     Running     0          3m14s
+rails-pgsql-persistent-1-deploy     0/1     Completed   0          84s
+rails-pgsql-persistent-1-hook-pre   0/1     Completed   0          81s
+rails-pgsql-persistent-1-pjh6q      1/1     Running     0          62s
 ----
 kbd:[Ctrl+C] を押すと終了できます。
 
@@ -187,13 +187,15 @@ rails-pgsql-persistent   rails-pgsql-persistent-my-database-app.apps.cluster-a26
 
 *Example*  `http://rails-pgsql-persistent-my-database-app.apps.cluster-a26e.sandbox449.opentlc.com/articles`
 
-Webページの *New Article* をクリックし、次の `username` と `password` を入力することで記事やコメントを作成することができます。
+Webページの *New Article* をクリックし、次の `username` と `password` を入力することで記事やコメントを作成することができます。 +
 
 [source,ini]
 ----
 username: openshift
 password: secret
 ----
+
+何でもよいので、ここで1つ記事を作成してください。
 
 作成された記事とコメントはPostgreSQLデータベースに保存されます。PostgreSQLデータベースは、アプリケーションのデプロイ中に `ocs-storagecluster-ceph-rbd` *StorageClass* を使ってプロビジョニングされたCeph RBDボリュームにテーブルスペースを保存します。 +
 そのため、PostgreSQLのPodを削除してもデータが失われることはありません。試しにPostgreSQLのPodを削除してみましょう。 +
@@ -253,15 +255,19 @@ oc get pv -o 'custom-columns=NAME:.spec.claimRef.name,PVNAME:.metadata.name,STOR
 ----
 .出力例:
 ----
-NAME                      PVNAME                                     STORAGECLASS                  VOLUMEHANDLE
-ocs-deviceset-0-0-d2ppm   pvc-2c08bd9c-332d-11ea-a32f-061f7a67362c   gp2                           <none>
-ocs-deviceset-1-0-9tmc6   pvc-2c0a0ed5-332d-11ea-a32f-061f7a67362c   gp2                           <none>
-ocs-deviceset-2-0-qtbfv   pvc-2c0babb3-332d-11ea-a32f-061f7a67362c   gp2                           <none>
-db-noobaa-core-0          pvc-4610a3ce-332d-11ea-a32f-061f7a67362c   ocs-storagecluster-ceph-rbd   0001-0011-openshift-storage-0000000000000001-4a74e248-332d-11ea-9a7c-0a580a820205
-postgresql                pvc-874f93cb-3330-11ea-90b1-0a10d22e734a   ocs-storagecluster-ceph-rbd   0001-0011-openshift-storage-0000000000000001-8765a21d-3330-11ea-9a7c-0a580a820205
-rook-ceph-mon-a           pvc-d462ecb0-332c-11ea-a32f-061f7a67362c   gp2                           <none>
-rook-ceph-mon-b           pvc-d79d0db4-332c-11ea-a32f-061f7a67362c   gp2                           <none>
-rook-ceph-mon-c           pvc-da9cc0e3-332c-11ea-a32f-061f7a67362c   gp2                           <none>
+NAME                              PVNAME                                     STORAGECLASS                  VOLUMEHANDLE
+rook-ceph-mon-b                   pvc-1e2b927e-afc0-4132-b95a-d8c761529200   gp2                           <none>
+rook-ceph-mon-a                   pvc-34f039fb-1d22-4332-a9ec-0dc42b7e4275   gp2                           <none>
+ocs-deviceset-gp2-2-data-0s9hdp   pvc-47f8c6ba-cf0b-4d99-8d66-2f055627ce35   gp2                           <none>
+ocs-deviceset-gp2-0-data-04hwvs   pvc-8988551a-8f22-4a2f-bfb8-d68b55b38758   gp2                           <none>
+db-noobaa-db-pg-0                 pvc-8ae00cde-f2f6-4d48-95a5-80725cacef06   ocs-storagecluster-ceph-rbd   0001-0011-openshift-storage-00
+00000000000001-bf425b04-a586-11ec-bdd5-0a580a80041e
+rook-ceph-mon-c                   pvc-ada6bd42-caec-4d58-b3b7-42bc8c69635c   gp2                           <none>
+postgresql                        pvc-debec901-780f-44b5-8b71-2d32d2fe32fd   ocs-storagecluster-ceph-rbd   0001-0011-openshift-storage-00
+00000000000001-29fbab33-a58f-11ec-bdd5-0a580a80041e
+example                           pvc-e3962c93-52ba-4cb0-b55f-2a831d40dda6   ocs-storagecluster-ceph-rbd   0001-0011-openshift-storage-00
+00000000000001-5db07ddc-a58d-11ec-bdd5-0a580a80041e
+ocs-deviceset-gp2-1-data-0vwlkv   pvc-f48dfb9e-f01f-40c0-b5ce-84f5d1aa7b6e   gp2                           <none>
 ----
 
 `VOLUMEHANDLE` カラムの後半部分は、Ceph RBDの名前と一致していることがわかります。この前に `csi-vol-` をつけることで完全なRBDを取得することができます。 +
@@ -282,19 +288,19 @@ oc rsh -n openshift-storage $TOOLS_POD rbd -p ocs-storagecluster-cephblockpool i
 
 .出力例:
 ----
-rbd image 'csi-vol-8765a21d-3330-11ea-9a7c-0a580a820205':
+rbd image 'csi-vol-29fbab33-a58f-11ec-bdd5-0a580a80041e':
         size 5 GiB in 1280 objects
         order 22 (4 MiB objects)
         snapshot_count: 0
-        id: 17e811c7f287
-        block_name_prefix: rbd_data.17e811c7f287
+        id: 5f0043c253e9
+        block_name_prefix: rbd_data.5f0043c253e9
         format: 2
         features: layering
         op_features:
         flags:
-        create_timestamp: Thu Jan  9 22:36:51 2020
-        access_timestamp: Thu Jan  9 22:36:51 2020
-        modify_timestamp: Thu Jan  9 22:36:51 2020
+        create_timestamp: Thu Mar 17 01:11:24 2022
+        access_timestamp: Thu Mar 17 01:11:24 2022
+        modify_timestamp: Thu Mar 17 01:11:24 2022
 ----
 
 ---
