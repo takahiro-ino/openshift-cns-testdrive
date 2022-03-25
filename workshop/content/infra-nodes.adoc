@@ -1,4 +1,4 @@
-= OpenShift Container Storageのデプロイと管理
+= インフラストラクチャノード
 // Activate experimental attribute for Keyboard Shortcut keys
 :experimental:
 
