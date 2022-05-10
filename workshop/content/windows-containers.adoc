@@ -1,100 +1,97 @@
-Windows Container Support for OpenShift provides support for running
-Microsoft Windows Server containers on OpenShift Container Platform. For
-those that administer environments with a mix of Linux and Windows
-workloads, OpenShift allows you to deploy containerized Windows workloads
-running on Windows Server on the same platfrom as your containerized Linux workloads.
+Windows Container Support for OpenShift は、OpenShift Container Platform 上で Microsoft Windows Server コンテナを実行するためのサポートを提供します。
+Microsoft Windows Server コンテナを OpenShift Container Platform 上で実行するためのサポートを提供します。LinuxとWindowsが混在する環境を
+LinuxとWindowsが混在する環境を管理する場合、OpenShiftはコンテナ化されたWindowsワークロードを展開することができます。
+OpenShiftでは、Windows Server上で動作するコンテナ化されたWindowsワークロードを、LinuxとWindowsのワークロードが混在する環境を管理することができます。
+コンテナ化されたLinuxワークロードと同じプラットフォーム上でWindows Server上で動作するコンテナ化されたWindowsワークロードを展開することができます。
 
-Windows container workloads are supported for clusters running on the
-following providers:
+Windowsコンテナ・ワークロードは、以下のプロバイダー上で動作するクラスタでサポートされています。
+以下のプロバイダー上で動作するクラスタに対応しています。
 
 * Amazon Web Services (AWS)
 * Microsoft Azure
 * VMware vSphere
 * Bare Metal (via link:https://docs.openshift.com/container-platform/4.9/windows_containers/byoh-windows-instance.html[BYOH])
 
-NOTE: For more information  about what versions of Windows Server are supported, please see the link:https://docs.openshift.com/container-platform/4.9/windows_containers/understanding-windows-container-workloads.html[official documentation].
+NOTE: Windows Server の対応バージョンについては、リンク先をご覧ください。:https://docs.openshift.com/container-platform/4.9/windows_containers/understanding-windows-container-workloads.html[official documentation].
 
-In this lab, you'll get hands on experence on how to deploy a Windows
-worker node and how to deploy workloads onto an OpenShift platform with
-Windows and Linux nodes.
+このラボでは、Windows ワーカー ノードのデプロイ方法と、OpenShift プラットフォームへのワークロードのデプロイ方法を実際に体験していただきます。
+ワーカーノードをデプロイする方法、および Windows と Linux のノードを持つ OpenShift プラットフォームにワークロードをデプロイする方法について、実際に体験していただきます。
+ワークロードを展開する方法を体験します。
 
 #### Windows MachineConfig Operator
 
-The Windows Machine Config Operator (WMCO) is the entry point for
-OpenShift Administrators who want to run containerized Windows workloads
-on their clusters.
+Windows Machine Config Operator (WMCO)は、コンテナ化されたWindowsワークロードを実行したいOpenShift管理者のためのエントリポイントです。
+OpenShift管理者が、コンテナ化されたWindowsワークロードをクラスタ上で実行するためのエントリポイントです。
+クラスタ上で実行するためのエントリポイントです。
 
-It allows Cluster Administrators to add a Windows worker nodes as a day 2
-operation with a prescribed configuration to an OpenShift cluster and
-enable scheduling of Windows workloads.
+クラスタ管理者は、Windowsワーカーノードを2日目で追加することができます。
+を追加し、Windowsワークロードのスケジューリングを可能にします。
+Windowsワークロードのスケジューリングを可能にします。
 
-The following diagram is a high level illustration on how the WMCO works.
+次の図は、WMCOがどのように動作するかのハイレベルな説明です。
 
 .Windows MachineConfig Operator Design
 image::images/wmcodiagram.png[wmco diagram]
 
-The Windows Machine Config Operator is a Linux-based operator that runs on
-Linux-based nodes on OpenShift. It watches for Machine Objects that are
-of type Windows and connects to them over SSH.
+Windowsマシン設定オペレーターは、Linuxベースのオペレーターで、OpenShift上のLinuxベースのノードで動作します。
+OpenShift上のLinuxベースのノードで実行されます。これは、WindowsタイプであるMachine Objectsを監視し
+を監視し、SSHで接続します。
 
-During setup, the WMCO will:
+セットアップ中、WMCOは:
 
-* Transfer needed binaries to the Windows node.
-* Installs and confiugres the Kubelet.
-* Install and run it's own overlay network (Hybrid-overlay network).
-* Confiugre the CNI on the Kubelet.
-* Set up kube-proxy.
+* 必要なバイナリをWindowsノードに転送します。
+* Kubeletをインストールし、コンフィグレーションを行います。
+* 独自のオーバーレイネットワーク(Hybrid-overlay network)をインストールし、実行します。
+* KubeletにCNIを設定します。
+* kube-proxyをセットアップします。
 
-For more information please see the link:https://docs.openshift.com/container-platform/4.9/windows_containers/understanding-windows-container-workloads.html[official documentation].
+詳しくは、リンク先をご覧ください:https://docs.openshift.com/container-platform/4.9/windows_containers/understanding-windows-container-workloads.html[official documentation].
 
-#### Prerequisites
+#### 事前準備
 
-This cluster has already been installed to support Windows Nodes and
-Windows Containers workloads. Therefore, we will be exploring the
-prerequisites by looking at the current configuration of this cluster.
+このクラスタは、WindowsノードとWindowsコンテナのワークロードをサポートするために、すでにインストールされています。
+Windows Containersのワークロードをサポートするためにインストール済みです。したがって、このクラスターの現在の構成を見て、前提条件を調べることになります。
+の前提条件を調べることにします。
 
-Before proceeding, make sure you're `kubeadmin`
+先に進む前に、`kubeadmin` を確認してください。
 
 [source,bash,role="execute"]
 ----
 oc login -u kubeadmin -p {{ KUBEADMIN_PASSWORD }}
 ----
 
-The first requisite is that you must be running OpenShift version 4.6
-or newer. This cluster should have been installed at a supported version.
+最初の必要条件は、OpenShiftのバージョン4.6以降を実行していることです。
+またはそれ以降であることです。このクラスタは、サポートされているバージョンでインストールされている必要があります。
 
 [source,bash,role="execute"]
 ----
 oc version
 ----
 
-The next requisite is that the cluster must be installed with
-`OVNKubernetes` as the SDN for OpenShift. This can only be done at
-install time in the `install-config.yaml` file. This file is stored on
-the cluster after install. Take a look at the setting.
+次に必要なのは、クラスターにOpenShiftのSDNとして
+OVNKubernetes` を OpenShift 用の SDN としてインストールすることです。これはインストール時に
+インストール時に `install-config.yaml` ファイルで設定します。このファイルはインストール後にクラスターに保存されます。
+このファイルはインストール後にクラスタに保存されます。設定を見てみましょう。
 
 [source,bash,role="execute"]
 ----
 oc extract cm/cluster-config-v1 -n kube-system --to=- | yq e '.networking.networkType' -
 ----
 
-This should output `OVNKubernetes` as the network type.
+すると、ネットワークタイプとして `OVNKubernetes` が出力されるはずです。
 
-NOTE: Learn more about the `install-config.yaml` file at the link:https://docs.openshift.com/container-platform/4.9/installing/installing_aws/installing-aws-customizations.html#installation-aws-config-yaml_installing-aws-customizations[official documentation page].
+NOTE: `install-config.yaml` ファイルについて詳しくは、次のリンクを参照してください。:https://docs.openshift.com/container-platform/4.9/installing/installing_aws/installing-aws-customizations.html#installation-aws-config-yaml_installing-aws-customizations[official documentation page].
 
-The next requisite is the cluster must be set up with overlay hybrid
-networking. This is another step that can only be done at install
-time. You can verify that the configuration has been done by running
-the following:
+次に必要なのは、クラスタがオーバーレイハイブリッドネットワークでセットアップされていることです。ネットワーキングを設定することです。
+これもインストール時にしかできないことです。時にしかできません。設定が完了したことを確認するには、以下を実行します。を実行することで確認できます。
 
 [source,bash,role="execute"]
 ----
 oc get network.operator cluster -o yaml | yq e '.spec.defaultNetwork' -
 ----
 
-The output should look like this. As you can see, the
-`hybridOverlayConfig` was set up. This is the overlay network setup on
-the Windows Node.
+このように出力されるはずです。ご覧のように`hybridOverlayConfig` がセットアップされました。
+これは、WindowsノードでのOverlay Networkのセットアップです。
 
 [source,yaml]
 ----
@@ -113,79 +110,75 @@ ovnKubernetesConfig:
 type: OVNKubernetes
 ----
 
-NOTE: To read more about how to setup HybridNetworking, please see the link:https://docs.openshift.com/container-platform/4.9/networking/ovn_kubernetes_network_provider/configuring-hybrid-networking.html#configuring-hybrid-ovnkubernetes_configuring-hybrid-networking[official doc].
+NOTE: HybridNetworkingの設定方法については、リンク先をご覧ください。:https://docs.openshift.com/container-platform/4.9/networking/ovn_kubernetes_network_provider/configuring-hybrid-networking.html#configuring-hybrid-ovnkubernetes_configuring-hybrid-networking[official doc].
 
-To summarize, in order to use Windows Containers on OpenShift. You will need the following:
+まとめると、OpenShiftでWindows Containersを利用するためには。以下のものが必要です。
 
-* OpenShift version 4.6 or newer.
-* `OVNKubernetes` as the SDN.
-* Additionally set up hybrid overlay networking.
+* OpenShift バージョン 4.6 以降。
+* SDN として `OVNKubernetes` が必要です。
+* さらにハイブリッドオーバーレイネットワーキングをセットアップする。
 
-Note, that all of this is done at install time. There's, currently,
-no way to configure a cluster for Windows Containers post install.
+なお、これらはすべてインストール時に行われます。現在のところWindows Containers用のクラスタをインストール後に構成する方法はありません。
 
-WARNING: If you're not seeing the above output, you will not be able to continue with this lab. If you see that this cluster doesn't meet the requirements, please see your workshop proctor.
+警告: 上記の出力が表示されない場合、このラボを続けることはできません。このクラスタが要件を満たしていないことが判明した場合は、ワークショップのプロクターに相談してください。
 
-#### Installing the WMCO
+#### WMCOのインストール
 
-Before you can deploy a Windows Node, you will need to install the Windows
-Machine Config Operator (WMCO). This can be done via the OpenShift Web
-Console. Use the "Console" tab, or open the console in another tab if it isn't open already.
+Windows Nodeをデプロイする前に、Windows Machine Config Operator (WMCO)をインストールする必要があります。
+これは、OpenShift Web コンソールから行うことができます。
+コンソール」タブを使用するか、まだ開いていない場合は別のタブでコンソールを開いてください。
 
 {{ MASTER_URL }}
 
-Use the `kubeadmin` username as the following password:
+パスワードは `kubeadmin` ユーザーを次のように使用します。
 
 [source,role="copypaste"]
 ----
 {{ KUBEADMIN_PASSWORD }}
 ----
 
-Once you are logged in, navigate to *Operators* ~> *OperatorHub* menu.
+ログイン後、*Operators* ~> *OperatorHub* メニューに移動してください。
 
 .OperatorHub
 image::images/operatorhub-menu.png[OperatorHub Menu]
 
-Now type *Windows Machine Config Operator* in the *Filter by _keyword..._*
-box. Click on the *Windows Machine Config Operator* card, taking care that
-you don't use the community version.
+ここで、*Filter by _keyword..._* ボックスに *Windows Machine Config Operator* と入力します。
+Windows Machine Config Operator* カードをクリックします。コミュニティ版を使用しないように注意してください。
 
 .WMCO Operator
 image::images/wmco-card.png[WMCO Install Card]
 
-On the overview page, select *Install*.
+overviewページにて、*Install*を選択してください。
 
 .WMCO Operator Overview
 image::images/install-overview.png[WMCO Overview]
 
-On the *Install Operator* overview page, make sure you have *stable*
-selected in the "Update channel" section. Also, in the "Installation mode"
-section, leave *A specifc namespace on the cluster* selected. Leave the
-"Installed Namspace" section as *Operator recommended Namespace* and tick
-on *Enable Cluster Monitoring*. Finally, leave the "Approval strategy"
-as *Automatic*. Then click *Install*. Use the below graphic to guide you.
+Install Operator*の概要ページで、「Update channel」セクションで*stable*が選択されていることを確認します。
+また、"Installation mode" セクションでは、*A specifc namespace on the cluster* が選択されたままになっていることを確認します。
+Installed Namspace "セクションは、*Operator recommended Namespace*のままにして、*Enable Cluster Monitoring*にチェックを入れます。
+最後に、"Approval strategy "を*Automatic*のままにしておきます。次に、*Install*をクリックします。以下の図を参考にしてください。
 
 .WMCO Install Operator Overview
 image::images/wmco-install-operator-overivew-page.png[WMCO Install Overview]
 
-The "Installing Operator" status page will come up.
+Installing Operatorステータスページが表示されます。
 
 .WMCO Install Operator status page
 image::images/installing-the-wmco-status-operator.png[WMCO Installing]
 
-When the screen says "ready for use", the WMCO Operator is successfully installed.
+画面に「ready for use」と表示されれば、WMCO Operatorは正常にインストールされています。
 
 .WMCO Install Operator status page
 image::images/wmco-ready-for-use.png[WMCO Installing]
 
-Back on the cli, you should now see the WMCO pod running.
+cliに戻ると、WMCOポッドが動作しているのが確認できるはずです。
 
 [source,bash,role="execute"]
 ----
 oc get pods -n openshift-windows-machine-config-operator
 ----
 
-The output should look something like this.
+このような出力になるはずです。
 
 [source,bash]
 ----
@@ -193,65 +186,59 @@ NAME                                               READY   STATUS    RESTARTS   
 windows-machine-config-operator-7ddc9f7d9b-vx4vx   1/1     Running   0          43m
 ----
 
-Once the operator is up and running. You are ready to install a Windows Node.
+オペレーターが立ち上がったら Windows Nodeをインストールする準備ができました。
 
 #### Installing a Windows Node.
 
-In order for the WMCO to setup the Windows Node, it will need an ssh key
-to the cloud provider. The cloud provider will then mint a new keypair
-based on the private key provided. The WMCO will then use this key to
-login to the Windows Node and set it up as an OpenShift Node.
+WMCOがWindowsノードをセットアップするためには，クラウドプロバイダへのsshキーが必要です．クラウドプロバイダーは、提供された秘密鍵に基づいて新しいキーペアを作成します。
+WMCOは、この鍵を使ってWindowsノードにログインし、OpenShiftノードとしてセットアップします。
 
-Generate an ssh key for the WMCO to use:
+WMCOが使用するsshキーを生成します。:
 
 [source,bash,role="execute"]
 ----
 ssh-keygen -t rsa -f ${HOME}/.ssh/winkey -q -N ''
 ----
 
-Once you've generated the key, add it as a secret to the
-`openshift-windows-machine-config-operator` namespace.
+キーを生成したら、それをシークレットとして `openshift-windows-machine-config-operator` ネームスペースに追加してください。
 
 [source,bash,role="execute"]
 ----
 oc create secret generic cloud-private-key --from-file=private-key.pem=${HOME}/.ssh/winkey -n openshift-windows-machine-config-operator 
 ----
 
-This secret is used by the WMCO Operator to setup the Windows Node. Verify
-that it was created before you proceed.
+このシークレットは、WMCOオペレータがWindowsノードをセットアップするために使用されます。
+先に進む前に、作成されていることを確認してください。
 
 [source,bash,role="execute"]
 ----
 oc get secret -n openshift-windows-machine-config-operator cloud-private-key
 ----
 
-Once the WMCO Operator is up and running, and the ssh key loaded into
-the cluster as a secret, you can now deploy a Windows Node. How do you
-build a Windows Node? The same way you create OpenShift Linux nodes,
-with the MachineAPI
+WMCOオペレータが起動し、sshキーがシークレットとしてクラスタに読み込まれたら、いよいよWindows Nodeのデプロイです。
+Windows Nodeはどのように構築するのですか？OpenShift Linuxのノードを作るのと同じように、MachineAPIで
 
-NOTE: If you're unfamiliar with the MachineAPI, you can do the xref:machinesets.adoc[MachineSets, Machines, and Nodes] lab to get familair with the concepts.
+NOTE: MachineAPIに慣れていない場合は、xref:machinesets.adoc [MachineSets, Machines, and Nodes] labで概念に精通することができます。
 
-First, we will be creating a MachineSet for Windows Nodes. We will then
-explore important sections of the YAML.
+まず、Windows Node用のMachineSetを作成します。その後 YAML の重要なセクションを探ります。
 
 [source,bash,role="execute"]
 ----
 ${HOME}/support/generate-windows-ms.sh
 ----
 
-NOTE: For more information on how to create a Windows MachineSet YAML see the link:https://docs.openshift.com/container-platform/4.9/windows_containers/creating_windows_machinesets/creating-windows-machineset-aws.html[official docs].
+NOTE: Windows MachineSet YAMLの作成方法の詳細については、次のリンクを参照してください。:https://docs.openshift.com/container-platform/4.9/windows_containers/creating_windows_machinesets/creating-windows-machineset-aws.html[official docs].
 
-This should create the `windows-ms.yaml` file in your home directory.
+これで、あなたのホームディレクトリに `windows-ms.yaml` ファイルが作成されるはずです。
 
 [source,bash,role="execute"]
 ----
 ls -l ~/windows-ms.yaml
 ----
 
-NOTE: Feel free to take a look at the file if you wish. You'll see that it doesn't differ from a Linux MachineSet.
+NOTE: よろしければ、このファイルを自由に見てみてください。LinuxのMachineSetと変わらないことがわかると思います。
 
-The Windows MachineSet is labeled with an Operating System ID of `Windows`. The following command will show the label of `machine.openshift.io/os-id: Windows` for the MachineSet.
+Windows MachineSetには、Operating System IDが`Windows`というラベルが貼られています。以下のコマンドを実行すると、ラベルが `machine.openshift.io/os-id: MachineSet の Windows` が表示されます。
 
 [source,bash,role="execute"]
 ----
