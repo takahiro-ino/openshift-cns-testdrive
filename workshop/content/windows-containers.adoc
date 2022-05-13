@@ -10,7 +10,7 @@ Windowsコンテナ・ワークロードは、以下のプロバイダー上で�
 * VMware vSphere
 * Bare Metal (via link:https://docs.openshift.com/container-platform/4.9/windows_containers/byoh-windows-instance.html[BYOH])
 
-NOTE: Windows Server の対応バージョンについては、公式ドキュメント link:https://docs.openshift.com/container-platform/4.9/windows_containers/understanding-windows-container-workloads.html[official documentation]
+NOTE: Windows Server の対応バージョンについては、link:https://docs.openshift.com/container-platform/4.9/windows_containers/understanding-windows-container-workloads.html[公式ドキュメント]
 をご参照ください。
 
 このラボでは、Windowsワーカーノードをデプロイする方法と、WindowsおよびLinuxノードを使用してOpenShiftプラットフォームにワークロードをデプロイする方法を実際に体験します。
@@ -36,7 +36,7 @@ Windows Machine Config Operatorは、OpenShift上のLinuxベースのノード�
 * KubeletにCNIを設定します。
 * kube-proxyをセットアップします。
 
-詳しくは、リンク先をご覧ください link:https://docs.openshift.com/container-platform/4.9/windows_containers/understanding-windows-container-workloads.html[official documentation].
+詳しくは、リンク先をご覧ください link:https://docs.openshift.com/container-platform/4.9/windows_containers/understanding-windows-container-workloads.html[公式ドキュメント].
 
 #### 前提条件
 
@@ -67,7 +67,7 @@ oc extract cm/cluster-config-v1 -n kube-system --to=- | yq e '.networking.networ
 
 ネットワークタイプとして `OVNKubernetes` が出力されるはずです。
 
-NOTE: `install-config.yaml` ファイルについて詳しくは、次のリンクを参照してください。link:https://docs.openshift.com/container-platform/4.9/installing/installing_aws/installing-aws-customizations.html#installation-aws-config-yaml_installing-aws-customizations[official documentation page].
+NOTE: `install-config.yaml` ファイルについて詳しくは、次のリンクを参照してください。link:https://docs.openshift.com/container-platform/4.9/installing/installing_aws/installing-aws-customizations.html#installation-aws-config-yaml_installing-aws-customizations[公式ドキュメント].
 
 次の必要条件は、クラスターがオーバーレイハイブリッドネットワーキングでセットアップされている必要があることです。
 これは、インストール時にのみ実行できるもう1つのステップです。次のコマンドを実行して、構成が完了したことを確認できます。
@@ -97,7 +97,7 @@ ovnKubernetesConfig:
 type: OVNKubernetes
 ----
 
-NOTE: HybridNetworkingの設定方法については、リンク先をご覧ください。link:https://docs.openshift.com/container-platform/4.9/networking/ovn_kubernetes_network_provider/configuring-hybrid-networking.html#configuring-hybrid-ovnkubernetes_configuring-hybrid-networking[official doc].
+NOTE: HybridNetworkingの設定方法については、リンク先をご覧ください。link:https://docs.openshift.com/container-platform/4.9/networking/ovn_kubernetes_network_provider/configuring-hybrid-networking.html#configuring-hybrid-ovnkubernetes_configuring-hybrid-networking[公式ドキュメント].
 
 まとめると、OpenShiftでWindows Containersを利用するためには。以下のものが必要です。
 
@@ -249,7 +249,7 @@ AMI IDはWindows Server 2019 AMIを表します。
 yq e '.spec.template.spec.providerSpec.value.ami.id' ~/windows-ms.yaml
 ----
 
-NOTE: サポートされているバージョンの Windows Server の AMI を使用する必要があります。詳細については、次のリンクを参照してください。link :https://docs.openshift.com/container-platform/4.9/windows_containers/windows-containers-release-notes-4-x.html#supported-windows-server-versions[official documentation].
+NOTE: サポートされているバージョンの Windows Server の AMI を使用する必要があります。詳細については、次のリンクを参照してください。link :https://docs.openshift.com/container-platform/4.9/windows_containers/windows-containers-release-notes-4-x.html#supported-windows-server-versions[公式ドキュメント].
 
 最後にもうひとつ、ユーザーデータのシークレットについてご説明します。
 
@@ -383,9 +383,8 @@ ip-10-0-143-146.ec2.internal   Ready    worker   3h18m   v1.20.0-1081+d0b1ad449a
 ----
 
 
-OpenShiftのMachineAPIでWindows Machineを管理することがいかに簡単か、おわかりいただけると思います。Linux Nodeと同じシステムで管理されています。
-Windows link:https://docs.openshift.com/container-platform/4.9/machine_management/applying-autoscaling.html[MachineSet Autoscaler]にあるように、
-同様にアタッチすることができます。
+OpenShiftのMachineAPIでWindows Machineを管理することがいかに簡単か、おわかりいただけると思います。Linux Nodeと同じシステムで管理され、
+link:https://docs.openshift.com/container-platform/4.9/machine_management/applying-autoscaling.html[Windows MachineSet Autoscaler]も同様にアタッチできます。
 
 Windows MachineSetを1までスケールダウンして、このノードを削除します。
 
@@ -409,7 +408,7 @@ Windowsノードの管理方法を学んだので、このノードがどのよ�
 
 このクラスタはクラウドにインストールされているため、Windows Nodeはパブリックインターネットに公開されていません。そこで、ssh bastion Podをデプロイする必要があります。
 
-NOTE: AWSインスタンスでRDPを有効にする方法については、こちらをご覧ください。link:https://docs.aws.amazon.com/AWSEC2/latest/WindowsGuide/connecting_to_windows_instance.html[official documentation] on their website.
+NOTE: AWSインスタンスでRDPを有効にする方法については、こちらをご覧ください。link:https://docs.aws.amazon.com/AWSEC2/latest/WindowsGuide/connecting_to_windows_instance.html[公式ドキュメント] on their website.
 
 ssh bastion ポッドは、このラボで提供される Deployment YAML を使用してデプロイすることができます。
 
