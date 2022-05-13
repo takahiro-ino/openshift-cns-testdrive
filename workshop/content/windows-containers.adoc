@@ -1,8 +1,6 @@
-Windows Container Support for OpenShift は、OpenShift Container Platform 上で Microsoft Windows Server コンテナを実行するためのサポートを提供します。
-Microsoft Windows Server コンテナを OpenShift Container Platform 上で実行するためのサポートを提供します。LinuxとWindowsが混在する環境を
-LinuxとWindowsが混在する環境を管理する場合、OpenShiftはコンテナ化されたWindowsワークロードを展開することができます。
-OpenShiftでは、Windows Server上で動作するコンテナ化されたWindowsワークロードを、LinuxとWindowsのワークロードが混在する環境を管理することができます。
-コンテナ化されたLinuxワークロードと同じプラットフォーム上でWindows Server上で動作するコンテナ化されたWindowsワークロードを展開することができます。
+OpenShiftのWindowsコンテナーサポートは、OpenShiftContainerPlatformでMicrosoftWindowsServerコンテナーを実行するためのサポートを提供します。
+LinuxワークロードとWindowsワークロードが混在する環境を管理する場合、OpenShiftを使用すると、コンテナー化されたLinuxワークロードと同じプラットフォーム上で
+WindowsServer上で実行されるコンテナー化されたWindowsワークロードをデプロイできます。
 
 Windowsコンテナ・ワークロードは、以下のプロバイダー上で動作するクラスタでサポートされています。
 以下のプロバイダー上で動作するクラスタに対応しています。
@@ -12,32 +10,25 @@ Windowsコンテナ・ワークロードは、以下のプロバイダー上で�
 * VMware vSphere
 * Bare Metal (via link:https://docs.openshift.com/container-platform/4.9/windows_containers/byoh-windows-instance.html[BYOH])
 
-NOTE: Windows Server の対応バージョンについては、リンク先をご覧ください。:https://docs.openshift.com/container-platform/4.9/windows_containers/understanding-windows-container-workloads.html[official documentation].
+NOTE: Windows Server の対応バージョンについては、公式ドキュメント link:https://docs.openshift.com/container-platform/4.9/windows_containers/understanding-windows-container-workloads.html[official documentation]
+をご参照ください。
 
-このラボでは、Windows ワーカー ノードのデプロイ方法と、OpenShift プラットフォームへのワークロードのデプロイ方法を実際に体験していただきます。
-ワーカーノードをデプロイする方法、および Windows と Linux のノードを持つ OpenShift プラットフォームにワークロードをデプロイする方法について、実際に体験していただきます。
-ワークロードを展開する方法を体験します。
+このラボでは、Windowsワーカーノードをデプロイする方法と、WindowsおよびLinuxノードを使用してOpenShiftプラットフォームにワークロードをデプロイする方法を実際に体験します。
 
 #### Windows MachineConfig Operator
 
-Windows Machine Config Operator (WMCO)は、コンテナ化されたWindowsワークロードを実行したいOpenShift管理者のためのエントリポイントです。
-OpenShift管理者が、コンテナ化されたWindowsワークロードをクラスタ上で実行するためのエントリポイントです。
-クラスタ上で実行するためのエントリポイントです。
+Windows Machine Config Operator（WMCO）は、クラスター上でコンテナー化されたWindowsワークロードを実行したいOpenShift管理者のエントリーポイントです。
 
-クラスタ管理者は、Windowsワーカーノードを2日目で追加することができます。
-を追加し、Windowsワークロードのスケジューリングを可能にします。
-Windowsワークロードのスケジューリングを可能にします。
+これにより、クラスター管理者は、Windowsワーカーノードを2日目のオペレーションとして、所定の設定でOpenShiftクラスターに追加し、Windowsワークロードのスケジューリングを有効にすることができます。
 
-次の図は、WMCOがどのように動作するかのハイレベルな説明です。
+次の図は、WMCOの動作の概要を示しています。
 
 .Windows MachineConfig Operator Design
 image::images/wmcodiagram.png[wmco diagram]
 
-Windowsマシン設定オペレーターは、Linuxベースのオペレーターで、OpenShift上のLinuxベースのノードで動作します。
-OpenShift上のLinuxベースのノードで実行されます。これは、WindowsタイプであるMachine Objectsを監視し
-を監視し、SSHで接続します。
+Windows Machine Config Operatorは、OpenShift上のLinuxベースのノードで実行されるLinuxベースのオペレーターです。Windowsタイプのマシンオブジェクトを監視し、SSH経由でそれらに接続します。
 
-セットアップ中、WMCOは:
+セットアップ中、WMCOは次のことを行います。
 
 * 必要なバイナリをWindowsノードに転送します。
 * Kubeletをインストールし、コンフィグレーションを行います。
@@ -45,13 +36,11 @@ OpenShift上のLinuxベースのノードで実行されます。これは、Win
 * KubeletにCNIを設定します。
 * kube-proxyをセットアップします。
 
-詳しくは、リンク先をご覧ください:https://docs.openshift.com/container-platform/4.9/windows_containers/understanding-windows-container-workloads.html[official documentation].
+詳しくは、リンク先をご覧ください link:https://docs.openshift.com/container-platform/4.9/windows_containers/understanding-windows-container-workloads.html[official documentation].
 
-#### 事前準備
+#### 前提条件
 
-このクラスタは、WindowsノードとWindowsコンテナのワークロードをサポートするために、すでにインストールされています。
-Windows Containersのワークロードをサポートするためにインストール済みです。したがって、このクラスターの現在の構成を見て、前提条件を調べることになります。
-の前提条件を調べることにします。
+このクラスターは、WindowsノードとWindowsコンテナーのワークロードをサポートするために既にインストールされています。したがって、このクラスターの現在の構成を確認することにより、前提条件を調査します。
 
 先に進む前に、`kubeadmin` を確認してください。
 
@@ -60,30 +49,28 @@ Windows Containersのワークロードをサポートするためにインス�
 oc login -u kubeadmin -p {{ KUBEADMIN_PASSWORD }}
 ----
 
-最初の必要条件は、OpenShiftのバージョン4.6以降を実行していることです。
-またはそれ以降であることです。このクラスタは、サポートされているバージョンでインストールされている必要があります。
+最初の必要条件は、OpenShiftバージョン4.6以降を実行している必要があることです。このクラスターは、サポートされているバージョンでインストールされている必要があります。
 
 [source,bash,role="execute"]
 ----
 oc version
 ----
 
-次に必要なのは、クラスターにOpenShiftのSDNとして
-OVNKubernetes` を OpenShift 用の SDN としてインストールすることです。これはインストール時に
-インストール時に `install-config.yaml` ファイルで設定します。このファイルはインストール後にクラスターに保存されます。
-このファイルはインストール後にクラスタに保存されます。設定を見てみましょう。
+次に必要なのは、クラスターへOpenShiftのSDNとして `OVNKubernetes` がインストールされていることです。
+これはインストール時に
+インストール時に `install-config.yaml` ファイルで設定し、このファイルはインストール後にクラスタに保存されます。設定を見てみましょう。
 
 [source,bash,role="execute"]
 ----
 oc extract cm/cluster-config-v1 -n kube-system --to=- | yq e '.networking.networkType' -
 ----
 
-すると、ネットワークタイプとして `OVNKubernetes` が出力されるはずです。
+ネットワークタイプとして `OVNKubernetes` が出力されるはずです。
 
-NOTE: `install-config.yaml` ファイルについて詳しくは、次のリンクを参照してください。:https://docs.openshift.com/container-platform/4.9/installing/installing_aws/installing-aws-customizations.html#installation-aws-config-yaml_installing-aws-customizations[official documentation page].
+NOTE: `install-config.yaml` ファイルについて詳しくは、次のリンクを参照してください。link:https://docs.openshift.com/container-platform/4.9/installing/installing_aws/installing-aws-customizations.html#installation-aws-config-yaml_installing-aws-customizations[official documentation page].
 
-次に必要なのは、クラスタがオーバーレイハイブリッドネットワークでセットアップされていることです。ネットワーキングを設定することです。
-これもインストール時にしかできないことです。時にしかできません。設定が完了したことを確認するには、以下を実行します。を実行することで確認できます。
+次の必要条件は、クラスターがオーバーレイハイブリッドネットワーキングでセットアップされている必要があることです。
+これは、インストール時にのみ実行できるもう1つのステップです。次のコマンドを実行して、構成が完了したことを確認できます。
 
 [source,bash,role="execute"]
 ----
@@ -110,7 +97,7 @@ ovnKubernetesConfig:
 type: OVNKubernetes
 ----
 
-NOTE: HybridNetworkingの設定方法については、リンク先をご覧ください。:https://docs.openshift.com/container-platform/4.9/networking/ovn_kubernetes_network_provider/configuring-hybrid-networking.html#configuring-hybrid-ovnkubernetes_configuring-hybrid-networking[official doc].
+NOTE: HybridNetworkingの設定方法については、リンク先をご覧ください。link:https://docs.openshift.com/container-platform/4.9/networking/ovn_kubernetes_network_provider/configuring-hybrid-networking.html#configuring-hybrid-ovnkubernetes_configuring-hybrid-networking[official doc].
 
 まとめると、OpenShiftでWindows Containersを利用するためには。以下のものが必要です。
 
@@ -124,9 +111,8 @@ NOTE: HybridNetworkingの設定方法については、リンク先をご覧く�
 
 #### WMCOのインストール
 
-Windows Nodeをデプロイする前に、Windows Machine Config Operator (WMCO)をインストールする必要があります。
-これは、OpenShift Web コンソールから行うことができます。
-コンソール」タブを使用するか、まだ開いていない場合は別のタブでコンソールを開いてください。
+Windowsノードを展開する前に、Windows Machine Config Operator（WMCO）をインストールする必要があります。
+これは、OpenShiftWebコンソールを介して実行できます。[コンソール]タブを使用するか、コンソールがまだ開いていない場合は別のタブで開きます。
 
 {{ MASTER_URL }}
 
@@ -137,13 +123,13 @@ Windows Nodeをデプロイする前に、Windows Machine Config Operator (WMCO)
 {{ KUBEADMIN_PASSWORD }}
 ----
 
-ログイン後、*Operators* ~> *OperatorHub* メニューに移動してください。
+ログイン後、*Operators* - *OperatorHub* メニューに移動してください。
 
 .OperatorHub
 image::images/operatorhub-menu.png[OperatorHub Menu]
 
 ここで、*Filter by _keyword..._* ボックスに *Windows Machine Config Operator* と入力します。
-Windows Machine Config Operator* カードをクリックします。コミュニティ版を使用しないように注意してください。
+コミュニティバージョンを使用しないように注意しながら、*Windows Machine Config Operator* カードをクリックします。
 
 .WMCO Operator
 image::images/wmco-card.png[WMCO Install Card]
@@ -153,10 +139,12 @@ overviewページにて、*Install*を選択してください。
 .WMCO Operator Overview
 image::images/install-overview.png[WMCO Overview]
 
-Install Operator*の概要ページで、「Update channel」セクションで*stable*が選択されていることを確認します。
+*Install Operator*の概要ページで、「Update channel」セクションで*stable*が選択されていることを確認します。
 また、"Installation mode" セクションでは、*A specifc namespace on the cluster* が選択されたままになっていることを確認します。
 Installed Namspace "セクションは、*Operator recommended Namespace*のままにして、*Enable Cluster Monitoring*にチェックを入れます。
-最後に、"Approval strategy "を*Automatic*のままにしておきます。次に、*Install*をクリックします。以下の図を参考にしてください。
+最後に、"Approval strategy "を*Automatic*のままにしておきます。次に、*Install*をクリックします。
+
+以下の図を参考にしてください。
 
 .WMCO Install Operator Overview
 image::images/wmco-install-operator-overivew-page.png[WMCO Install Overview]
@@ -190,10 +178,11 @@ windows-machine-config-operator-7ddc9f7d9b-vx4vx   1/1     Running   0          
 
 #### Installing a Windows Node.
 
-WMCOがWindowsノードをセットアップするためには，クラウドプロバイダへのsshキーが必要です．クラウドプロバイダーは、提供された秘密鍵に基づいて新しいキーペアを作成します。
-WMCOは、この鍵を使ってWindowsノードにログインし、OpenShiftノードとしてセットアップします。
+WMCOがWindowsノードをセットアップするには、クラウドプロバイダーへのsshキーが必要です。
+クラウドプロバイダーは、提供された秘密鍵に基づいて新しい鍵ペアを作成します。
+次に、WMCOはこのキーを使用してWindowsノードにログインし、OpenShiftノードとしてセットアップします。
 
-WMCOが使用するsshキーを生成します。:
+WMCOが使用するsshキーを生成します。
 
 [source,bash,role="execute"]
 ----
@@ -215,10 +204,10 @@ oc create secret generic cloud-private-key --from-file=private-key.pem=${HOME}/.
 oc get secret -n openshift-windows-machine-config-operator cloud-private-key
 ----
 
-WMCOオペレータが起動し、sshキーがシークレットとしてクラスタに読み込まれたら、いよいよWindows Nodeのデプロイです。
-Windows Nodeはどのように構築するのですか？OpenShift Linuxのノードを作るのと同じように、MachineAPIで
+WMCOオペレーターが稼働し、sshキーがシークレットとしてクラスターにロードされると、Windowsノードをデプロイできるようになります。
+Windowsノードは、MachineAPIを使用してOpenShift Linuxノードを作成するのと同じ方法で構築できます。
 
-NOTE: MachineAPIに慣れていない場合は、xref:machinesets.adoc [MachineSets, Machines, and Nodes] labで概念に精通することができます。
+NOTE: MachineAPIに慣れていない場合は、xref:machinesets.adoc [MachineSets, Machines, and Nodes] ラボで概念を理解することができます。
 
 まず、Windows Node用のMachineSetを作成します。その後 YAML の重要なセクションを探ります。
 
@@ -238,59 +227,59 @@ ls -l ~/windows-ms.yaml
 
 NOTE: よろしければ、このファイルを自由に見てみてください。LinuxのMachineSetと変わらないことがわかると思います。
 
-Windows MachineSetには、Operating System IDが`Windows`というラベルが貼られています。以下のコマンドを実行すると、ラベルが `machine.openshift.io/os-id: MachineSet の Windows` が表示されます。
+Windows MachineSetには、Operating System IDが`Windows`というラベルが貼られています。
+以下のコマンドを実行すると、ラベルが `machine.openshift.io/os-id: MachineSet の Windows` が表示されます。
 
 [source,bash,role="execute"]
 ----
 yq e '.metadata.labels' ~/windows-ms.yaml
 ----
 
-All the Windows Machines will have the `worker` label. The Windows Node
-will be treated like any other node in the cluster.
+すべてのWindowsマシンは「`worker`」というラベルを持つことになります。Windows ノードはクラスタ内の他のノードと同様に扱われます。
 
 [source,bash,role="execute"]
 ----
 yq e '.spec.template.spec.metadata.labels' ~/windows-ms.yaml
 ----
 
-The AMI ID is of a Windows Server 2019 AMI.
+AMI IDはWindows Server 2019 AMIを表します。
 
 [source,bash,role="execute"]
 ----
 yq e '.spec.template.spec.providerSpec.value.ami.id' ~/windows-ms.yaml
 ----
 
-NOTE: You will need to use an AMI of a supported version of Windows Server. For more information, consult the link:https://docs.openshift.com/container-platform/4.9/windows_containers/windows-containers-release-notes-4-x.html#supported-windows-server-versions[official documentation].
+NOTE: サポートされているバージョンの Windows Server の AMI を使用する必要があります。詳細については、次のリンクを参照してください。link :https://docs.openshift.com/container-platform/4.9/windows_containers/windows-containers-release-notes-4-x.html#supported-windows-server-versions[official documentation].
 
-One last thing to note, is the user data secret.
+最後にもうひとつ、ユーザーデータのシークレットについてご説明します。
 
 [source,bash,role="execute"]
 ----
 yq e '.spec.template.spec.providerSpec.value.userDataSecret.name' ~/windows-ms.yaml
 ----
 
-This secret is generated by the WMCO when it was installed.
+このシークレットは、WMCOがインストールされたときに生成されます。
 
 [source,bash,role="execute"]
 ----
 oc get secret windows-user-data -n openshift-machine-api
 ----
 
-Apply the YAML to create the Windows MachineSet on the cluster.
+YAMLを適用して、クラスタ上にWindows MachineSetを作成します。
 
 [source,bash,role="execute"]
 ----
 oc apply -f ~/windows-ms.yaml
 ----
 
-You can now see the status of the MachineSet.
+以下のコマンドでMachineSetのステータスを確認できます。
 
 [source,bash,role="execute"]
 ----
 oc get machinesets  -n openshift-machine-api -l machine.openshift.io/os-id=Windows
 ----
 
-This should show the following output.
+これにより、以下のような出力が表示されるはずです。
 
 [source,bash]
 ----
@@ -298,35 +287,38 @@ NAME                                       DESIRED   CURRENT   READY   AVAILABLE
 cluster1-wrkjp-windows-worker-us-east-1a   1         1                             9s
 ----
 
-The MachineSet has the replica set to 1. The MachineAPI will see that desired state and, in turn, create a Windows Machine. This machine will eventually turn into a node. See the status of the machine with the following command.
+MachineSetのレプリカは1に設定されています。
+MachineAPIはその目的の状態を確認し、Windowsマシンを作成します。このマシンは最終的にノードになります。次のコマンドでマシンのステータスを確認します。
 
 [source,bash,role="execute"]
 ----
 oc get machines  -n openshift-machine-api -l machine.openshift.io/os-id=Windows
 ----
 
-Once the Machine is up and running, the WMCO will configure it. You can follow that status by looking at the WMCO pod log.
+MachineAPIはその望ましい状態を確認し、今度はWindowsマシンを作成します。
+このマシンは最終的にノードになり、次のコマンドでマシンの状態を見ることができます。
 
 [source,bash,role="execute"]
 ----
 oc logs -l name=windows-machine-config-operator -n openshift-windows-machine-config-operator   -f
 ----
 
-You can exit by pressing kbd:[Ctrl+C].
+[Ctrl+C] を押すと終了できます。
 
-NOTE: If you wish, you can wait until you see "Windows VM has been configured as a worker node" log message. Otherwise, go ahead and break out of following the log.
+NOTE: もし望むなら、"Windows VM has been configured as a worker node" というログメッセージが表示されるまで待つことができます。
+そうでなければ、先に進み、ログを追うことから脱却してください。
 
-This Machine will create a Windows Node and the WMCO will add it to the cluster. You
-can see the node with the following command.
+このマシンはWindowsノードを作成し、WMCOはそれをクラスタに追加します。次のコマンドでノードを確認できます。
+次のコマンドでノードを見ることができます。
 
 [source,bash,role="execute"]
 ----
 oc get nodes -l kubernetes.io/os=windows
 ----
 
-NOTE: It'll take up to 15 mintues to see the Windows Node appear. It's recommneded to run a `watch` on `oc get nodes -l kubernetes.io/os=windows` so you can see when the node appears. Now will be a good time to take a break.
+NOTE: Windowsノードが表示されるまでには最大で15分ほどかかります。ノードが表示されるのを確認するために、`oc get nodes -l kubernetes.io/os=windows` で `watch` を実行することが推奨されています。今は一息つくのに良いタイミングでしょう。
 
-The output should look something like this.
+出力はこのような感じになるはずです。
 
 [source,bash]
 ----
@@ -334,31 +326,29 @@ NAME                          STATUS   ROLES    AGE   VERSION
 ip-10-0-140-10.ec2.internal   Ready    worker   22m   v1.20.0-1081+d0b1ad449a08b3
 ----
 
-#### Managing a Windows Node
+#### Windows Nodeの管理
 
-Now that the Windows Node is up and running, you will be able to manage
-it like you would a Linux node. You will be able to scale and delete
-nodes using the MachineAPI.
+Windowsノードが稼働しているので、Linuxノードと同じように管理できるようになります。MachineAPI を使用して、ノードのスケールと削除ができるようになります。
 
-WARNING: Windows Machine Config Operator is not responsible for Windows operating system updates. The Cluster Administrator provides the Windows image while creating the VMs and hence, the Cluster Administrator is responsible for providing an updated image. The Cluster Administrator can provide an updated image by changing the image in the MachineSet spec.
+WARNING: Windows マシン構成オペレーターは、Windows OSの更新に責任を負いません。
+クラスタ管理者は、VM の作成中に Windows イメージを提供し、したがって、クラスタ管理者は更新されたイメージを提供する責任があります。
+クラスタ管理者は、MachineSet spec でイメージを変更することにより、更新されたイメージを提供することができます。
 
-Currently, you have one Windows node.
+現在、Windowsのノードが1つあります。
 
 [source,bash,role="execute"]
 ----
 oc get nodes -l kubernetes.io/os=windows
 ----
 
-In order to add another node, you will just scale the corespoinding
-MachineSet. Currently, you should have one
+別のノードを追加するためには、corespoinding MachineSetをスケールするだけです。
 
 [source,bash,role="execute"]
 ----
 oc get machineset -l machine.openshift.io/os-id=Windows -n openshift-machine-api
 ----
 
-You should have the below output. It shows that you have one Windows
-Machine managed by this MachineSet.
+以下のような出力が得られるはずです。この出力は、このマシンセットが管理する1台のWindows マシンがあることを示しています。
 
 [source,bash]
 ----
@@ -366,25 +356,24 @@ NAME                                       DESIRED   CURRENT   READY   AVAILABLE
 cluster1-zzv5j-windows-worker-us-east-1a   1         1         1       1           138m
 ----
 
-To add another Windows Node, scale the Windows MachineSet to two
-replicas. This will create a new Windows Machine, and then the WMCO will
-add it as an OpenShift Node.
+別のWindows Nodeを追加するには、Windows MachineSetを2つのレプリカにスケールします。
+これにより、新しいWindows Machineが作成され、WMCOがそれをOpenShift Nodeとして追加します。
 
 [source,bash,role="execute"]
 ----
 oc scale machineset -l machine.openshift.io/os-id=Windows -n openshift-machine-api --replicas=2
 ----
 
-NOTE: Just like when you created the inital Windows Node, this can take upwards of 15 minutes. This can be another good time to take a small break.
+NOTE: 最初のWindows Nodeを作成したときと同じように、15分以上かかることがあります。
 
-After some time, another Windows Node will have joined the cluster.
+しばらくすると、別のWindowsノードがクラスターに参加します。
 
 [source,bash,role="execute"]
 ----
 oc get nodes -l kubernetes.io/os=windows
 ----
 
-Here's an example output.
+以下は出力例です。
 
 [source,bash]
 ----
@@ -393,90 +382,87 @@ ip-10-0-139-232.ec2.internal   Ready    worker   15m     v1.20.0-1081+d0b1ad449a
 ip-10-0-143-146.ec2.internal   Ready    worker   3h18m   v1.20.0-1081+d0b1ad449a08b3
 ----
 
-You can see how easy it is to manage a Windows Machine
-with the MachineAPI on OpenShift. It is managed by the
-same system as your Linux Nodes. You can even attach the Windows
-link:https://docs.openshift.com/container-platform/4.9/machine_management/applying-autoscaling.html[MachineSet Autoscaler] as well
 
-Remove this node by scaling the Windows MachineSet back down to 1.
+OpenShiftのMachineAPIでWindows Machineを管理することがいかに簡単か、おわかりいただけると思います。Linux Nodeと同じシステムで管理されています。
+Windows link:https://docs.openshift.com/container-platform/4.9/machine_management/applying-autoscaling.html[MachineSet Autoscaler]にあるように、
+同様にアタッチすることができます。
+
+Windows MachineSetを1までスケールダウンして、このノードを削除します。
 
 [source,bash,role="execute"]
 ----
 oc scale machineset -l machine.openshift.io/os-id=Windows -n openshift-machine-api --replicas=1
 ----
 
-WARNING: Please scale your Windows MachineSet to 1 before starting the next exercise.
+WARNING: 次の演習を始める前に、Windows MachineSet を 1 にスケールしてください。
 
-After some time, you should be back at 1 Windows node.
+しばらくすると、1 Windowsノードに戻るはずです。
 
 [source,bash,role="execute"]
 ----
 oc get nodes -l kubernetes.io/os=windows
 ----
 
-#### Exploring The Windows Node
+#### Windowsノードの探索
 
-Now that you've learned how to manage a Windows Node, we will explore how this
-node is set up. You can access this Windows node via the same mechanism
-as the WMCO, via SSH.
+Windowsノードの管理方法を学んだので、このノードがどのようにセットアップされるかを探ります。このWindowsノードには、WMCOと同じ仕組みで、SSHでアクセスすることができます。
 
-Since this cluster was installed in the cloud, the Windows Node isn't
-exposed to the public internet. So we will need to deploy an ssh bastion Pod.
+このクラスタはクラウドにインストールされているため、Windows Nodeはパブリックインターネットに公開されていません。そこで、ssh bastion Podをデプロイする必要があります。
 
-NOTE: For information on how to enable RDP on an AWS instance, please see the link:https://docs.aws.amazon.com/AWSEC2/latest/WindowsGuide/connecting_to_windows_instance.html[official documentation] on their website.
+NOTE: AWSインスタンスでRDPを有効にする方法については、こちらをご覧ください。link:https://docs.aws.amazon.com/AWSEC2/latest/WindowsGuide/connecting_to_windows_instance.html[official documentation] on their website.
 
-The ssh bastion pod can be deployed using the Deployment YAML provided to you in this lab.
+ssh bastion ポッドは、このラボで提供される Deployment YAML を使用してデプロイすることができます。
 
 [source,bash,role="execute"]
 ----
 oc apply -n openshift-windows-machine-config-operator -f ~/support/win-node-ssh.yaml
 ----
 
-You can wait for the rollout of this ssh bastion pod.
+このssh bastion podのロールアウトを待つことができます。
 
 [source,bash,role="execute"]
 ----
 oc rollout status deploy/winc-ssh -n openshift-windows-machine-config-operator
 ----
 
-Once rolled out, you should have the ssh bastion pod running.
+ロールアウトすると、ssh bastion podが動作しているはずです。
 
 [source,bash,role="execute"]
 ----
 oc get pods -n openshift-windows-machine-config-operator -l app=winc-ssh
 ----
 
-The ssh bastion pod mounts the ssh key needed to login to the Windows Node.
+ssh bastion podは、Windows Nodeにログインするために必要なsshキーをマウントします。
 
 [source,bash,role="execute"]
 ----
 yq e '.spec.template.spec.volumes' ~/support/win-node-ssh.yaml
 ----
 
-In order to be able to ssh into this node you will need the hostname. Get
-this hostname with the following command and make note of it.
+このノードにsshで入るためには、ホスト名が必要です。
+このホスト名を以下のコマンドで取得し、メモしておきます。
 
 [source,bash,role="execute"]
 ----
 oc get nodes -l kubernetes.io/os=windows
 ----
 
-Now open a bash session into the ssh bastion pod using the `oc exec` command.
+次に、`oc exec`コマンドを使用して、ssh bastion podにbashセッションを開きます。
 
 [source,bash,role="execute"]
 ----
 oc exec -it deploy/winc-ssh -n openshift-windows-machine-config-operator -- bash
 ----
 
-Use the provided `sshcmd.sh` command built into the pod to login to the
-Windows Node. Here is an example:
+Podに組み込まれた`sshcmd.sh`コマンドを使用して、Windowsノードにログインします。
+Windowsノードにログインします。以下はその例です。
 
 [source,bash]
 ----
 bash-4.4$ sshcmd.sh ip-10-0-140-10.ec2.internal
 ----
 
-This should drop you into a PowerShell session. It should look something like this.
+これでPowerShellのセッションに入ることができます。このように表示されるはずです。
 
 [source,bash]
 ----
@@ -486,14 +472,14 @@ Copyright (C) Microsoft Corporation. All rights reserved.
 PS C:\Users\Administrator>
 ----
 
-Once on the Windows Node, you can see the `docker`, `kubelet`, and the `hybrid-overlay-node` process running.
+Windows Node 上では、`docker`、`kubelet`、`hybrid-overlay-node` の各プロセスが動作していることが確認できます。
 
 [source,bash,role="execute"]
 ----
 Get-Process | ?{ $_.ProcessName -match "kube|overlay|docker" } 
 ----
 
-You should see the following output.
+以下のような出力が表示されるはずです。
 
 [source,bash]
 ----
@@ -505,37 +491,34 @@ Handles  NPM(K)    PM(K)      WS(K)     CPU(s)     Id  SI ProcessName
     302      23    36272      46056      61.64   3968   0 kube-proxy
 ----
 
-WARNING: Currently, the Docker-formatted container runtime is used in Windows nodes. Kubernetes is deprecating Docker as a container runtime; you can reference the Kubernetes documentation for more information about the link:https://kubernetes.io/blog/2020/12/02/dont-panic-kubernetes-and-docker/[Docker deprecation]. `Containerd` will be the new supported container runtime for Windows nodes in a future release of Kubernetes.
+WARNING: 現在、Windowsノードでは、Docker形式のコンテナランタイムが使用されています。KubernetesはコンテナランタイムとしてDockerを非推奨としています。
+詳細はKubernetesのドキュメントを参照してください link:https://kubernetes.io/blog/2020/12/02/dont-panic-kubernetes-and-docker/[Docker deprecation]。
+Kubernetesの将来のリリースでは、`Containerd`がWindowsノードで新たにサポートされるコンテナランタイムとなる予定です。
 
-These are the main components needed to run a Windows Node. Remember that
-this node is managed the same way as a Linux node, Via the MachineAPI;
-so you won't have to do much with this Windows Node.
+これらは、Windowsノードを実行するために必要な主要コンポーネントです。このノードはLinuxノードと同じように、MachineAPIを介して管理されることを覚えておいてください。
+そのため、このWindows Nodeで多くのことを行う必要はありません。
 
-One caveat, however, is that Windows Containers can be quite large
-(in some cases up to 8Gigs in size!). This will timeout the deployment
-of your Windows Containers workloads. A workaround is to "pre-pull"
-any base containers.
+ただし、Windowsコンテナは非常に大きなサイズになることがあります（最大8ギガのサイズになることもあります！）。
+このため、Windowsコンテナのワークロードをデプロイする際にタイムアウトが発生します。
+回避策としては、ベースとなるコンテナをすべて「pre-pull」することです。
 
 [source,bash,role="execute"]
 ----
 docker pull mcr.microsoft.com/windows/servercore:ltsc2019
 ----
 
-This pull process can take some time. While it's pulling,
-take note of the version of the container you are pulling is
-`mcr.microsoft.com/windows/servercore:ltsc2019`. The version you
-need to pull will differ between Windows Server versions.
+このプル処理には時間がかかることがあります。Pullしている間、Pullしているコンテナのバージョンが `mcr.microsoft.com/windows/servercore:ltsc2019` であることをメモしておきます。
+Windows Serverのバージョンによって、pullするバージョンは異なります。
 
-NOTE: Since the OS Kernel differs from version to version of Windows Server, the base container needed will differ depending on what version of Windows Server you're running. Please see link:https://docs.microsoft.com/en-us/virtualization/windowscontainers/deploy-containers/version-compatibility?tabs=windows-server-20H2%2Cwindows-10-20H2[Microsoft's documentation] about supported container image versions.
-
-After some time, the image should be on the host.
+NOTE: Windows ServerはバージョンによってOSカーネルが異なるため、どのバージョンのWindows Serverを使用しているかによって、必要なベースコンテナが異なります。サポートされているコンテナイメージのバージョンについては、link:https://docs.microsoft.com/en-us/virtualization/windowscontainers/deploy-containers/version-compatibility?tabs=windows-server-20H2%2Cwindows-10-20H2[Microsoftのドキュメント]を参照してください。
+しばらくすると、ホスト上に画像が表示されるはずです。
 
 [source,bash,role="execute"]
 ----
 docker images
 ----
 
-You should see the following output.
+以下のような出力が表示されるはずです。
 
 [source,bash]
 ----
@@ -543,57 +526,52 @@ REPOSITORY                             TAG        IMAGE ID       CREATED       S
 mcr.microsoft.com/windows/servercore   ltsc2019   9a0a02eca0e6   4 weeks ago   5.7GB
 ----
 
-Now that you've pre-pulled the Windows Server container image, you can
-exit out of the PowerShell session.
+Windows Server コンテナイメージの事前プルアップが完了したので、PowerShell セッションを終了することができます。
 
 [source,bash,role="execute"]
 ----
 exit
 ----
 
-You can also exit out of the bash container session as well.
+また、bashコンテナのセッションも同様に終了させることができます。
 
 [source,bash,role="execute"]
 ----
 exit
 ----
 
-#### Running a Windows Container Workload
+#### Windowsコンテナワークロードの実行
 
-Before you deploy a sample Windows Container workload, let's explore
-how the container gets scheduled on the Windows node.
+Windowsコンテナのサンプルワークロードをデプロイする前に、コンテナがWindowsノードでどのようにスケジュールされるかを調べてみましょう。
 
-If you run an `oc describe` on the Windows Node, you'll see it has
-a taint.
+Windows ノードで `oc describe` を実行すると、テイントがあることがわかります。
 
-NOTE: Please see the xref:taints-and-tolerations.adoc[Taints and Tolerations lab] to get more familiar about how they work.
+NOTE: Taints and Tolerations.adoc[Taints and Tolerations lab]を参照して、その仕組みについてより詳しく知ってください。
 
 [source,bash,role="execute"]
 ----
 oc describe nodes -l kubernetes.io/os=windows | grep Taint
 ----
 
-You should see the following output.
+以下のような出力が表示されるはずです。
 
 [source,bash]
 ----
 Taints:             os=Windows:NoSchedule
 ----
 
-Every Windows Node will come with this taint by default. This taint will
-"repel" all workloads that don't tolerate this taint. It is a part of
-the WMCO's job to ensure that all Windows Nodes have this taint.
+すべてのWindows Nodeは、デフォルトでこのTaintを持っています。
+このテイントは、このテイントを許容しないすべてのワークロードを "撃退 "します。すべてのWindowsノードがこのテイントを持つことを保証するのがWMCOの仕事の一部です。
 
-In this lab, there is a sample workload saved under
-`~/support/winc-sample-workload.yaml`. Let's explore this file a bit
-before we apply it.
+このラボでは、サンプルワークロードを `~/support/winc-sample-workload.yaml` というファイルに保存しています。このファイルを適用する前に、少し調べてみましょう。
+
 
 [source,bash,role="execute"]
 ----
 yq e '.items[2].spec.template.spec.tolerations' ~/support/winc-sample-workload.yaml
 ----
 
-The output should look something like this.
+出力は以下のようになります。
 
 [source,yaml]
 ----
@@ -602,52 +580,49 @@ The output should look something like this.
   Effect: "NoSchedule"
 ----
 
-This sample workload has the toleration in place to be able to run on
-the Windows Node. However, that's not enough. A `nodeSelector` will need
-to be present as well.
+このサンプルワークロードは、Windows Node上で実行できるような許容範囲を備えています。しかし、それだけでは十分ではありません。
+`nodeSelector` も同様に存在する必要があります。
 
 [source,bash,role="execute"]
 ----
 yq e '.items[2].spec.template.spec.nodeSelector' ~/support/winc-sample-workload.yaml
 ----
 
-The output should look something like this.
+出力は以下のようになるはずです。
 
 [source,bash]
 ----
 kubernetes.io/os: windows
 ----
 
-So here, the `nodeSelector` will place this container on the Windows
-Node. Furthermore, the appropriate toleration is in place so the Windows
-Node won't repel the container.
+つまり、ここでは `nodeSelector` がこのコンテナを Windows Node に配置します。
+さらに、適切な許容範囲が設定されているので、Windows ノードがコンテナをはじくことはありません。
 
-One last thing to look at. Take a look at the container that is being deployed.
+最後にもう一つ見ておきましょう。デプロイされているコンテナを見てみましょう。
 
 [source,bash,role="execute"]
 ----
 yq e '.items[2].spec.template.spec.containers[0].image' ~/support/winc-sample-workload.yaml
 ----
 
-WARNING: Note that this container has to be prepulled onto the Windows Node. Please see the <<Exploring The Windows Node>> exercise for more info.
+WARNING:　このコンテナは、Windows Node上にプリプルされる必要があることに注意してください。詳しくは <<Exploring The Windows Node>> のエクササイズをご覧ください。
 
-Apply this YAML file to deploy the sample workload.
+このYAML ファイルを適用して、サンプルワークロードをデプロイします。
 
 [source,bash,role="execute"]
 ----
 oc apply -f ~/support/winc-sample-workload.yaml
 ----
 
-Wait for the deployment to finish rolling out.
+デプロイメントのロールアウトが完了するまで待ちます。
 
 [source,bash,role="execute"]
 ----
 oc rollout status deploy/win-webserver -n winc-sample
 ----
 
-If you check the pod, you can see that it's running on the Windows
-Node. Look at the wide output of the Pod and select the Windows Node
-to verify.
+Podを確認すると、Windows Nodeで動作していることがわかります。
+Podのワイド出力を見て、Windows Nodeを選択して確認します。
 
 [source,bash,role="execute"]
 ----
@@ -655,30 +630,31 @@ oc get pods -n winc-sample  -o wide
 oc get nodes -l kubernetes.io/os=windows
 ----
 
-Make a note of the Windows Node name, we will log into the node using
-the bastion ssh container.
+Windows Node名をメモしておきます。bastion sshコンテナを使用してノードにログインします。
 
 [source,bash,role="execute"]
 ----
 oc exec -it deploy/winc-ssh -n openshift-windows-machine-config-operator -- bash
 ----
 
-Now log into the Windows Node using the hostname. Example:
+ここで、Windows Nodeにホスト名でログインしてください。
+
+例:
 
 [source,bash]
 ----
 bash-4.4$ sshcmd.sh ip-10-0-140-10.ec2.internal
 ----
 
-Here, you can see the Windows container running on the node.
+ここでは、ノード上でWindowsコンテナが動作している様子を見ることができます。
 
 [source,bash,role="execute"]
 ----
 docker ps
 ----
 
-Here you'll see the Container running along with the `pause` container
-as well. Here is an example output.
+ここでは、コンテナが `pause` コンテナと一緒に実行されているのがわかります。
+以下は出力例です。
 
 [source,bash]
 ----
@@ -689,31 +665,30 @@ f5cdf462e916   mcr.microsoft.com/oss/kubernetes/pause:3.4.1   "/pause.exe"      
 _win-webserver-6bc7795585-prgrj_winc-sample_34c3f4b7-4e74-42d4-9d51-cac59e4d1b58_0
 ----
 
-Go ahead an logout of the Windows Node
+Windows Nodeからログアウトします。
 
 [source,bash,role="execute"]
 ----
 exit
 ----
 
-You can also exit out of the bash container session as well.
+また、bashコンテナのセッションも同様に終了させることができます。
 
 [source,bash,role="execute"]
 ----
 exit
 ----
 
-You can interact with the Windows Container workload as you would any
-other pod. For instance you can remote shell into the container itself
-by calling the `Powershell` command.
+Windowsコンテナのワークロードは、他のポッドと同じように操作することができます。
+例えば、`Powershell`コマンドを呼び出すことで、コンテナ自体にリモートシェルすることができます。
 
 [source,bash,role="execute"]
 ----
 oc -n winc-sample exec -it $(oc get pods -l app=win-webserver -n winc-sample -o name ) -- powershell
 ----
 
-This should put you in a `Powershell` session in the Windows Container. It
-should look something like this
+これで、Windowsコンテナ内の`Powershell`セッションに入ることができるはずです。
+このように見えるはずです。
 
 [source,bash]
 ----
@@ -723,78 +698,68 @@ Copyright (C) Microsoft Corporation. All rights reserved.
 PS C:\>
 ----
 
-Here, you can query the TaskManager to see the HTTP process running.
+ここで、TaskManagerに問い合わせて、実行中のHTTPプロセスを確認することができます。
 
-NOTE: You may have to press `ENTER` to execute the following commands while in the Windows Container for them to run.
+NOTE: Windowsコンテナ内で以下のコマンドを実行する場合、`ENTER`を押さなければ実行されない場合があります。
 
 [source,bash,role="execute"]
 ----
 tasklist /M /FI "IMAGENAME eq powershell.exe"  | Select-String -Pattern http
 ----
 
-Go ahead an logout of the Windows Container.
+Windowsコンテナからログアウトしてください。
 
 [source,bash,role="execute"]
 ----
 exit
 ----
 
-You can interact with the Windows Container `Deployment` the same as you
-would for a Linux one. Scale the `Deployment` of the Windows Container:
+Windows コンテナの `Deployment` は、Linux コンテナと同じように操作することができます。Windowsコンテナの `Deployment` をスケールしてみましょう。
 
 [source,bash,role="execute"]
 ----
 oc scale deploy/win-webserver -n winc-sample --replicas=2
 ----
 
-You should now have two Pods running.
+これで2つのPodが起動しているはずです。
 
 [source,bash,role="execute"]
 ----
 oc get pods -n winc-sample
 ----
 
-#### Running a Mixed Linux/Windows Container Workload.
+#### Linux/Windows混在のコンテナワークロードの実行
 
-With Windows Containers support for OpenShift; You also have the ability
-to run application stacks of mixed workloads. This gives you the
-ability to run an application stack consisting of both Linx and Windows
-Containers.
+OpenShiftのWindows Containersサポートにより、混合ワークロードのアプリケーションスタックを実行する能力も得られます。これによって
+LinxとWindows Containersの両方からなるアプリケーションスタックを実行することができます。
 
-In this section, we will show how you can run Windows workloads that
-work together with Linux workloads.
+このセクションでは、Linuxのワークロードと一緒に動作するWindowsのワークロードを実行する方法を紹介します。
 
-You will be deploying a sample application stack that delivers an
-eCommerce site, The NetCandy Store. This application is built using
-Windows Containers working together with Linux Containers.
+あなたは、eコマースサイト、The NetCandy Storeを配信するサンプルアプリケーションスタックをデプロイすることになります。このアプリケーションは、Linux コンテナと一緒に動作する Windows コンテナを使用して構築されています。
 
 image::images/mixed-windows-and-linux-workloads.png[netcandystore diagram]
 
-This application consists of:
+このアプリケーションの構成は以下の通りです。
 
-* Windows Container running a .NET v4 frontend, which is consuming a backend service.
-* Linux Container running a .NET Core backend service, which is using a database.
-* Linux Container running a MSSql database.
+* バックエンドサービスを消費する.NET v4フロントエンドを実行するWindowsコンテナ。
+* Linux コンテナで .NET Core バックエンドサービスを実行し、データベースを使用します。
+* MSSql データベースを実行する Linux コンテナ。
 
-We will be using a helm chart to deploy the sample application. In
-order to successfully deploy the application stack, make sure you're
-`kubeadmin`.
+サンプルアプリケーションのデプロイには、ヘルムチャートを使用する予定です。アプリケーションスタックを正常にデプロイするために、`kubeadmin`であることを確認してください。
 
-NOTE: For more information about `helm` and how it can be used as a package manager for your containerized workloads, please see the link:https://docs.openshift.com/container-platform/4.7/cli_reference/helm_cli/getting-started-with-helm-on-openshift-container-platform.html[OpenShift documentation]
+注意: `helm` の詳細と、それがコンテナ化されたワークロードのパッケージマネージャとしてどのように使用できるかについては、
+リンク:https://docs.openshift.com/container-platform/4.7/cli_reference/helm_cli/getting-started-with-helm-on-openshift-container-platform.html[OpenShift documentation] を参照してください。
 
 [source,bash,role="execute"]
 ----
 oc login -u kubeadmin -p {{ KUBEADMIN_PASSWORD }}
 ----
 
-Once you've verified you are a cluster admin, you will need to extract
-some information. You will need the hostname of the Windows node
-installed and the ssh key used to login to the Windows Node.
+自分がクラスタ管理者であることを確認したら、いくつかの情報を抽出する必要があります。インストールされているWindowsノードのホスト名と、Windowsノードへのログインに使用されるsshキーが必要です。
 
-The reason for this is part of the Helm Chart deploys a `Job` that downloads the
-image of the frontend application as a link:https://helm.sh/docs/topics/charts_hooks/#the-available-hooks[pre-deploy hook].
+この理由は、Helm Chart の一部が、フロントエンドアプリケーションのイメージを link:https://helm.sh/docs/topics/charts_hooks/#the-available-hooks[pre-deploy hook] としてダウンロードする `Job` をデプロイしているからです。
 
-NOTE: Please revist the <<Exploring The Windows Node>> exercise for more info on why the downloading of the image is needed.
+NOTE: イメージのダウンロードが必要な理由についての詳細は <<Windows Node の探索>> のエクササイズを参照してください。
 
 [source,bash,role="execute"]
 ----
@@ -802,7 +767,7 @@ export WSSHKEY=$(oc get secret cloud-private-key -n openshift-windows-machine-co
 export WNODE=$(oc get nodes -l kubernetes.io/os=windows -o jsonpath='{.items[0].metadata.name}')
 ----
 
-Next add the Red Hat Developer Demos Helm repository.
+次に、Red Hat Developer Demos Helm リポジトリを追加します。
 
 [source,bash,role="execute"]
 ----
@@ -810,8 +775,7 @@ helm repo add redhat-demos https://redhat-developer-demos.github.io/helm-repo
 helm repo update
 ----
 
-With the two variables exported, and the helm repo added, you can install
-the application stack using the `helm` cli.
+2つの変数がエクスポートされ、helmのレポが追加されたら、`helm` cliを使ってアプリケーションスタックをインストールすることができます。
 
 [source,bash,role="execute"]
 ----
@@ -823,11 +787,9 @@ redhat-demos/netcandystore \
 
 NOTE: Note that the `--timeout=1200s` is needed because the default timeout for `helm` is 5 minutes and, in most cases, the Windows container image will take longer than that to download.
 
-This will look like it's "hanging" or "stuck". It's not! What's happening
-is that the image is getting pulled into the Windows node. As stated
-before, Windows containers can be very large, so it might take some time.
+これは、「ぶら下がっている」「引っかかっている」ように見えるでしょう。そうではありません。これは、イメージがWindowsノードに引き込まれたことを示しています。先に述べたように、Windowsのコンテナは非常に大きいので、時間がかかるかもしれません。
 
-After some time, you should see something like the following return.
+しばらくすると、次のような戻り値が表示されるはずです。
 
 [source,bash]
 ----
@@ -862,7 +824,7 @@ Verify that the helm chart was installed successfully.
 helm ls -n netcandystore
 ----
 
-The output should look something like this.
+このような出力になるはずです。
 
 [source,bash]
 ----
@@ -870,18 +832,14 @@ NAME    NAMESPACE       REVISION        UPDATED                                 
 ncs     netcandystore   1               2021-03-31 19:54:50.576808462 +0000 UTC deployed        netcandystore-1.0.1     3.1
 ----
 
-There should be 3 pods running for this application. One for the frondend
-called netcandystore, one for the categories service called getcategories
-and a DB called mysql.
+このアプリケーションでは、3つのポッドが動作しているはずです。1つはnetcandystoreというfrondend用、もう1つはgetcategoriesというカテゴリサービス用、そしてmysqlというDB用です。
 
 [source,bash,role="execute"]
 ----
 oc get pods -n netcandystore
 ----
 
-Looking at the frontend application, you can list where the pod is
-running. Comparing it to the nodes output, you can see it's running on
-a Windows Node.
+フロントエンドアプリケーションを見ると、Podがどこで動作しているかが一覧できます。ノードの出力と比較すると、Windowsノードで実行されていることがわかります。
 
 [source,bash,role="execute"]
 ----
@@ -889,7 +847,7 @@ oc get pods -n netcandystore -l app=netcandystore -o wide
 oc get nodes -l kubernetes.io/os=windows
 ----
 
-Now, looking at the backend, you can see it's running on a Linux node.
+さて、バックエンドを見てみると、Linuxのノードで動いていることがわかります。
 
 [source,bash,role="execute"]
 ----
@@ -897,29 +855,25 @@ oc get pods -n netcandystore -l app=getcategories -o wide
 oc get nodes -l kubernetes.io/os=linux
 ----
 
-The MSSQL Database is also running on the Linux node.
+また、LinuxノードではMSSQL Databaseが稼働しています。
 
 [source,bash,role="execute"]
 ----
 oc get pods -n netcandystore -l deploymentconfig=mssql -o wide
 ----
 
-You can see the application by visiting the link:http://netcandystore-netcandystore.{{ ROUTE_SUBDOMAIN }}[Net Candystore Route].
+リンク:http://netcandystore-netcandystore.{{ ROUTE_SUBDOMAIN }}[Net Candystore Route]にアクセスすると、アプリケーションを見ることができます。
 
-The frontpage should look like this, feel free to play around with the application!
+フロントページはこのようになっています。
 
 image::images/ncs.png[netcandy store page]
 
-#### Conclusion
+#### まとめ
 
-In this lab you worked with Windows Containers on OpenShift Container
-Platfrom. You saw how the cluster was prepared to support Windows
-Containers. You also learned about the Windows Machine Config Operator and
-how it's used to provision a Windows Node.
+このラボでは、OpenShift Container Platfrom 上で Windows Containers を操作しました。
+そして、Windows コンテナーをサポートするためにクラスターがどのように準備されたかを確認しました。
+また、Windows Machine Config Operator と、それが Windows ノードをプロビジョニングするためにどのように使用されるかについて学習しました。
 
-You also learned about how to manage Windows Nodes using the MachineAPi
-and how to manage Windows Container workloads using the same tools as
-Linux Nodes.
+MachineAPIを使用してWindowsノードを管理する方法と、Linuxノードと同じツールを使用してWindowsコンテナワークロードを管理する方法についても学びました。
 
-Finally, you learned how you can used mixed workloads made up of Linux
-and Windows containers.
+最後に、LinuxとWindowsコンテナからなる混合ワークロードを使用する方法について学びました。
