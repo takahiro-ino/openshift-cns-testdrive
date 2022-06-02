@@ -611,7 +611,7 @@ kbd:[Ctrl+D] を押すか、 `exit` を実行してtoolboxから出ることが�
 exit
 ----
 
-=== Matching PVs to RBDs
+=== PVとRBDの照会
 
 どのPVがどのCeph RBDボリュームに対応するかの照会を行ってみましょう。 +
 次のコマンドを実行してPVの `Volume Handle` を確認します。
@@ -1173,21 +1173,17 @@ CAUTION: CAUTION: CephFS *PVC* の縮小はサポートされません。
 
 == PVCのクローンとスナップショット
 
-Starting with version OpenShift Container Storage (OCS) version 4.6, the `Container Storage Interface` (CSI) features of being able to clone or snapshot a persistent volume are now supported. These new capabilities are very important for protecting persistent data and can be used with third party `Backup and Restore` vendors that have CSI integration. 
+OpenShift Container Storage(OCS) 4.6から、*PV* のクローンやスナップショットを可能にする `Container Storage Interface` (CSI) の機能がサポートされるようになりました。これらの新しい機能は永続的なデータ保護のために非常に重要であり、CSIと連携できるサードパーティベンダーの `Backup and Restore` ソフトウェアと一緒に使用することができます。
 
-In addition to third party backup and restore vendors, ODF snapshot for Ceph RBD and CephFS PVCs can be triggered using `OpenShift APIs for Data Protection` (OADP) which is a Red Hat supported `Operator` in *OperatorHub* that can be very useful for testing backup and restore of persistent data and OpenShift metadata (definition files for pods, service, routes, deployments, etc.).
-
-OpenShift Container Storage(OCS) 4.6から、*PV* のクローンやスナップショットを可能にする `Container Storage Interface` (CSI) の機能がサポートされるようになりました。これらの新しい機能は永続的なデータ保護のために非常に重要であり、CSIと連携できるサードパーティの `Backup and Restore` ソフトウェアと一緒に使用することができます。
-
-さらに、
+Ceph RBDとCephFSの *PVC* のスナップショットは、サードパーティベンダーの `Backup and Restore` ソフトウェアに加えて、`OpenShift APIs for Data Protection (OADP)` を使用してトリガーすることもできます。`OADP` はレッドハットがサポートしている `Operator` で、*OperatorHub* からインストールできます。永続データや OpenShiftのメタデータ(Pods, Services, Routes, Deployments の定義ファイルなど)のバックアップとリストアのテストに非常に有効なものです。
 
 === PVCのクローン
 
-A CSI volume clone is a duplicate of an existing persistent volume at a particular point in time. Cloning creates an exact duplicate of the specified volume in ODF. After dynamic provisioning, you can use a volume clone just as you would use any standard volume.
+CSIボリュームクローンは特定の時点における既存の *PV* の複製で、ODFでは指定されたボリュームの複製を作成します。ダイナミックプロビジョニングで作成した *PVC* のクローンを使用することができます。
 
-==== Provisioning a CSI Volume clone
+==== CSIボリュームクローン
 
-For this exercise we will use the already created *PVC* `postgresql` that was just expanded to 15 GiB. Make sure you have done section <<Create a new OCP application deployment using Ceph RBD volume>> before proceeding.
+この演習では、15GiBに拡張されたばかりの作成済みの *PVC* `postgresql` を使用します。先に進む前に、セクション <<Ceph RBD volumeを使用するOCPアプリケーションを作成する>> を完了していることを確認してください。
 
 [source,role="execute"]
 ----
@@ -1199,32 +1195,28 @@ NAME
 postgresql
 ----
 
-CAUTION: Make sure you expanded the `postgresql` *PVC* to 15Gi before proceeding. If not expanded go back and complete this section <<Expand RBD based PVCs>>.
+CAUTION: 先に進む前に、`postgresql` *PVC* を15Giに拡張していることを確認してください。拡張していない場合は、戻って <<Ceph RBD PVCの拡張>> セクションを完了させてください。 
 
-Before creating the PVC clone make sure to create and save at least one new article so there is new data in the `postgresql` *PVC*.
+PVCクローンを作成する前に、少なくとも1つの新しい記事を作成し保存して、`postgresql` *PVC* に新しいデータがあることを確認してください。
 
 [source,role="execute"]
 ----
 oc get route rails-pgsql-persistent -n my-database-app -o jsonpath --template="http://{.spec.host}/articles{'\n'}"  
 ----
 
-This will return a route similar to this one.
-
 .出力例:
 ----
 http://rails-pgsql-persistent-my-database-app.apps.cluster-ocs4-8613.ocs4-8613.sandbox944.opentlc.com/articles
 ----
 
-Copy your route (different than above) to a browser window to create articles.
-
-Enter the `username` and `password` below to create a new article.
+Webページの *New Article* をクリックし、次の `username` と `password` を入力することで記事やコメントを作成することができます。 +
 
 ----
 username: openshift
 password: secret
 ----
 
-To protect the data (articles) in this *PVC* we will now clone this PVC. The operation of creating a clone can be done using the *OpenShift Web Console* or by creating the resource via a YAML file.
+この *PVC* 内のデータ(記事)を保護するために、この *PVC* のクローンを作ります。クローンの作成は、*OpenShift Web Console* を使用するか、以下のようなYAMLファイルでリソースを作成することで行うことができます。
 
 [source,yaml]
 ----
@@ -1245,12 +1237,12 @@ spec:
     name: postgresql
 ----
 
-Doing the same operation in the *OpenShift Web Console* would require navigating to `Storage` -> `Persistent Volume Claim` and choosing `Clone PVC`.
+*OpenShift Web Console* を使う場合は、 *Storage* -> *Persistent Volume Claim* に移動して、目的の *PVC* で *Clone PVC* を実行します。
 
 .Persistent Volume Claim clone PVC using UI
 image::images/ocs/OCP4-OCS4-Clone-PVC.png[Persistent Volume Claim clone PVC using UI]
 
-Size of new clone *PVC* is greyed out. The new *PVC* will be the same size as the original.
+新しく作られるクローン *PVC* のサイズはグレーアウトされていて変更できません。クローン *PVC* の容量はオリジナルと同じサイズです。
 
 .Persistent Volume Claim clone configuration
 image::images/ocs/OCP4-OCS4-Clone-PVC-config.png[Persistent Volume Claim clone configuration]
@@ -2112,7 +2104,7 @@ spawn more workers by scaling the already present ODF worker instances up from 1
 ----
 oc get machinesets -n openshift-machine-api | egrep 'NAME|workerocs'
 ----
-出力例:
+.出力例:
 ----
 NAME                                           DESIRED   CURRENT   READY   AVAILABLE   AGE
 cluster-ocs4-8613-bc282-workerocs-us-east-2a   1         1         1       1           2d
