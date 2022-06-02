@@ -1242,12 +1242,13 @@ spec:
 .Persistent Volume Claim clone PVC using UI
 image::images/ocs/OCP4-OCS4-Clone-PVC.png[Persistent Volume Claim clone PVC using UI]
 
-新しく作られるクローン *PVC* のサイズはグレーアウトされていて変更できません。クローン *PVC* の容量はオリジナルと同じサイズです。
+新しく作られるクローン *PVC* のサイズはグレーアウトされていて変更できません。クローン *PVC* のサイズはオリジナルと同じサイズが自動で指定されるためです。
 
 .Persistent Volume Claim clone configuration
 image::images/ocs/OCP4-OCS4-Clone-PVC-config.png[Persistent Volume Claim clone configuration]
-    
-Now create a *PVC* clone for `postgresql`.
+
+ここで *Clone* を選択してクローンを実行しても構いません。 +
+YAMLファイルでクローンするのであれば、ここでは *Cancel* を選択し、次のコマンドで `postgresql` *PVC* のクローンを実行できます。
 
 [source,role="execute"]
 ----
@@ -1258,7 +1259,7 @@ oc apply -f {{ HOME_PATH }}/support/postgresql-clone.yaml
 persistentvolumeclaim/postgresql-clone created
 ----
 
-Now check to see there is a new *PVC*.
+新しい *PVC* が作られていることを確認できます。
 
 [source,role="execute"]
 ----
@@ -1266,19 +1267,19 @@ oc get pvc -n my-database-app | grep clone
 ----
 .出力例:
 ----
-postgresql-clone   Bound    pvc-f5e09c63-e8aa-48a0-99df-741280d35e42   15Gi       RWO            ocs-storagecluster-ceph-rbd   3m47s
+postgresql-clone   Bound    pvc-f5ef1ed3-6ee1-41e8-869f-6f32b6fcdb5a   15Gi       RWO            ocs-storagecluster-ceph-rbd   85s
 ----
 
-You can also check the new clone *PVC* in the *OpenShift Web Console*.
+*OpenShift Web Console* でも、クローン *PVC* を確認できます。
 
 .Persistent Volume Claim clone view in UI
 image::images/ocs/OCP4-OCS4-Clone-PVC-view.png[Persistent Volume Claim clone view in UI]
 
-==== Using a CSI Volume clone for application recovery
+==== アプリケーションリカバリのためのCSI ボリュームクローンの使用
 
-Now that you have a clone for `postgresql` *PVC* you are ready to test by corrupting the database. 
-
-The following command will print all `postgresql` tables before deleting the article tables in the database and after the tables are deleted.
+これで `postgresql` *PVC* のクローンができたので、データベースを破壊するテストの準備ができました。 +
+ここでは、`postgresql` Podのデータベースが持つ、記事を保存している `articles` テーブルを削除します。 +
+次のコマンドは、`articles` テーブルを削除する前に全てのテーブルを表示し、`articles` テーブルを削除した後に、再びすべてのテーブルを表示します。
 
 [source,role="execute"]
 ----
@@ -1290,12 +1291,12 @@ You are now connected to database "root" as user "postgres".
                                List of relations
  Schema |         Name         |   Type   |  Owner  |    Size    | Description
 --------+----------------------+----------+---------+------------+-------------
- public | ar_internal_metadata | table    | userXNL | 16 kB      |
- public | articles             | table    | userXNL | 16 kB      |
- public | articles_id_seq      | sequence | userXNL | 8192 bytes |
- public | comments             | table    | userXNL | 8192 bytes |
- public | comments_id_seq      | sequence | userXNL | 8192 bytes |
- public | schema_migrations    | table    | userXNL | 16 kB      |
+ public | ar_internal_metadata | table    | userOXL | 16 kB      |
+ public | articles             | table    | userOXL | 16 kB      |
+ public | articles_id_seq      | sequence | userOXL | 8192 bytes |
+ public | comments             | table    | userOXL | 8192 bytes |
+ public | comments_id_seq      | sequence | userOXL | 8192 bytes |
+ public | schema_migrations    | table    | userOXL | 16 kB      |
 (6 rows)
 
 NOTICE:  drop cascades to constraint fk_rails_3bf61a60d3 on table comments
@@ -1303,28 +1304,28 @@ DROP TABLE
                                List of relations
  Schema |         Name         |   Type   |  Owner  |    Size    | Description
 --------+----------------------+----------+---------+------------+-------------
- public | ar_internal_metadata | table    | userXNL | 16 kB      |
- public | comments             | table    | userXNL | 8192 bytes |
- public | comments_id_seq      | sequence | userXNL | 8192 bytes |
- public | schema_migrations    | table    | userXNL | 16 kB      |
+ public | ar_internal_metadata | table    | userOXL | 16 kB      |
+ public | comments             | table    | userOXL | 8192 bytes |
+ public | comments_id_seq      | sequence | userOXL | 8192 bytes |
+ public | schema_migrations    | table    | userOXL | 16 kB      |
 (4 rows)
 ----
 
-Now go back to the browser tab where you created your article using this link:
+以下のリンクを使って、記事を作成したブラウザのタブに戻ります。
 
 [source,role="execute"]
 ----
 oc get route rails-pgsql-persistent -n my-database-app -o jsonpath --template="http://{.spec.host}/articles{'\n'}"  
 ----
 
-If you refresh the browser you will see the application has failed.
+ブラウザを更新すると、アプリケーションがfailしたことが表示されます。
 
 .Application failed because database table removed
 image::images/ocs/rails-postgresql-failed.png[Application failed because database table removed]
 
-Remember a *PVC* clone is an exact duplicate of the original *PVC* at the time the clone was created. Therefore you can use you `postgresql` clone to recover the application.
+*PVC* のクローンは、クローン作成時のオリジナルの *PVC* の完全な複製であることを思い出してください。したがって、アプリケーションを復旧するために、`postgresql` *PVC* のクローンを使用することができます。
 
-First you need to scale the `rails-pgsql-persistent` deployment down to zero so the *Pod* will be deleted.
+まず、`rails-pgsql-persistent` の *Deployment* を0にスケールダウンして、Podが削除されるようにする必要があります。
 
 [source,role="execute"]
 ----
@@ -1335,14 +1336,14 @@ oc scale deploymentconfig rails-pgsql-persistent -n my-database-app --replicas=0
 deploymentconfig.apps.openshift.io/rails-pgsql-persistent scaled
 ----
 
-Verify the *Pod* is gone.
+Podが全て無くなったことを確認できます。 +
 
 [source,role="execute"]
 ----
 oc get pods -n my-database-app | grep rails | egrep -v 'deploy|build|hook' | awk {'print $1}'
 ----
 
-Wait until there is no result for this command. Repeat if necessary. 
+このコマンドの出力が何も表示されないようになるまで待ちましょう。必要であれば、繰り返してください。
 
 Now you need to patch the deployment for `postgesql` and modify to use the `postgresql-clone` *PVC*. This can be done using the `oc patch` command.
 
