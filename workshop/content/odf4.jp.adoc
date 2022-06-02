@@ -1177,6 +1177,10 @@ Starting with version OpenShift Container Storage (OCS) version 4.6, the `Contai
 
 In addition to third party backup and restore vendors, ODF snapshot for Ceph RBD and CephFS PVCs can be triggered using `OpenShift APIs for Data Protection` (OADP) which is a Red Hat supported `Operator` in *OperatorHub* that can be very useful for testing backup and restore of persistent data and OpenShift metadata (definition files for pods, service, routes, deployments, etc.).
 
+OpenShift Container Storage(OCS) 4.6から、*PV* のクローンやスナップショットを可能にする `Container Storage Interface` (CSI) の機能がサポートされるようになりました。これらの新しい機能は永続的なデータ保護のために非常に重要であり、CSIと連携できるサードパーティの `Backup and Restore` ソフトウェアと一緒に使用することができます。
+
+さらに、
+
 === PVCのクローン
 
 A CSI volume clone is a duplicate of an existing persistent volume at a particular point in time. Cloning creates an exact duplicate of the specified volume in ODF. After dynamic provisioning, you can use a volume clone just as you would use any standard volume.
