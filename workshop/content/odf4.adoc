@@ -1,80 +1,70 @@
-= Deploying and Managing OpenShift Data Foundation
+= OpenShift Data Foundationのデプロイと管理
 // Activate experimental attribute for Keyboard Shortcut keys
 :experimental:
 :source-highlighter: pygments
 
-== Lab Overview
+== 演習概要
 
-This module is for both system administrators and application developers
-interested in learning how to deploy and manage OpenShift Data Foundation
-(ODF). In this module you will be using OpenShift Container Platform (OCP)
-4.x and the ODF operator to deploy Ceph and the Multi-Cloud-Gateway (MCG) as
-a persistent storage solution for OCP workloads.
+このモジュールは、OpenShift Data Foundation (ODF) のデプロイと管理方法に関心のある、システム管理者とアプリケーション開発者の両方を対象としています。 +
+このモジュールでは、OpenShift Container Platform (OCP) 4.x と ODF Operatorを使用して、OCPワークロードの永続ストレージソリューションとして Ceph と Multi-Cloud-Gateway (MCG) をデプロイします。
 
-=== In this lab you will learn how to
+=== 本演習で学習する内容
 
-* Configure and deploy containerized Ceph and MCG
-* Validate deployment of containerized Ceph and MCG
-* Deploy the Rook toolbox to run Ceph and RADOS commands
-* Create an application using Read-Write-Once (RWO) PVC that is based on Ceph RBD
-* Create an application using Read-Write-Many (RWX) PVC that is based on CephFS
-* Use ODF for Prometheus and AlertManager storage
-* Use the MCG to create a bucket and use in an application
-* Add more storage to the Ceph cluster
-* Review ODF metrics and alerts
-* Use must-gather to collect support information
+* コンテナ化されたCephとMCGの設定とデプロイ
+* デプロイされたCephとMCGの検証
+* CephおよびRADOSコマンドを実行するためのRook toolboxの導入
+* Ceph RBDをベースとしたRead-Write-Once (RWO) PVCを使用したアプリケーションの作成
+* CephFSをベースとしたRead-Write-Many (RWX) PVCを使用したアプリケーションの作成
+* PrometheusおよびAlertManagerへのODFの適用
+* MCGを使用したバケットの作成とアプリケーションからの使用
+* Cephクラスタのストレージの拡張
+* ODFのメトリクスとアラートの確認
+* サポート情報を収集するためのmust-gatherの使用
 
-.OpenShift Data Foundation components
+.OpenShift Data Foundation コンポーネント
 image::images/ocs/OCS-Pods-Diagram.png[OpenShift Data Foundation components]
 
-NOTE: If you want more information about how Ceph works please review
-<<Introduction to Ceph>> section before starting the exercises in this
-module.
+NOTE: Cephの動作についてより詳しい情報が必要な場合は、このモジュールの演習を開始する前に<<Cephの概要>>のセクションを確認してください。
 
 [[labexercises]]
 
-== Deploy your storage backend using the ODF operator
+== ODF Operatorを使用してストレージをデプロイする
 
-=== Scale OCP cluster and add new worker nodes
+=== OCPクラスタのスケールと新しいWorkerノードの追加
 
-In this section, you will first validate the OCP environment has 2 or 3 worker
-nodes before increasing the cluster size by additional 3 worker nodes for ODF
-resources. The `NAME` of your OCP nodes will be different than shown below.
+このセクションでは、ODFリソースのために3つのWorkerノードを追加してOCPクラスタをスケールする前に、まずOCP環境のWorkerノードを確認します。
 
 [source,role="execute"]
 ----
 oc get nodes -l node-role.kubernetes.io/worker -l '!node-role.kubernetes.io/infra','!node-role.kubernetes.io/master'
 ----
-.Example output:
+.出力例:
 ----
-NAME                                        STATUS   ROLES    AGE    VERSION
-ip-10-0-153-37.us-east-2.compute.internal   Ready    worker   4d4h   v1.19.0+9f84db3
-ip-10-0-170-25.us-east-2.compute.internal   Ready    worker   4d4h   v1.19.0+9f84db3
+NAME                                         STATUS   ROLES    AGE   VERSION
+ip-10-0-129-208.us-east-2.compute.internal   Ready    worker   15m   v1.22.8+c02bd9d
+ip-10-0-157-116.us-east-2.compute.internal   Ready    worker   15m   v1.22.8+c02bd9d
+ip-10-0-185-31.us-east-2.compute.internal    Ready    worker   15m   v1.22.8+c02bd9d
+ip-10-0-215-4.us-east-2.compute.internal     Ready    worker   15m   v1.22.8+c02bd9d
 ----
 
-Now you are going to add 3 more OCP compute nodes to cluster using *machinesets*.
+ここで *MachineSets* を使用して、さらに3つのWorkerノードをクラスタに追加することになります。
 
 [source,role="execute"]
 ----
 oc get machinesets -n openshift-machine-api | grep -v infra
 ----
 
-This will show you the existing *machinesets* used to create the 2 or 3 worker
-nodes in the cluster already. There is a *machineset* for each of 3 AWS
-Availability Zones (AZ). Your *machinesets* `NAME` will be different than
-below. In the case of only 2 workers one of the *machinesets* will not have any
-machines (i.e., DESIRED=0) created.
+ここでは、既にクラスタに存在するWorkerノードを作成するために使用される、既存の *MachineSets* が表示されます。3つのAWS Availability Zone (AZ)それぞれに *MachineSet* が存在することが分かります。
 
-.Example output:
+.出力例:
 ----
-NAME                                        DESIRED   CURRENT   READY   AVAILABLE   AGE
-cluster-ocs4-8613-bc282-worker-us-east-2a   1         1         1       1           4d4h
-cluster-ocs4-8613-bc282-worker-us-east-2b   1         1         1       1           4d4h
-cluster-ocs4-8613-bc282-worker-us-east-2c   0         0                             4d4h
+NAME                                    DESIRED   CURRENT   READY   AVAILABLE   AGE
+cluster-d6qlm-mbttv-worker-us-east-2a   2         2         2       2           27m
+cluster-d6qlm-mbttv-worker-us-east-2b   1         1         1       1           27m
+cluster-d6qlm-mbttv-worker-us-east-2c   1         1         1       1           27m
 ----
 
-Similar to the infrastructure nodes lab, create new *MachineSets* that will in
-turn create storage-specific nodes for your OCP cluster in the AWS AZs:
+インフラストラクチャーノードの演習と同様に、新しい *MachineSets* を作成して、各AWS AZにOCP クラスタのストレージ専用ノードを作成します。
 
 [source,role="execute"]
 ----
@@ -83,231 +73,238 @@ oc get machineset -n openshift-machine-api -l machine.openshift.io/cluster-api-m
 oc get machineset -n openshift-machine-api -l machine.openshift.io/cluster-api-machine-role=workerocs -o name | xargs oc scale -n openshift-machine-api --replicas=1
 ----
 
-Check that you have new *machines* created.
+新しい *Machines* が作成されていることを確認します。
 
 [source,role="execute"]
 ----
 oc get machines -n openshift-machine-api | egrep 'NAME|workerocs'
 ----
 
-They will be in `Provisioning` for sometime and eventually in a `Running`
-PHASE. The `NAME` of your machines will be different than shown below.
+しばらくは `Provisioning` または `Provisioned` の状態にありますが、最終的には `Running` の状態になります。
 
-.Example output:
+.出力例:
 ----
-NAME                                                 PHASE     TYPE          REGION      ZONE
-         AGE
-cluster-ocs4-8613-bc282-workerocs-us-east-2a-g6cfz   Running   m5.4xlarge    us-east-2   us-east-2a   3m48s
-cluster-ocs4-8613-bc282-workerocs-us-east-2b-2zdgx   Running   m5.4xlarge    us-east-2   us-east-2b   3m48s
-cluster-ocs4-8613-bc282-workerocs-us-east-2c-gg7br   Running   m5.4xlarge    us-east-2   us-east-2c   3m48s
+NAME                                             PHASE     TYPE         REGION      ZONE         AGE
+cluster-d6qlm-mbttv-workerocs-us-east-2a-v8p5k   Running   m5.4xlarge   us-east-2   us-east-2a   4m39s
+cluster-d6qlm-mbttv-workerocs-us-east-2b-dx69b   Running   m5.4xlarge   us-east-2   us-east-2b   4m38s
+cluster-d6qlm-mbttv-workerocs-us-east-2c-g7hlh   Running   m5.4xlarge   us-east-2   us-east-2c   4m38s
 ----
 
-You can see that the workerocs *machines* are also using the AWS EC2 instance
-type `m5.4xlarge`. The `m5.4xlarge` instance type has 16 cpus and 64 GB memory.
+workerocs *Machines* はAWS EC2の `m5.4xlarge` インスタンスタイプを使用していることがわかります。
 
-Now you want to see if our new *machines* are added to the OCP cluster.
+NOTE: `m5.4xlarge` インスタンスタイプは、16vCPUと64GBのメモリを持ち、ODFで推奨されるスペックです。 +
+
+さて、私たちの新しい *Machines* がOCPクラスタに追加されているかどうかを確認します。
 
 [source,role="execute"]
 ----
 watch "oc get machinesets -n openshift-machine-api | egrep 'NAME|workerocs'"
 ----
 
-This step could take more than 5 minutes. The result of this command needs to
-look like below before you proceed. All new workerocs *machinesets* should
-have an integer, in this case `1`, filled out for all rows and under columns
-`READY` and `AVAILABLE`. The `NAME` of your *machinesets* will be different
-than shown below.
+新しい workerocs *Machine Set* の全てで `READY` と `AVAILABLE` のカラムに数値(この場合は `1` )が表示されるまで待ちます。このステップには5分以上かかる場合があります。
 
-.Example output:
+.出力例:
 ----
-NAME                                           DESIRED   CURRENT   READY   AVAILABLE   AGE
-cluster-ocs4-8613-bc282-workerocs-us-east-2a   1         1         1       1           16m
-cluster-ocs4-8613-bc282-workerocs-us-east-2b   1         1         1       1           16m
-cluster-ocs4-8613-bc282-workerocs-us-east-2c   1         1         1       1           16m
+NAME                                       DESIRED   CURRENT   READY   AVAILABLE   AGE
+cluster-d6qlm-mbttv-workerocs-us-east-2a   1         1         1       1           5m25s
+cluster-d6qlm-mbttv-workerocs-us-east-2b   1         1         1       1           5m25s
+cluster-d6qlm-mbttv-workerocs-us-east-2c   1         1         1       1           5m25s
 ----
+kbd:[Ctrl+C]を押すと終了できます。
 
-You can exit by pressing kbd:[Ctrl+C].
-
-Now check to see that you have 3 new OCP worker nodes. The `NAME` of your OCP
-nodes will be different than shown below.
+最後に、3つのWorkerノードが追加されていることを確認します。全てのworker nodeの `STATUS` が `Ready` であることを確認します。
 
 [source,role="execute"]
 ----
 oc get nodes -l node-role.kubernetes.io/worker -l '!node-role.kubernetes.io/infra','!node-role.kubernetes.io/master'
 ----
-.Example output:
+.出力例:
 ----
-NAME                                         STATUS   ROLES    AGE    VERSION
-ip-10-0-147-230.us-east-2.compute.internal   Ready    worker   14m    v1.19.0+9f84db3
-ip-10-0-153-37.us-east-2.compute.internal    Ready    worker   4d4h   v1.19.0+9f84db3
-ip-10-0-170-25.us-east-2.compute.internal    Ready    worker   4d4h   v1.19.0+9f84db3
-ip-10-0-175-8.us-east-2.compute.internal     Ready    worker   14m    v1.19.0+9f84db3
-ip-10-0-209-53.us-east-2.compute.internal    Ready    worker   14m    v1.19.0+9f84db3
+NAME                                         STATUS   ROLES    AGE   VERSION
+ip-10-0-129-208.us-east-2.compute.internal   Ready    worker   45m   v1.22.8+c02bd9d
+ip-10-0-142-148.us-east-2.compute.internal   Ready    worker   13m   v1.22.8+c02bd9d
+ip-10-0-157-116.us-east-2.compute.internal   Ready    worker   45m   v1.22.8+c02bd9d
+ip-10-0-173-143.us-east-2.compute.internal   Ready    worker   13m   v1.22.8+c02bd9d
+ip-10-0-185-31.us-east-2.compute.internal    Ready    worker   45m   v1.22.8+c02bd9d
+ip-10-0-215-4.us-east-2.compute.internal     Ready    worker   45m   v1.22.8+c02bd9d
+ip-10-0-219-73.us-east-2.compute.internal    Ready    worker   13m   v1.22.8+c02bd9d
 ----
 
-Let's check to make sure the new OCP nodes have the ODF label. This label was
-added in the `workerocs` *machinesets* so every *machine* created using these
-*machinesets* will have this label.
+新しいOCP WorkerノードがODF用のラベルを持っていることを確認します。 +
+ODFを稼働させるノードには、`cluster.ocs.openshift.io/openshift-storage` という特定のラベルが付いている必要があります。 +
+先に `workerocs` *MachineSets* を作成した時にこのラベルを追加しています。これらの *MachineSets* を使って作成されたすべての *Machine* はこのラベルを持つことになります。
 
 [source,role="execute"]
 ----
 oc get nodes -l cluster.ocs.openshift.io/openshift-storage=
 ----
-.Example output:
+.出力例:
 ----
 NAME                                         STATUS   ROLES    AGE   VERSION
-ip-10-0-147-230.us-east-2.compute.internal   Ready    worker   15m   v1.19.0+9f84db3
-ip-10-0-175-8.us-east-2.compute.internal     Ready    worker   15m   v1.19.0+9f84db3
-ip-10-0-209-53.us-east-2.compute.internal    Ready    worker   15m   v1.19.0+9f84db3
+ip-10-0-142-148.us-east-2.compute.internal   Ready    worker   14m   v1.22.8+c02bd9d
+ip-10-0-173-143.us-east-2.compute.internal   Ready    worker   14m   v1.22.8+c02bd9d
+ip-10-0-219-73.us-east-2.compute.internal    Ready    worker   14m   v1.22.8+c02bd9d
 ----
-=== Installing the ODF operator
 
-In this section you will be using three of the worker OCP 4 nodes to deploy
-ODF 4 using the ODF Operator in OperatorHub. The following will be installed:
+=== ODF Operatorを使ったODFクラスタの作成
 
-- An ODF *OperatorGroup*
-- An ODF *Subscription*
-- All other ODF resources (Operators, Ceph Pods, NooBaa Pods, StorageClasses)
+このセクションではOpenShift Data Foundation(ODF) Operatorをインストールし、新しく追加した3つのWorkerノードを使ってODFクラスタを作成します。 +
+以下がインストールされます。
+- ODF *OperatorGroup*
+- ODF *Subscription*
+- 他の全てのODF リソース (Operators, Ceph Pods, NooBaa Pods, StorageClasses)
 
-Start with creating the `openshift-storage` namespace.
+はじめに `openshift-storage` Namespace を作成します。
 
 [source,role="execute"]
 ----
 oc create namespace openshift-storage
 ----
 
-You must add the monitoring label to this namespace. This is required to get
-prometheus metrics and alerts for the OCP storage dashboards. To label the
-`openshift-storage` namespace use the following command:
+このNamespaceには、モニタリング用のラベルを追加する必要があります。これは、OCPストレージダッシュボードの Prometheus メトリクスとアラートを取得するために必要です。 +
+`openshift-storage` Namespaceにラベルを付けるには、次のコマンドを使用します。
 
 [source,role="execute"]
 ----
 oc label namespace openshift-storage "openshift.io/cluster-monitoring=true"
 ----
 
-NOTE: The creation of the `openshift-storage` namespace, and the monitoring
-label added to this namespace, can also be done during the ODF operator
-installation using the *Openshift Web Console*.
+NOTE: `openshift-storage` Namespaceの作成とモニタリング用のラベル付けは、*OpenShift Web Console* を使用してODF Operatorのインストール時に行うこともできます。
 
-Now switch over to your *Openshift Web Console*:
+*Openshift Web Console* を開きます。
 
 {{ MASTER_URL }}
 
-Remember that the login is `kubeadmin` and the password is:
+`kubeadmin` としてログインします。パスワードはこちらです。
 
 [source,role="copypaste"]
 ----
 {{ KUBEADMIN_PASSWORD }}
 ----
 
-Once you are logged in, navigate to the *Operators* -> *OperatorHub* menu.
+ログインしたら左側のメニューから、*Operators* -> *OperatorHub* を選択します。
 
 .OCP OperatorHub
 image::images/ocs/OCS-OCP-OperatorHub.png[OCP OperatorHub]
 
 Now type `openshift data foundation` in the *Filter by _keyword..._* box.
+*Filter by _keyword..._* のボックスに、`openshift data foundation` と入力します。
 
 .OCP OperatorHub filter on OpenShift Data Foundation Operator
 image::images/ocs/OCS4-OCP-OperatorHub-Filter.png[OCP OperatorHub Filter]
 
-Select `OpenShift Data Foundation Operator` and then select *Install*.
+表示された `OpenShift Data Foundation Operator` を選択し、 *Install* ボタンを押します。
 
 .OCP OperatorHub Install OpenShift Data Foundation
 image::images/ocs/OCS4-OCP4-OperatorHub-Install.png[OCP OperatorHub Install]
 
-On the next screen make sure the settings are as shown in this figure.
+次の画面で、設定が下図に示す通りであることを確認します。
 
 .OCP Subscribe to OpenShift Data Foundation
 image::images/ocs/OCS4-OCP4-OperatorHub-Subscribe.png[OCP OperatorHub Subscribe]
 
-Click *Install*.
+*Install* をクリックします。
 
-Now you can go back to your terminal window to check the progress of the
-installation.
+ターミナルに戻って、下のコマンドを実行してインストール状況を確認できます。
 
 [source,role="execute"]
 ----
 watch oc -n openshift-storage get csv
 ----
-.Example output:
+.出力例:
 ----
 NAME                  DISPLAY                       VERSION   REPLACES              PHASE
-mcg-operator.v4.9.2   NooBaa Operator               4.9.2     mcg-operator.v4.9.1   Succeeded
-ocs-operator.v4.9.2   OpenShift Container Storage   4.9.2     ocs-operator.v4.9.1   Succeeded
-odf-operator.v4.9.2   OpenShift Data Foundation     4.9.2     odf-operator.v4.9.1   Succeeded
+mcg-operator.v4.9.8   NooBaa Operator               4.9.8     mcg-operator.v4.9.7   Succeeded
+ocs-operator.v4.9.8   OpenShift Container Storage   4.9.8     ocs-operator.v4.9.7   Succeeded
+odf-operator.v4.9.8   OpenShift Data Foundation     4.9.8     odf-operator.v4.9.7   Succeeded
 ----
+kbd:[Ctrl+C]を押すと終了できます。
 
-You can exit by pressing kbd:[Ctrl+C].
+リソース `csv` は `clusterserviceversions.operators.coreos.com` の短縮です。
 
-The resource `csv` is a shortened word for
-`clusterserviceversions.operators.coreos.com`.
+.全てのOperatorの `PHASE` が `Succeeded` に変わるまで待って下さい。
+CAUTION: 変わるまで数分かかる場合があります。
 
-.Please wait until the operators `PHASE` changes to `Succeeded`
-CAUTION: This will mark that the installation of your operator was
-successful. Reaching this state can take several minutes.
-
-You will now also see new operator pods in `openshift-storage`
-namespace:
+ODF Operatorのインストールが終わると、いくつかの新しいPodが `openshift-storage` Namespaceに作成されていることが確認できます。
 
 [source,role="execute"]
 ----
 oc -n openshift-storage get pods
 ----
-.Example output:
+.出力例:
 ----
 NAME                                               READY   STATUS    RESTARTS   AGE
-noobaa-operator-585b66865d-z7n6d                   1/1     Running   0          7m52s
-ocs-metrics-exporter-6f7fb77856-hzqxm              1/1     Running   0          7m47s
-ocs-operator-f5bb58ddf-7ngr8                       1/1     Running   0          7m48s
-odf-console-87bb59fb4-f9mc2                        1/1     Running   0          7m47s
-odf-operator-controller-manager-85f6cbddfb-bnqd6   2/2     Running   0          7m47s
-rook-ceph-operator-55b4496c6b-kmlm6                1/1     Running   0          7m48s
+noobaa-operator-75847d5b48-krtpt                   1/1     Running   0          5m37s
+ocs-metrics-exporter-7f855fc64c-xlc7s              1/1     Running   0          5m35s
+ocs-operator-7cdd8cc9f5-khwlg                      1/1     Running   0          5m35s
+odf-console-6bb644f8c4-vndfh                       1/1     Running   0          5m49s
+odf-operator-controller-manager-5b767b7f4c-6jm2j   2/2     Running   0          5m49s
+rook-ceph-operator-54d974474c-k82xz                1/1     Running   0          5m35s
 ----
 
-Now switch back to your *Openshift Web Console* for the remainder of the
-installation for ODF 4.
+*Openshift Web Console* に戻ってそれでは続いてストレージクラスタを作成します。 +
 
-Select *Create StorageSystem* in figure below to get to the ODF configuration screen.
+*Create StorageSystem* をクリックします。
 
 .Create storage system in openshift-storage namespace
 image::images/ocs/OCS4-OCP4-View-Operator.png[Create storage system in openshift-storage namespace]
 
-The `Create StorageSystem` screen will display.
+`Create StorageSystem` の画面が表示されます。
 
 .Configure storage system settings
 image::images/ocs/OCS4-config-screen-partial1.png[Configure storage system settings]
 
-Leave the default selection of `gp2`, `Full deployment`, and select *Next*.
+*Backing storage* では `Use an existing StorageClass` を選択し、*Storage Class* には `gp2` を指定します。 +
+*Deployment type* では `Full deployment` を指定します。
+
+*Next* をクリックします 。
+
+NOTE: 他のメニューの `Create a new StorageClass using local storage devices` は、Baremetal方式でインストールしたOCPクラスタでODFを構成する場合や、AWS EBSではないEC2 Instanceに元から存在するデバイスを使ってODFクラスタを構成する場合に使います。 +
+また `Connect an external storage platform` は、外部ストレージとコントロールプレーンを統一する特殊なケースで使います。
 
 .Select capacity and nodes for new storage system
 image::images/ocs/OCS4-config-screen-partial2.png[Select capacity and nodes for new storage system]
 
-Leave the default of `2 TiB` as the requested capacity for the storage system.
+*Select Capacity* では、`2 TiB` を指定します。
 
-There should be 3 worker nodes already selected that had the ODF label
-applied in the last section. Execute command below and make sure they are all
-selected.
+CAUTION: *ここで選択する Requested Capacity は、将来容量を拡張する際の最小単位として利用されます。* +
+例えば初めに2 TiBを選択した場合は、以降は 2TiB 単位で拡張することになります。
+
+*Select nodes* で、ODFクラスタで使うnodeを指定して *Next* をクリックします。
+ODF用のラベル `cluster.ocs.openshift.io/openshift-storage` が付けられたノードは、ここで自動で選択されるようになっています。そのため、はじめから3つのWorkerノードが選択されているはずです。以下のコマンドを実行して、間違いがないことを確認してみましょう。
 
 [source,role="execute"]
 ----
 oc get nodes --show-labels | grep ocs | cut -d ' ' -f1
 ----
 
-Then click on the button *Next* below the dialog box with the 3 workers
-selected with a `checkmark`. Click *Next*  one more time until you see the figure below.
+*Next* をクリックします 。
+
+.ODF create a new storage cluster: Security and network
+image::images/ocs/ODF4.9-config-screen-partial3.png[Select encryption and network]
+
+*Encryption* では、何も選択しません。 +
+クラスタ全体、または部分的な暗号化を利用したい場合は、ここでチェックを入れます。今回の Lab では暗号化はしないので、チェックを外したままで構いません。 + 
+（興味のある方は、チェックしてみてどのようなメニューが表示されるか確認されて構いません。*最後はチェックを外すよう注意してください*)
+
+*Network* では、`Default (SDN)` を選択します。 +
+Multus CNIを使ってPodで複数のネットワークを使用できる構成になっているOpenShiftクラスタでは、ODFでPublic NetworkとCluster Networkを分離することが可能です。 +
+ここでは一般的な構成である、ネットワークを分離しないODFクラスタを構成するため、`Default (SDN)` を選択します。
+
+*Next* をクリックします。
 
 .Review and create new storage system
 image::images/ocs/OCS4-config-screen-partial3.png[Review and create new storage system]
 
-Click *Create StorageSystem*.
+設定した内容をレビューし、問題がなければ *Create StorageSystem* をクリックします。
 
-Please wait until all *Pods* are marked as `Running` in the terminal window. This will take 5-10 minutes so be patient.
+ターミナルウィンドウにすべての *Pods* が `Running` または `Completed` と表示されるまでお待ちください。これは5-10分かかります。
 
 [source,role="execute"]
 ----
-oc -n openshift-storage get pods
+watch oc -n openshift-storage get pods
 ----
-.Output when the cluster installation is finished
+.出力例
 ----
 NAME                                                              READY   STATUS      RESTARTS   AGE
 csi-cephfsplugin-5gmvm                                            3/3     Running     0          7m29s
@@ -351,86 +348,76 @@ rook-ceph-osd-prepare-ocs-deviceset-gp2-0-data-0wnh5j--1-xhgmf    0/1     Comple
 rook-ceph-osd-prepare-ocs-deviceset-gp2-1-data-08kht7--1-zw66k    0/1     Completed   0          4m
 rook-ceph-osd-prepare-ocs-deviceset-gp2-2-data-0blmfh--1-dzdqk    0/1     Completed   0          3m59s
 ----
+kbd:[Ctrl+C]を押すと終了できます。
 
-The great thing about operators and OpenShift is that the operator has the
-intelligence about the deployed components built-in. And, because of the
-relationship between the `CustomResource` and the operator, you can check the
-status by looking at the `CustomResource` itself. When you went through the UI
-dialogs, ultimately in the back-end an instance of a `StorageCluster` was
-created:
+OperatorとOpenShiftの素晴らしいところは、デプロイされたコンポーネントに関するインテリジェンスをOperatorが内蔵していることです。
+また、Operatorは `CustomResource` を定義します。そのため `CustomResource` 自体を見ることでステータスを確認することができます。 +
+ODFを例にすると、ODFクラスタをデプロイすると最終的には `StorageSystem` と `StorageCluster` のインスタンスが生成されていることが分かります。この `StorageSystem` と `StorageCluster` は ODF Operator によって定義された `CustomeResource` です。
+
+`StorageCluster` のステータスは次のようにチェックできます。
 
 [source,role="execute"]
 ----
 oc get storagecluster -n openshift-storage
 ----
 
-You can check the status of the storage cluster with the following:
+`Phase` のカラムが `Ready` となっていれば、続けることができます。
 
-[source,role="execute"]
-----
-oc get storagecluster -n openshift-storage ocs-storagecluster -o jsonpath='{.status.phase}{"\n"}'
-----
+### ストレージダッシュボードの使用
 
-If it says `Ready`, you can continue.
+このセクションでは、*OpenShift Web Console* に含まれている、ODF独自のダッシュボードを使ってストレージクラスタのステータスを確認します。 +
+まず、ODF Operatorのインストール後に画面右上に次のようなポップアップが表示されている場合は、*Refersh web console* をクリックして画面を更新してください。
 
-### Getting to know the Storage Dashboards
+.ODF Dashboard after successful operator installation
+image::images/ocs/ODF4.9-refresh-webconsole.png[ODF Dashboard after successful operator installation]
 
-You can now also check the status of your storage cluster with the ODF specific
-*Dashboards* that are included in your *Openshift Web Console*. You can reach
-these by clicking on `OpenShift Data Foundation` on your left navigation bar directly under `Storage`.
+ダッシュボードは左側のメニューバーから *Storage* -> *OpenShift Data Foundation* とクリックすることでアクセスできます。
 
-NOTE: If you just finished your ODF 4 deployment it could take 5-10 minutes
-for your *Dashboards* to fully populate. 
+NOTE: ODFのデプロイが完了したばかりの場合、ダッシュボードが完全に表示されるまでに5〜10分かかります。
 
 .Storage Dashboard after successful storage installation
 image::images/ocs/OCS-dashboard-healthy.png[Storage Dashboard after successful storage installation]
 
-Reference the https://access.redhat.com/documentation/en-us/red_hat_openshift_data_foundation/4.9/html/monitoring_openshift_data_foundation/cluster_health#verifying-openshift-data-foundation-is-healthy_rhodf[ODF Monitoring Guide] for more information on how to use the *Dashboards*.
+ダッシュボードの使用方法の詳細については、 https://access.redhat.com/documentation/en-us/red_hat_openshift_data_foundation/4.9/html/monitoring_openshift_data_foundation/cluster_health#verifying-openshift-data-foundation-is-healthy_rhodf[ODFモニタリングガイド]を参照してください。
 
-Once this is all healthy, you will be able to use the three new
-*StorageClasses* created during the ODF 4 Install:
+全てが正常になると、ODFがインストール中に作成した3つの新しい *StorageClass* が使用可能になります。
 
 - ocs-storagecluster-ceph-rbd
 - ocs-storagecluster-cephfs
 - openshift-storage.noobaa.io
 
-You can see these three *StorageClasses* from the Openshift Web Console by
-expanding the `Storage` menu in the left navigation bar and selecting
-`Storage Classes`. You can also run the command below:
+*Storage* メニューの *Storage Classes* を選択することで、これら3つの *StorageClass* が表示されます。 +
+また、以下のコマンドでも確認できます。
 
 [source,role="execute"]
 ----
 oc get storageclasses
 ----
 
-Please make sure the three storage classes are available in your cluster
-before proceeding.
+上記の3つの *StorageClass* が使用可能であることを確認しましょう。
 
-NOTE: The NooBaa pod used the `ocs-storagecluster-ceph-rbd` storage class for
-creating a PVC for mounting to the `db` container.
+NOTE: MCGは `noobaa-core` Pod内部の `db` コンテナで利用するために `ocs-storagecluster-ceph-rbd` StorageClassを使用してPVCを作成しています。
 
-=== Using the Rook-Ceph toolbox to check on the Ceph backing storage
+=== Rook-Ceph toolboxを利用したCephクラスタの確認
 
-Since the Rook-Ceph *toolbox* is not shipped with ODF, we need to deploy it
-manually.
+このセクションでは、Rook-Ceph *toolbox* を利用して作成されたCephクラスタに対してcephコマンドを実行し、クラスタ構成を確認します。
+Rook-Ceph *toolbox* はODFに同梱されていないため、手動でデプロイする必要があります。
 
-You can patch the `OCSInitialization ocsinit` using the following command line:
+以下のコマンドで `OCSInitialization ocsinit` を修正します。
 
 [source,role="execute"]
 ----
 oc patch OCSInitialization ocsinit -n openshift-storage --type json --patch  '[{ "op": "replace", "path": "/spec/enableCephTools", "value": true }]'
 ----
 
-After the `rook-ceph-tools` *Pod* is `Running` you can access the *toolbox*
-like this:
+`rook-ceph-tools` Pod が `Running` になれば、次のようにtoolbox Podに入ることができます。
 
 [source,role="execute"]
 ----
 TOOLS_POD=$(oc get pods -n openshift-storage -l app=rook-ceph-tools -o name)
 oc rsh -n openshift-storage $TOOLS_POD
 ----
-
-Once inside the *toolbox*, try out the following Ceph commands:
+*toolbox* Podに入ったら、次のcephコマンドを実行してみて下さい。これらのコマンドによってCephクラスタの詳細な構成を確認することができます。
 
 [source,role="execute"]
 ----
@@ -462,90 +449,83 @@ rados df
 ceph versions
 ----
 
-.Example output:
+.出力例:
 ----
 sh-4.4$ ceph status
   cluster:
-    id:     0662054e-fd51-4181-9f21-7035dab4c8fe
+    id:     cbeb7c9d-2a30-4646-b5a6-72d5c1db914c
     health: HEALTH_OK
 
   services:
-    mon: 3 daemons, quorum a,b,c (age 31m)
-    mgr: a(active, since 31m)
+    mon: 3 daemons, quorum a,b,c (age 19m)
+    mgr: a(active, since 19m)
     mds: 1/1 daemons up, 1 hot standby
-    osd: 3 osds: 3 up (since 31m), 3 in (since 31m)
+    osd: 3 osds: 3 up (since 18m), 3 in (since 19m)
 
   data:
     volumes: 1/1 healthy
     pools:   4 pools, 97 pgs
-    objects: 93 objects, 134 MiB
-    usage:   258 MiB used, 6.0 TiB / 6 TiB avail
+    objects: 92 objects, 133 MiB
+    usage:   249 MiB used, 6.0 TiB / 6 TiB avail
     pgs:     97 active+clean
 
   io:
-    client:   1.2 KiB/s rd, 1.7 KiB/s wr, 2 op/s rd, 0 op/s wr
+    client:   1.2 KiB/s rd, 5.0 KiB/s wr, 2 op/s rd, 0 op/s wr
 ----
+kbd:[Ctrl+D] を押すか、 `exit` を実行して *toolbox* から出ることができます.
 
-You can exit the toolbox by either pressing kbd:[Ctrl+D] or by executing exit.
 
 [source,role="execute"]
 ----
 exit
 ----
 
-== Create a new OCP application deployment using Ceph RBD volume
+== Ceph RBD volumeを使用するOCPアプリケーションを作成する
 
-In this section the `ocs-storagecluster-ceph-rbd` *StorageClass* will be used
-by an OCP application + database *Deployment* to create RWO (ReadWriteOnce)
-persistent storage. The persistent storage will be a Ceph RBD (RADOS Block
-Device) volume in the Ceph pool `ocs-storagecluster-cephblockpool`.
+このセクションでは、`ocs-storagecluster-ceph-rbd` *StorageClass* を使ってRWO(ReadWriteOnce) Presistent Volume Claimを作成し、RailsアプリケーションとPostgreSQLデータベースをデプロイします。永続ストレージは、Cephプール `ocs-storagecluster-cephblockpool` にあるCeph RBD (RADOS Block Device) ボリュームです。
 
-To do so we have created a template file, based on the OpenShift
-rails-pgsql-persistent template, that includes an extra parameter STORAGE_CLASS
-that enables the end user to specify the *StorageClass* the PVC should use.
-Feel free to download
-`https://github.com/red-hat-storage/ocs-training/blob/master/training/modules/ocs4/attachments/configurable-rails-app.yaml` to check on the format of this
-template. Search for `STORAGE_CLASS` in the downloaded content.
+ここで利用する OpenShift rails-pgsql-persistentテンプレートをベースに作成したテンプレートファイルを次のリンク先に作成しています。 +
+`https://raw.githubusercontent.com/tutsunom/ocs-training/jp/ocp4ocs4/configurable-rails-app.yaml` +
+このファイルには、PVCが使用するStorageClassをエンドユーザーが指定できる追加のパラメーター `STORAGE_CLASS` が含まれています。ダウンロードして確認してみて下さい。
 
-Make sure that you completed all previous sections so that you are ready to
-start the Rails + PostgreSQL *Deployment*.
+NOTE: Rails + PostgreSQLのデプロイを開始できるように、前のセクションをすべて完了したことを確認してください。
 
-Start by creating a new project:
+はじめに新規のプロジェクトを作成します。
 
 [source,role="execute"]
 ----
 oc new-project my-database-app
 ----
 
-Then use the `rails-pgsql-persistent` template to create the new application.
+そして、`rails-pgsql-persistent` テンプレートを使用して新しいアプリケーションを作成します。
 
 [source,role="execute"]
 ----
 oc new-app -f {{ HOME_PATH }}/support/ocslab_rails-app.yaml -p STORAGE_CLASS=ocs-storagecluster-ceph-rbd -p VOLUME_CAPACITY=5Gi
 ----
 
-After the deployment is started you can monitor with these commands.
+デプロイが始まったら `oc status` コマンドでデプロイの様子を監視できます。
 
 [source,role="execute"]
 ----
 oc status
 ----
 
-Check the PVC is created.
+次に、PVCを確認します。先程のテンプレートファイルの中にPVCのマニフェストが記載されているので、PVCが発行されています。PVCが作られていることを確認しましょう。
 
 [source,role="execute"]
 ----
 oc get pvc -n my-database-app
 ----
 
-This step could take 5 or more minutes. Wait until there are 2 *Pods* in
-`Running` STATUS and 4 *Pods* in `Completed` STATUS as shown below.
+以下に示すように、2つのpodが `Running` STATUSで、4つのpodが `Completed` STATUSになるまで待ちます。
+このステップには5分以上かかる場合があります。
 
 [source,role="execute"]
 ----
 watch oc get pods -n my-database-app
 ----
-.Example output:
+.出力例:
 ----
 NAME                                READY   STATUS      RESTARTS   AGE
 postgresql-1-deploy                 0/1     Completed   0          5m48s
@@ -555,40 +535,48 @@ rails-pgsql-persistent-1-deploy     0/1     Completed   0          3m36s
 rails-pgsql-persistent-1-hook-pre   0/1     Completed   0          3m28s
 rails-pgsql-persistent-1-pjh6q      1/1     Running     0          3m14s
 ----
+kbd:[Ctrl+C] を押すと終了できます。
 
-You can exit by pressing kbd:[Ctrl+C].
-
-Once the deployment is complete you can now test the application and the
-persistent storage on Ceph.
+アプリケーションがPersistent VolumeとしてCeph RBDボリュームを使用しているかどうかテストできます。
 
 [source,role="execute"]
 ----
 oc get route rails-pgsql-persistent -n my-database-app -o jsonpath --template="http://{.spec.host}/articles{'\n'}"
 ----
 
-This will return a route similar to this one:
-
-.Example output:
+.出力例:
 ----
 http://rails-pgsql-persistent-my-database-app.apps.cluster-ocs4-8613.ocs4-8613.sandbox944.opentlc.com/articles
 ----
 
-Copy your route (different than above) to a browser window to create articles.
+出力されたURLをブラウザウィンドウにコピーしてアクセスします。
 
-Enter the `username` and `password` below to create articles and comments.
-The articles and comments are saved in a PostgreSQL database which stores its
-table spaces on the Ceph RBD volume provisioned using the
-`ocs-storagecluster-ceph-rbd` *StorageClass* during the application
-deployment.
+Webページの *New Article* をクリックし、次の `username` と `password` を入力することで記事やコメントを作成することができます。 +
 
 ----
 username: openshift
 password: secret
 ----
 
-Lets now take another look at the Ceph `ocs-storagecluster-cephblockpool`
-created by the `ocs-storagecluster-ceph-rbd` *StorageClass*. Log into the
-*toolbox* pod again.
+何でもよいので、ここで1つ記事を作成してください。
+
+作成された記事とコメントはPostgreSQLデータベースに保存されます。PostgreSQLデータベースは、アプリケーションのデプロイ中に `ocs-storagecluster-ceph-rbd` *StorageClass* を使ってプロビジョニングされたCeph RBDボリュームにテーブルスペースを保存します。 +
+そのため、PostgreSQLのPodを削除してもデータが失われることはありません。試しにPostgreSQLのPodを削除してみましょう。 +
+PostgreSQLのPodは *DeploymentConfig* によって削除されても自動的に再作成され、すでに存在するPVを自動でマウントするようになっています。
+
+PostgreSQLのPodが再作成されたら、再びRailsのWebアプリケーションにアクセスしてみて下さい。キャッシュを消しても先に書いた記事が残っていることが確認できます。
+
+[source,role="execute"]
+----
+oc delete $(oc get pod -l name=postgresql -n my-database-app -o name) -n my-database-app
+----
+.ターミナルのプロンプトが戻ってくるまで待って下さい。
+CAUTION: プロンプトが戻ってくるまで数分かかる場合があります。
+
+
+先程作成したPVは、`ocs-storagecluster-cephblockpool` プール内に作られるCeph RBD(RADOS Block Device)ボリュームです。ここではPVとCeph RBDボリュームとがどのように対応しているか確認してみます。 +
+ここでtoolboxにログインして、`ocs-storagecluster-cephblockpool` をもう一度見てみましょう。
+
 
 [source,role="execute"]
 ----
@@ -596,10 +584,9 @@ TOOLS_POD=$(oc get pods -n openshift-storage -l app=rook-ceph-tools -o name)
 oc rsh -n openshift-storage $TOOLS_POD
 ----
 
-Run the same Ceph commands as before the application deployment and compare
-to results in prior section. Notice the number of objects in
-`ocs-storagecluster-cephblockpool` has increased. The third command lists
-RBD volumes and we should now have two RBDs.
+下記のようにアプリケーションのデプロイ前と同じCephコマンドを実行し、前のセクションの結果と比較します。
+`ocs-storagecluster-cephblockpool` のオブジェクト数が増えていることに注意して下さい。 +
+また、3つ目のコマンドはCeph RBDボリュームをリストする処理をしますが、2つ表示されるはずです。
 
 [source,role="execute"]
 ----
@@ -613,50 +600,51 @@ rados df
 ----
 rbd -p ocs-storagecluster-cephblockpool ls | grep vol
 ----
-
-You can exit the toolbox by either pressing kbd:[Ctrl+D] or by executing exit.
+kbd:[Ctrl+D] を押すか、 `exit` を実行してtoolboxから出ることができます。
 
 [source,role="execute"]
 ----
 exit
 ----
 
-=== Matching PVs to RBDs
+=== PVとRBDの照会
 
-A handy way to match OCP persistent volumes (*PVs*)to Ceph RBDs is to execute:
+どのPVがどのCeph RBDボリュームに対応するかの照会を行ってみましょう。 +
+次のコマンドを実行してPVの `Volume Handle` を確認します。
 
 [source,role="execute"]
 ----
 oc get pv -o 'custom-columns=NAME:.spec.claimRef.name,PVNAME:.metadata.name,STORAGECLASS:.spec.storageClassName,VOLUMEHANDLE:.spec.csi.volumeHandle'
 ----
-.Example output:
+.出力例:
 ----
-NAME                      PVNAME                                     STORAGECLASS                  VOLUMEHANDLE
-ocs-deviceset-0-0-d2ppm   pvc-2c08bd9c-332d-11ea-a32f-061f7a67362c   gp2                           <none>
-ocs-deviceset-1-0-9tmc6   pvc-2c0a0ed5-332d-11ea-a32f-061f7a67362c   gp2                           <none>
-ocs-deviceset-2-0-qtbfv   pvc-2c0babb3-332d-11ea-a32f-061f7a67362c   gp2                           <none>
-db-noobaa-core-0          pvc-4610a3ce-332d-11ea-a32f-061f7a67362c   ocs-storagecluster-ceph-rbd   0001-0011-openshift-storage-0000000000000001-4a74e248-332d-11ea-9a7c-0a580a820205
-postgresql                pvc-874f93cb-3330-11ea-90b1-0a10d22e734a   ocs-storagecluster-ceph-rbd   0001-0011-openshift-storage-0000000000000001-8765a21d-3330-11ea-9a7c-0a580a820205
-rook-ceph-mon-a           pvc-d462ecb0-332c-11ea-a32f-061f7a67362c   gp2                           <none>
-rook-ceph-mon-b           pvc-d79d0db4-332c-11ea-a32f-061f7a67362c   gp2                           <none>
-rook-ceph-mon-c           pvc-da9cc0e3-332c-11ea-a32f-061f7a67362c   gp2                           <none>
+NAME                              PVNAME                                     STORAGECLASS                  VOLUMEHANDLE
+ocs-deviceset-gp2-0-data-0pdj4t   pvc-0c76938c-466b-4419-9c65-2d697d0c6475   gp2                           <none>
+rook-ceph-mon-b                   pvc-4583b95b-41c9-4e3c-8729-426ce36481e9   gp2                           <none>
+db-noobaa-db-pg-0                 pvc-53d01ae5-7b35-40c0-904a-5aa4b24c2241   ocs-storagecluster-ceph-rbd   0001-0011-openshift-
+storage-0000000000000001-a5b03a0e-e22c-11ec-855c-0a580a82020c
+ocs-deviceset-gp2-1-data-0m5bzn   pvc-5a41d153-6067-4ba1-bd5f-805a53599f84   gp2                           <none>
+rook-ceph-mon-a                   pvc-5b74a2a5-8169-4e8f-b7c9-d832062139cb   gp2                           <none>
+rook-ceph-mon-c                   pvc-712abc46-28ae-4f7a-b54b-79f92c768b79   gp2                           <none>
+postgresql                        pvc-a726b00b-c97f-478c-a841-20276c2a4563   ocs-storagecluster-ceph-rbd   0001-0011-openshift-
+storage-0000000000000001-e61c53cd-e230-11ec-855c-0a580a82020c
+ocs-deviceset-gp2-2-data-04xwqf   pvc-ded9b4c7-8bd6-4e03-beab-ee416d4407fa   gp2                           <none>
 ----
 
-The second half of the `VOLUMEHANDLE` column mostly matches what your RBD is
-named inside of Ceph. All you have to do is append `csi-vol-` to the front
-like this:
+`VOLUMEHANDLE` カラムの後半部分は、Ceph RBDの名前と一致していることがわかります。この前に `csi-vol-` をつけることで完全なRBDを取得することができます。 +
 
-.Get the full RBD name and the associated information for your postgreSQL *PV*
 [source,role="execute"]
 ----
 CSIVOL=$(oc get pv $(oc get pv | grep my-database-app | awk '{ print $1 }') -o jsonpath='{.spec.csi.volumeHandle}' | cut -d '-' -f 6- | awk '{print "csi-vol-"$1}')
 echo $CSIVOL
 ----
 
-.Examplet output:
+.出力例:
 ----
-csi-vol-8765a21d-3330-11ea-9a7c-0a580a820205
+csi-vol-e61c53cd-e230-11ec-855c-0a580a82020c
 ----
+
+再度toolboxを使ってCeph RBDボリュームの詳細を確認すると、上で出力されたものと同じ名前のRBDボリュームが表示されるはずです。
 
 [source,role="execute"]
 ----
@@ -664,31 +652,28 @@ TOOLS_POD=$(oc get pods -n openshift-storage -l app=rook-ceph-tools -o name)
 oc rsh -n openshift-storage $TOOLS_POD rbd -p ocs-storagecluster-cephblockpool info $CSIVOL
 ----
 
-.Example output:
+.出力例:
 ----
-rbd image 'csi-vol-8765a21d-3330-11ea-9a7c-0a580a820205':
+rbd image 'csi-vol-e61c53cd-e230-11ec-855c-0a580a82020c':
         size 5 GiB in 1280 objects
         order 22 (4 MiB objects)
         snapshot_count: 0
-        id: 17e811c7f287
-        block_name_prefix: rbd_data.17e811c7f287
+        id: 38f2ba527cd8
+        block_name_prefix: rbd_data.38f2ba527cd8
         format: 2
         features: layering
         op_features:
         flags:
-        create_timestamp: Thu Jan  9 22:36:51 2020
-        access_timestamp: Thu Jan  9 22:36:51 2020
-        modify_timestamp: Thu Jan  9 22:36:51 2020
+        create_timestamp: Thu Jun  2 05:00:18 2022
+        access_timestamp: Thu Jun  2 05:00:18 2022
+        modify_timestamp: Thu Jun  2 05:00:18 2022
 ----
 
-=== Expand RBD based PVCs
+=== Ceph RBD PVCの拡張
 
-OpenShift 4.5 and later versions let you expand an existing PVC based on the
-`ocs-storagecluster-ceph-rbd` *StorageClass*. This section walks you through
-the steps to perform a PVC expansion.
+OpenShift 4.5以降のバージョンでは、`ocs-storagecluster-ceph-rbd` *StorageClass* をベースに既存のPVCを拡張することができます。このセクションでは、PVC拡張を実行するための手順を説明します。
 
-We will first artificially fill up the PVC used by the application you have
-just created.
+まず、作成したばかりのアプリケーションで使用しているPVCを人為的に満杯にします。
 
 [source,role="execute"]
 ----
@@ -698,93 +683,90 @@ oc rsh -n my-database-app $(oc get pods -n my-database-app|grep postgresql | gre
 ----
 df
 ----
-.Example output:
+.出力例:
 ----
-Filesystem                           1K-blocks     Used Available Use% Mounted on
-overlay                              125277164 12004092 113273072  10% /
-tmpfs                                    65536        0     65536   0% /dev
-tmpfs                                 32571336        0  32571336   0% /sys/fs/cgroup
-shm                                      65536        8     65528   1% /dev/shm
-tmpfs                                 32571336    10444  32560892   1% /etc/passwd
-/dev/mapper/coreos-luks-root-nocrypt 125277164 12004092 113273072  10% /etc/hosts
-/dev/rbd1                              5095040    66968   5011688   2% /var/lib/pgsql/data
-tmpfs                                 32571336       28  32571308   1% /run/secrets/kubernetes.io/serviceaccount
-tmpfs                                 32571336        0  32571336   0% /proc/acpi
-tmpfs                                 32571336        0  32571336   0% /proc/scsi
-tmpfs                                 32571336        0  32571336   0% /sys/firmware
+Filesystem     1K-blocks     Used Available Use% Mounted on
+overlay        125293548 18512264 106781284  15% /
+tmpfs              65536        0     65536   0% /dev
+tmpfs           32566396        0  32566396   0% /sys/fs/cgroup
+shm                65536       16     65520   1% /dev/shm
+tmpfs           32566396    54320  32512076   1% /etc/passwd
+/dev/nvme0n1p4 125293548 18512264 106781284  15% /etc/hosts
+/dev/rbd0        5095040    69280   5009376   2% /var/lib/pgsql/data
+tmpfs             524288       24    524264   1% /run/secrets/kubernetes.io/serviceaccount
+tmpfs           32566396        0  32566396   0% /proc/acpi
+tmpfs           32566396        0  32566396   0% /proc/scsi
+tmpfs           32566396        0  32566396   0% /sys/firmware
 ----
 
-As observed in the output above the device named `/dev/rbd1`
-is mounted as `/var/lib/pgsql/data`. This is the directory we will artificially
-fill up.
+上の出力にあるように、`/dev/rbd1` という名前のデバイスは `/var/lib/pgsql/data` という名前でマウントされています。このディレクトリを人為的に満杯にします。
 
 [source,role="execute"]
 ----
 dd if=/dev/zero of=/var/lib/pgsql/data/fill.up bs=1M count=3850
 ----
-.Example output:
+.出力例:
 ----
 3850+0 records in
 3850+0 records out
 4037017600 bytes (4.0 GB) copied, 13.6446 s, 296 MB/s
 ----
 
-Let's verify the volume mounted has increased.
+マウントされたボリュームの使用容量を確認します。
 
 [source,role="execute"]
 ----
 df
 ----
-.Example output:
+.出力例:
 ----
-Filesystem                           1K-blocks     Used Available Use% Mounted on
-overlay                              125277164 12028616 113248548  10% /
-tmpfs                                    65536        0     65536   0% /dev
-tmpfs                                 32571336        0  32571336   0% /sys/fs/cgroup
-shm                                      65536        8     65528   1% /dev/shm
-tmpfs                                 32571336    10444  32560892   1% /etc/passwd
-/dev/mapper/coreos-luks-root-nocrypt 125277164 12028616 113248548  10% /etc/hosts
-/dev/rbd1                              5095040  4009372   1069284  79% /var/lib/pgsql/data
-tmpfs                                 32571336       28  32571308   1% /run/secrets/kubernetes.io/serviceaccount
-tmpfs                                 32571336        0  32571336   0% /proc/acpi
-tmpfs                                 32571336        0  32571336   0% /proc/scsi
-tmpfs                                 32571336        0  32571336   0% /sys/firmware
+Filesystem     1K-blocks     Used Available Use% Mounted on
+overlay        125293548 18512272 106781276  15% /
+tmpfs              65536        0     65536   0% /dev
+tmpfs           32566396        0  32566396   0% /sys/fs/cgroup
+shm                65536       16     65520   1% /dev/shm
+tmpfs           32566396    54320  32512076   1% /etc/passwd
+/dev/nvme0n1p4 125293548 18512272 106781276  15% /etc/hosts
+/dev/rbd0        5095040  4011684   1066972  79% /var/lib/pgsql/data
+tmpfs             524288       24    524264   1% /run/secrets/kubernetes.io/serviceaccount
+tmpfs           32566396        0  32566396   0% /proc/acpi
+tmpfs           32566396        0  32566396   0% /proc/scsi
+tmpfs           32566396        0  32566396   0% /sys/firmware
 ----
 
-As observed in the output above, the filesystem usage for `/var/lib/pgsql/data`
-has increased up to 79%. By default OCP will generate a PVC alert when a PVC
-crosses the 75% full threshold.
+上記の出力で観察されるように、`/var/lib/pgsql/data` のファイルシステム使用量は79%まで増加しています。デフォルトでは、OCPはPVCが75%の使用量を超えたときにPVCアラートを生成します。
 
-Now exit the pod.
+Podから出ます。
 
 [source,role="execute"]
 ----
 exit
 ----
 
-Let's verify an alert has appeared in the OCP event log.
+OCPのイベントログにアラートが表示されていることを確認しましょう。
 
 .OpenShift Container Platform Events
 image::images/ocs/OCS-PVCResize-pvcnearfull-alert.png[PVC nearfull alert]
 
-==== Expand applying a modified PVC YAML file
+==== PVCのYAMLファイルを変更することによる拡張
 
-To expand a *PVC* we simply need to change the actual amount of storage that is
-requested. This can easily be performed by exporting the *PVC* specifications
-into a YAML file with the following command:
+PVCを拡張するには、*PVC* で要求しているストレージ容量を変更する必要があります。これは、次のコマンドで *PVC* のマニフェストをYAMLファイルにエクスポートすることで簡単に実行できます。
 
 [source,role="execute"]
 ----
 oc get pvc postgresql -n my-database-app -o yaml > pvc.yaml
 ----
 
-In the file `pvc.yaml` that was created, search for the following section using
-your favorite editor.
+作成されたファイル `pvc.yaml` の中で、`spec:` セクションを確認します。
 
-.Example output:
+[source,role="execute"]
+----
+cat pvc.yaml
+----
+.出力例:
 [source,yaml]
 ----
-[truncated]
+[省略]
 spec:
   accessModes:
   - ReadWriteOnce
@@ -793,17 +775,21 @@ spec:
       storage: 5Gi
   storageClassName: ocs-storagecluster-ceph-rbd
   volumeMode: Filesystem
-  volumeName: pvc-4d6838df-b4cd-4bb1-9969-1af93c1dc5e6
-status: {}
+  volumeName: pvc-a726b00b-c97f-478c-a841-20276c2a4563
+[省略]
 ----
 
-Edit `storage: 5Gi` and replace it with `storage: 10Gi`. The resulting section
-in your file should look like the output below.
+この `storage: 5Gi` の部分を `storage: 10Gi` に置き換えます。その結果、ファイル内のセクションは以下のような出力になるはずです。
 
-.Example output:
+[source,role="execute"]
+----
+sed -ie 's/storage: 5Gi/storage: 10Gi/' pvc.yaml
+cat pvc.yaml
+----
+.出力例:
 [source,yaml]
 ----
-[truncated]
+[省略]
 spec:
   accessModes:
   - ReadWriteOnce
@@ -813,163 +799,159 @@ spec:
   storageClassName: ocs-storagecluster-ceph-rbd
   volumeMode: Filesystem
   volumeName: pvc-4d6838df-b4cd-4bb1-9969-1af93c1dc5e6
-status: {}
+[省略]
 ----
 
-Now you can apply your updated PVC specifications using the following command:
+次のコマンドで、更新した *PVC* のマニフェストを適用することができます。
 [source,role="execute"]
 ----
 oc apply -f pvc.yaml -n my-database-app
 ----
-.Example output:
+.出力例:
 ----
-Warning: oc apply should be used on resource created by either oc create
---save-config or oc apply persistentvolumeclaim/postgresql configured
+Warning: resource persistentvolumeclaims/postgresql is missing the kubectl.kubernetes.io/last-applied-configuration annotation
+which is required by oc apply. oc apply should only be used on resources created declaratively by either oc create --save-confi
+g or oc apply. The missing annotation will be patched automatically.
+persistentvolumeclaim/postgresql configured
 ----
 
-You can visualize the progress of the expansion of the PVC using the following
-command:
+以下のコマンドで *PVC* の拡張の進捗状況を見ることができます。
 
 [source,role="execute"]
 ----
 oc describe pvc postgresql -n my-database-app
 ----
-.Example output:
+.出力例:
 ----
-[truncated]
+[省略]
 Finalizers:    [kubernetes.io/pvc-protection]
 Capacity:      10Gi
 Access Modes:  RWO
 VolumeMode:    Filesystem
-Mounted By:    postgresql-1-p62vw
+Used By:       postgresql-1-5vtp4
 Events:
-  Type     Reason                      Age   From                                                                                                                Message
-  ----     ------                      ----  ----                                                                                                                -------
-  Normal   ExternalProvisioning        120m  persistentvolume-controller                                                                                         waiting for a volume to be created, either by external provisioner "openshift-storage.rbd.csi.ceph.com" or manually created by system administrator
-  Normal   Provisioning                120m  openshift-storage.rbd.csi.ceph.com_csi-rbdplugin-provisioner-66f66699c8-gcm7t_3ce4b8bc-0894-4824-b23e-ed9bd46e7b41  External provisioner is provisioning volume for claim "my-database-app/postgresql"
-  Normal   ProvisioningSucceeded       120m  openshift-storage.rbd.csi.ceph.com_csi-rbdplugin-provisioner-66f66699c8-gcm7t_3ce4b8bc-0894-4824-b23e-ed9bd46e7b41  Successfully provisioned volume pvc-4d6838df-b4cd-4bb1-9969-1af93c1dc5e6
-  Warning  ExternalExpanding           65s   volume_expand                                                                                                       Ignoring the PVC: didn't find a plugin capable of expanding the volume; waiting for an external controller to process this PVC.
-  Normal   Resizing                    65s   external-resizer openshift-storage.rbd.csi.ceph.com                                                                 External resizer is resizing volume pvc-4d6838df-b4cd-4bb1-9969-1af93c1dc5e6
-  Normal   FileSystemResizeRequired    65s   external-resizer openshift-storage.rbd.csi.ceph.com                                                                 Require file system resize of volume on node
-  Normal   FileSystemResizeSuccessful  23s   kubelet, ip-10-0-199-224.us-east-2.compute.internal                                                                 MountVolume.NodeExpandVolume succeeded for volume "pvc-4d6838df-b4cd-4bb1-9969-1af93c1dc5e6"
+  Type     Reason                      Age   From
+                                 Message
+  ----     ------                      ----  ----
+                                 -------
+  Normal   Provisioning                45m   openshift-storage.rbd.csi.ceph.com_csi-rbdplugin-provisioner-789f79dcf-jwnzp_9972e
+629-2de3-411a-85da-39ffa1f8cfc6  External provisioner is provisioning volume for claim "my-database-app/postgresql"
+  Normal   ExternalProvisioning        45m   persistentvolume-controller
+                                 waiting for a volume to be created, either by external provisioner "openshift-storage.rbd.csi.
+ceph.com" or manually created by system administrator
+  Normal   ProvisioningSucceeded       45m   openshift-storage.rbd.csi.ceph.com_csi-rbdplugin-provisioner-789f79dcf-jwnzp_9972e
+629-2de3-411a-85da-39ffa1f8cfc6  Successfully provisioned volume pvc-a726b00b-c97f-478c-a841-20276c2a4563
+  Normal   Resizing                    55s   external-resizer openshift-storage.rbd.csi.ceph.com
+                                 External resizer is resizing volume pvc-a726b00b-c97f-478c-a841-20276c2a4563
+  Warning  ExternalExpanding           55s   volume_expand
+                                 Ignoring the PVC: didn't find a plugin capable of expanding the volume; waiting for an externa
+l controller to process this PVC.
+  Normal   FileSystemResizeRequired    55s   external-resizer openshift-storage.rbd.csi.ceph.com
+                                 Require file system resize of volume on node
+  Normal   FileSystemResizeSuccessful  27s   kubelet
+                                 MountVolume.NodeExpandVolume succeeded for volume "pvc-a726b00b-c97f-478c-a841-20276c2a4563"
 ----
 
-NOTE: The expansion process commonly takes over 30 seconds to complete and is
-based on the workload of your pod. This is due to the fact that the expansion
-requires the resizing of the underlying RBD image (pretty fast) while also
-requiring the resize of the filesystem that sits on top of the block device. To
-perform the latter the filesystem must be quiesced to be safely expanded.
+NOTE: 拡張処理は一般的に30秒以上かかり、Podの負荷に依存します。これは、拡張にはベースとなるRBDイメージのサイズ変更(かなり高速)と、ブロックデバイスの上に位置するファイルシステムのサイズ変更が必要なためです。後者を実行するには、ファイルシステムを安全に拡張できるように静止させる必要があります。
 
-CAUTION: Reducing the size of a *PVC* is NOT supported.
+CAUTION: *PVC* の縮小はサポートされません。
 
-Another way to check on the expansion of the *PVC* is to simply display the
-*PVC* information using the following command:
+また、*PVC* の拡張を確認する方法として、シンプルに以下のコマンドで *PVC* の情報を表示させる方法もあります。
 
 [source,role="execute"]
 ----
 oc get pvc -n my-database-app
 ----
-.Example output:
+.出力例:
 ----
 NAME         STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                  AGE
-postgresql   Bound    pvc-4d6838df-b4cd-4bb1-9969-1af93c1dc5e6   10Gi       RWO            ocs-storagecluster-ceph-rbd   121m
+postgresql   Bound    pvc-a726b00b-c97f-478c-a841-20276c2a4563   10Gi       RWO            ocs-storagecluster-ceph-rbd   49m
 ----
 
-NOTE: The `CAPACITY` column will reflect the new requested size when the
-expansion process is complete.
+NOTE: `CAPACITY` カラムには、拡張処理が完了した時点で新しく要求されたサイズが表示されます。
 
-Another method to check on the expansion of the *PVC* is to go through two
-specific fields of the PVC object via the CLI.
+*PVC* の拡張を確認するもう1つの方法は、CLIを介して *PVC* オブジェクトの2つのフィールドを調べることです。
 
-The current allocated size for the *PVC* can be checked this way:
-
+*PVC* が現在の割り当てられているサイズを確認するには、次のコマンドを実行します。
 [source,role="execute"]
 ----
 echo $(oc get pvc postgresql -n my-database-app -o jsonpath='{.status.capacity.storage}')
 ----
-.Example output:
+.出力例:
 ----
 10Gi
 ----
 
-The requested size for the *PVC* can be checked this way:
-
+*PVC* で要求されたサイズを確認するには、次のコマンドを実行します。
 [source,role="execute"]
 ----
 echo $(oc get pvc postgresql -n my-database-app -o jsonpath='{.spec.resources.requests.storage}')
 ----
-.Example output:
+.出力例:
 ----
 10Gi
 ----
 
-NOTE: When both results report the same value, the expansion was successful.
+NOTE: 両方の結果が同じ値を報告する場合、拡張は成功したことになります。
 
-==== Expand via the User Interface
+==== GUIを使った拡張
+*PVC* 拡張の最後の方法は、*OpenShift Web Console* を使って行うことです。以下のように進めます。
 
-The last method available to expand a *PVC* is to do so through the *OpenShift
-Web Console*. Proceed as follow:
-
-First step is to select the project to which the *PVC* belongs to.
+最初のステップは、*PVC* が属するプロジェクトを選択することです。
 
 .Select the appropriate project
 image::images/ocs/OCS-PVCResize-select-project.png[Select project]
 
-Choose `Expand PVC` from the contextual menu.
+*PVC* のコンテキストメニュー(縦に3つの点が並んだアイコン)から、`Expand PVC` を選択します。
 
 .Choose Expand from menu
 image::images/ocs/OCS-PVCResize-choose-expand-menu.png[Choose expand from the contextual menu]
 
-In the dialog box that appears enter the new capacity for the *PVC*.
+表示されるダイアログボックスで、*PVC* の新しい容量を入力します。
 
-CAUTION: You can NOT reduce the size of a *PVC*.
+CAUTION: *PVC* のサイズを小さくすることはできません。
 
 .Enter the new size for the *PVC*
 image::images/ocs/OCS-PVCResize-enter-new-size.png[Enter new size]
 
-You now simply have to wait for the expansion to complete and for the new size
-to be reflected in the console (15 GiB).
+あとは拡張が完了し、新しいサイズ(15GiB)が反映されるのを待つだけです。
 
 .Wait for the expansion to complete
 image::images/ocs/OCS-PVCResize-verify-resize-worked2.png[Wait for expansion]
 
-== Create a new OCP application deployment using CephFS volume
+== CephFS volumeを使用するOCPアプリケーションを作成する
 
-In this section the `ocs-storagecluster-cephfs` *StorageClass* will be used to
-create a RWX (ReadWriteMany) *PVC* that can be used by multiple pods at the
-same time. The application we will use is called `File Uploader`.
+このセクションでは、`ocs-storagecluster-cephfs` *StorageClass* を使用して、同時に複数のポッドで使用できるRWX(ReadWriteMany) *PVC* を作成します。ここでは `File Uploader` と呼ばれるアプリケーションを使用します。
 
-Create a new project:
+はじめに新しいProjectを作成します
 
 [source,role="execute"]
 ----
 oc new-project my-shared-storage
 ----
 
-Next deploy the example PHP application called `file-uploader`:
+次に `file-uploader` というサンプルPHPアプリケーションをデプロイします。
 
 [source,role="execute"]
 ----
 oc new-app openshift/php~https://github.com/christianh814/openshift-php-upload-demo --name=file-uploader
 ----
 
-.Example Output:
+.出力例:
 ----
---> Found image dc56c67 (13 days old) in image stream "openshift/php" under tag "7.4-ubi8" for "openshift/php"
+--> Found image f2b8dfb (4 weeks old) in image stream "openshift/php" under tag "7.4-ubi8" for "openshift/php"
 
     Apache 2.4 with PHP 7.4
     -----------------------
-    PHP 7.4 available as container is a base platform for building and running various PHP 7.4 applica
-tions and frameworks. PHP is an HTML-embedded scripting language. PHP attempts to make it easy for dev
-elopers to write dynamically generated web pages. PHP also offers built-in database integration for se
-veral commercial and non-commercial database management systems, so writing a database-enabled webpage
- with PHP is fairly simple. The most common use of PHP coding is probably as a replacement for CGI scr
-ipts.
+    PHP 7.4 available as container is a base platform for building and running various PHP 7.4 applications and frameworks. PHP
+ is an HTML-embedded scripting language. PHP attempts to make it easy for developers to write dynamically generated web pages.
+PHP also offers built-in database integration for several commercial and non-commercial database management systems, so writing
+ a database-enabled webpage with PHP is fairly simple. The most common use of PHP coding is probably as a replacement for CGI s
+cripts.
 
     Tags: builder, php, php74, php-74
 
-    * A source build using source code from https://github.com/christianh814/openshift-php-upload-demo
- will be created
+    * A source build using source code from https://github.com/christianh814/openshift-php-upload-demo will be created
       * The resulting image will be pushed to image stream tag "file-uploader:latest"
       * Use 'oc start-build' to trigger a new build
 
@@ -980,20 +962,19 @@ ipts.
     service "file-uploader" created
 --> Success
     Build scheduled, use 'oc logs -f buildconfig/file-uploader' to track its progress.
-    Application is not exposed. You can expose services to the outside world by executing one or more
-of the commands below:
+    Application is not exposed. You can expose services to the outside world by executing one or more of the commands below:
      'oc expose service/file-uploader'
     Run 'oc status' to view your app.
 ----
 
-Watch the build log and wait for the application to be deployed:
+ビルドログを見ながら、アプリケーションのデプロイが終わるのを待ちます。
 
 [source,role="execute"]
 ----
 oc logs -f bc/file-uploader -n my-shared-storage
 ----
 
-.Example Output:
+.出力例:
 ----
 Cloning "https://github.com/christianh814/openshift-php-upload-demo" ...
         Commit: 288eda3dff43b02f7f7b6b6b6f93396ffdf34cb2 (trying to modularize)
@@ -1002,40 +983,38 @@ Cloning "https://github.com/christianh814/openshift-php-upload-demo" ...
 [...]
 ---> Installing application source...
 => sourcing 20-copy-config.sh ...
----> 01:28:30     Processing additional arbitrary httpd configuration provided by s2i ...
+---> 06:13:01     Processing additional arbitrary httpd configuration provided by s2i ...
 => sourcing 00-documentroot.conf ...
 => sourcing 50-mpm-tuning.conf ...
 => sourcing 40-ssl-certs.sh ...
 STEP 9/9: CMD /usr/libexec/s2i/run
-COMMIT temp.builder.openshift.io/my-shared-storage/file-uploader-1:dba488e1
-time="2022-02-10T01:28:30Z" level=warning msg="Adding metacopy option, configured globally"
+COMMIT temp.builder.openshift.io/my-shared-storage/file-uploader-1:15d825ae
+time="2022-06-02T06:13:01Z" level=warning msg="Adding metacopy option, configured globally"
 Getting image source signatures
 [...]
 Writing manifest to image destination
 Storing signatures
---> 5cda795d6e3
-Successfully tagged temp.builder.openshift.io/my-shared-storage/file-uploader-1:dba488e1
-5cda795d6e364fa0ec76f03db142107c3706601626fefb54b769aae428f57db8
+--> fc6b7ec51dc
+Successfully tagged temp.builder.openshift.io/my-shared-storage/file-uploader-1:15d825ae
+fc6b7ec51dc704e22e6e81e6953144af54044b360964f727ca214952a7ee9e0c
 
-Pushing image image-registry.openshift-image-registry.svc:5000/my-shared-storage/file-uploader:latest
-...
+Pushing image image-registry.openshift-image-registry.svc:5000/my-shared-storage/file-uploader:latest ...
 Getting image source signatures
 [...]
 Writing manifest to image destination
 Storing signatures
-Successfully pushed image-registry.openshift-image-registry.svc:5000/my-shared-storage/file-uploader@s
-ha256:f23cf3c630d6b546918f86c8f987dd25331b6c8593ca0936c97d6a45d05f23cc
+Successfully pushed image-registry.openshift-image-registry.svc:5000/my-shared-storage/file-uploader@sha256:934865d3d0ecef92024
+eaef2b416f47fa7a7598f820c48624cc57d39cce221c5
 Push successful
 ----
 
 The command prompt returns out of the tail mode once you see _Push successful_.
+_Push successful_ が表示されるとデプロイ完了です。デプロイ完了までに5分ほどかかる場合があります。
 
-NOTE: This use of the `new-app` command directly asked for application code to
-be built and did not involve a template. That is why it only created a *single
-Pod* deployment with a *Service* and no *Route*.
 
-Let's make our application production ready by exposing it via a `Route` and
-scale to 3 instances for high availability:
+NOTE: ここでは `oc new-app` コマンドを使って直接アプリケーションコードのビルドを要求しているので、テンプレートがありません。このアプリケーションが *Service* を持つ単一のPodで、*Route* を持たないのはこのためです。
+
+このアプリケーションを `Route` 経由で公開し、高可用性のために3つのインスタンスに拡張することで、本番利用に対応できるようにしましょう。
 
 [source,role="execute"]
 ----
@@ -1050,21 +1029,16 @@ oc scale --replicas=3 deploy/file-uploader -n my-shared-storage
 oc get pods -n my-shared-storage
 ----
 
-You should have 3 `file-uploader` *Pods* in a few minutes. Repeat the command above
-until there are 3 `file-uploader` *Pods* in `Running` STATUS.
+数分で3つの `file-uploader` Podが作られます。
 
 [CAUTION]
 ====
-Never attempt to store persistent data in a *Pod* that has no persistent
-volume associated with it. *Pods* and their containers are ephemeral by
-definition, and any stored data will be lost as soon as the *Pod* terminates
-for whatever reason.
+PVが関連付けられていないPodには永続的なデータを保存しようとしないでください。
+Podとそのコンテナは定義上エフェメラルなものであり、保存されたデータはPodが何らかの理由で終了するとすぐに失われます。
 ====
 
-We can fix this by providing shared persistent storage to this application.
-
-You can create a *PersistentVolumeClaim* and attach it into an application with
-the `oc set volume` command. Execute the following
+ReadWriteMany(RWX) の *PVC* を作成し、`oc set volume` コマンドを使用してアプリケーションにアタッチできます。
+次のように実行します。
 
 [source,role="execute"]
 ----
@@ -1075,96 +1049,105 @@ oc set volume deploy/file-uploader --add --name=my-shared-storage \
 -n my-shared-storage
 ----
 
-This command will:
+このコマンドによって次のことが行われます。
 
-* create a *PersistentVolumeClaim*
-* update the *Deployment* to include a `volume` definition
-* update the *Deployment* to attach a `volumemount` into the specified
-  `mount-path`
-* cause a new deployment of the 3 application *Pods*
+* *PVC* を作成する
+* `volume` の定義が含まれるように *Deployment* を更新する
+* 指定された `mount-path` にボリュームをマウントするよう *Deployment* を更新する
+* 3つのアプリケーションのPodを改めてデプロイする
 
-For more information on what `oc set volume` is capable of, look at its help
-output with `oc set volume -h`. Now, let's look at the result of adding the
-volume:
+さて、ボリュームを追加した結果を見てみましょう。
 
 [source,role="execute"]
 ----
 oc get pvc -n my-shared-storage
 ----
 
-.Sample Output:
+.出力例:
 ----
 NAME                STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                AGE
-my-shared-storage   Bound    pvc-c34bb9db-43a7-4eca-bc94-0251d7128721   1Gi        RWX            ocs-storagecluster-cephfs   47s
+my-shared-storage   Bound    pvc-43a7067c-e39e-48c7-94cd-3bb16ea98488   1Gi        RWX            ocs-storagecluster-cephfs   2m33s
 ----
 
-Notice the `ACCESSMODE` being set to *RWX* (short for `ReadWriteMany`).
+`ACCESSMODE` が *RWX*(`ReadWriteMany`)に設定されています。 +
 
-All 3 `file-uploader`*Pods* are using the same *RWX* volume. Without this
-`ACCESSMODE`, OpenShift will not attempt to attach multiple *Pods* to the
-same *PersistentVolume* reliably. If you attempt to scale up deployments that
-are using *RWO* or `ReadWriteOnce` storage, the *Pods* will actually all
-become co-located on the same node.
+3つの `file-uploader` Podはすべて、同じ *RWX PVC* を使用しています。
+*RWX* の `ACCESSMODE` を使用することで、複数のノードにアプリケーションPodをスケジュールすることができます。 +
+*RWX* の `ACCESSMODE` でないと、OpenShiftは複数のPodに同じ *PV* を接続しようとしません。仮に *RWO*(`ReadWriteOnce`) の *PVC* で *PV* をアタッチしたPodをスケールしようとすると、Podは全て同一のノード上に配置されることになります。
 
-Now let's use the file uploader web application using your browser to upload
-new files.
+次のコマンドでこのPVが3つの `file-uploader` Pod全てから同時にマウントされていることが確認できます。
 
-First, find the *Route* that has been created:
+[source,role="execute"]
+----
+oc get pod -n my-shared-storage --field-selector=status.phase=Running -o 'custom-columns=NAME:.metadata.name,PVCNAME:.spec.containers[].volumeMounts[].name,MOUNTPOINT:.spec.containers[].volumeMounts[].mountPath'
+----
+.出力例
+----
+NAME                             PVCNAME             MOUNTPOINT
+file-uploader-665884f976-blm9p   my-shared-storage   /opt/app-root/src/uploaded
+file-uploader-665884f976-htsvf   my-shared-storage   /opt/app-root/src/uploaded
+file-uploader-665884f976-hxmhh   my-shared-storage   /opt/app-root/src/uploaded
+----
+
+それでは、ブラウザを使って `file-uploader` のWebアプリケーションを使い、新しいファイルをアップロードしてみましょう。 +
+作成された *Route* を確認します。
 
 [source,role="execute"]
 ----
 oc get route file-uploader -n my-shared-storage -o jsonpath --template="http://{.spec.host}{'\n'}"
 ----
-
-This will return a route similar to this one:
-
-.Example Output:
+.出力例:
 ----
-http://file-uploader-my-shared-storage.apps.cluster-ocs4-abdf.ocs4-abdf.sandbox744.opentlc.com
+http://file-uploader-my-shared-storage.apps.cluster-d6qlm.d6qlm.sandbox458.opentlc.com
 ----
 
-Point your browser to the web application using your route above. *Your `route`
-will be different.*
+出力されたURLを使用してブラウザでWebアプリケーションを指定します。
 
-The web app simply lists all uploaded files and offers the ability to upload
-new ones as well as download the existing data. Right now there is
-nothing.
+このWebアプリケーションは、アップロードされたすべてのファイルをリストし、新しいファイルをアップロードする機能と、
+既存のデータをダウンロードする機能を提供します。現時点では何もありません。
 
-Select an arbitrary file from your local machine and upload it to the app.
+ローカルマシンから任意のファイルを選択し、アプリケーションにアップロードします。
 
 .A simple PHP-based file upload tool
 image::images/ocs/uploader_screen_upload.png[]
 
-Once done click *_List uploaded files_* to see the list of all currently
-uploaded files.
+完了したら、*List uploaded files* をクリックして、現在アップロードされているすべてのファイルのリストを表示します。
 
-=== Expand CephFS based PVCs
+==== 演習
+また、先のコマンドで確認した3つの `file-uploader` Podの `MOUNTPOINT` に同じファイルが保存されていることを確認してみましょう。 +
+`oc rsh` コマンドを使って、それぞれの `file-uploader` Pod に対して `MOUNTPOINT` のパスに対して `ls` コマンドを実行することで確認できます。
 
-OpenShift 4.5 and later versions let you expand an existing *PVC* based on the
-`ocs-storagecluster-cephfs` *StorageClass*. This chapter walks you through the
-steps to perform a PVC expansion through the CLI.
+ヒント:
 
-NOTE: All the other methods described for expanding a Ceph RBD based *PVC* are
-also available.
+----
+oc -n my-shared-storage rsh <Pod name> ls <MOUNTPOINT>
+----
 
-The `my-sharged-storage` *PVC* size is currently `1Gi`. Let's increase the size to `5Gi` using the *oc patch* command.
+
+=== CephFS PVの拡張
+
+OpenShift 4.5以降のバージョンでは、`ocs-storagecluster-cephfs` *StorageClass* をベースに既存のPVCを拡張することができます。このセクションでは、CLIを使ってPVC拡張を実行する手順を説明します。
+
+NOTE: Ceph RBDベースの *PVC* を拡張するために説明された、他のすべての方法も利用可能です。
+
+`my-sharged-storage` の *PVC* サイズは現在 `1Gi` です。これを `oc patch` コマンドで `5Gi` まで大きくしてみましょう。
 
 [source,role="execute"]
 ----
 oc patch pvc my-shared-storage -n my-shared-storage --type json --patch  '[{ "op": "replace", "path": "/spec/resources/requests/storage", "value": "5Gi" }]'
 ----
-.Example output:
+.出力例:
 ----
 persistentvolumeclaim/my-shared-storage patched
 ----
 
-Now let's verify the RWX *PVC* has been expanded.
+それでは、RWXの *PVC* が拡張されたことを確認します。
 
 [source,role="execute"]
 ----
 echo $(oc get pvc my-shared-storage -n my-shared-storage -o jsonpath='{.spec.resources.requests.storage}')
 ----
-.Example output:
+.出力例:
 ----
 5Gi
 ----
@@ -1173,70 +1156,63 @@ echo $(oc get pvc my-shared-storage -n my-shared-storage -o jsonpath='{.spec.res
 ----
 echo $(oc get pvc my-shared-storage -n my-shared-storage -o jsonpath='{.status.capacity.storage}')
 ----
-.Example output:
+.出力例:
 ----
 5Gi
 ----
 
-Repeat both commands until output values are identical.
+出力が同じになるまで、両方のコマンドを繰り返します。
 
-NOTE: CephFS based RWX *PVC* resizing, as opposed to RBD based *PVCs*, is
-almost instantaneous. This is due to the fact that resizing such PVC does not
-involved resizing a filesystem but simply involves updating a quota for the
-mounted filesystem.
+NOTE: CephFSベースのRWX *PVC* の拡張は、RBDベースの *PVC* とは異なり、ほぼ瞬時に行われます。これは、CephFSベースの *PVC* の拡張にはファイルシステムの拡張が含まれず、単にマウントされたファイルシステムのクォータを変更するだけだからです。
 
-CAUTION: Reducing the size of a CephFS *PVC* is NOT supported.
+CAUTION: CAUTION: CephFS *PVC* の縮小はサポートされません。
 
-== PVC Clone and Snapshot
+== PVCのクローンとスナップショット
 
-Starting with version OpenShift Container Storage (OCS) version 4.6, the `Container Storage Interface` (CSI) features of being able to clone or snapshot a persistent volume are now supported. These new capabilities are very important for protecting persistent data and can be used with third party `Backup and Restore` vendors that have CSI integration. 
+OpenShift Container Storage(OCS) 4.6から、*PV* のクローンやスナップショットを可能にする `Container Storage Interface` (CSI) の機能がサポートされるようになりました。これらの新しい機能は永続的なデータ保護のために非常に重要であり、CSIと連携できるサードパーティベンダーの `Backup and Restore` ソフトウェアと一緒に使用することができます。
 
-In addition to third party backup and restore vendors, ODF snapshot for Ceph RBD and CephFS PVCs can be triggered using `OpenShift APIs for Data Protection` (OADP) which is a Red Hat supported `Operator` in *OperatorHub* that can be very useful for testing backup and restore of persistent data and OpenShift metadata (definition files for pods, service, routes, deployments, etc.).
+Ceph RBDとCephFSの *PVC* のスナップショットは、サードパーティベンダーの `Backup and Restore` ソフトウェアに加えて、`OpenShift APIs for Data Protection (OADP)` を使用してトリガーすることもできます。`OADP` はレッドハットがサポートしている `Operator` で、*OperatorHub* からインストールできます。永続データや OpenShiftのメタデータ(Pods, Services, Routes, Deployments の定義ファイルなど)のバックアップとリストアのテストに非常に有効なものです。
 
-=== PVC Clone 
+=== PVCのクローン
 
-A CSI volume clone is a duplicate of an existing persistent volume at a particular point in time. Cloning creates an exact duplicate of the specified volume in ODF. After dynamic provisioning, you can use a volume clone just as you would use any standard volume.
+CSIボリュームクローンは特定の時点における既存の *PV* の複製で、ODFでは指定されたボリュームの複製を作成します。ダイナミックプロビジョニングで作成した *PVC* のクローンを使用することができます。
 
-==== Provisioning a CSI Volume clone
+==== CSIボリュームクローン
 
-For this exercise we will use the already created *PVC* `postgresql` that was just expanded to 15 GiB. Make sure you have done section <<Create a new OCP application deployment using Ceph RBD volume>> before proceeding.
+この演習では、15GiBに拡張されたばかりの作成済みの *PVC* `postgresql` を使用します。先に進む前に、セクション <<Ceph RBD volumeを使用するOCPアプリケーションを作成する>> を完了していることを確認してください。
 
 [source,role="execute"]
 ----
 oc get pvc -n my-database-app | awk '{print $1}'
 ----
-.Example output:
+.出力例:
 ----
 NAME
 postgresql
 ----
 
-CAUTION: Make sure you expanded the `postgresql` *PVC* to 15Gi before proceeding. If not expanded go back and complete this section <<Expand RBD based PVCs>>.
+CAUTION: 先に進む前に、`postgresql` *PVC* を15Giに拡張していることを確認してください。拡張していない場合は、戻って <<Ceph RBD PVCの拡張>> セクションを完了させてください。 
 
-Before creating the PVC clone make sure to create and save at least one new article so there is new data in the `postgresql` *PVC*.
+PVCクローンを作成する前に、少なくとも1つの新しい記事を作成し保存して、`postgresql` *PVC* に新しいデータがあることを確認してください。
 
 [source,role="execute"]
 ----
 oc get route rails-pgsql-persistent -n my-database-app -o jsonpath --template="http://{.spec.host}/articles{'\n'}"  
 ----
 
-This will return a route similar to this one.
-
-.Example output:
+.出力例:
 ----
 http://rails-pgsql-persistent-my-database-app.apps.cluster-ocs4-8613.ocs4-8613.sandbox944.opentlc.com/articles
 ----
 
-Copy your route (different than above) to a browser window to create articles.
-
-Enter the `username` and `password` below to create a new article.
+Webページの *New Article* をクリックし、次の `username` と `password` を入力することで記事やコメントを作成することができます。 +
 
 ----
 username: openshift
 password: secret
 ----
 
-To protect the data (articles) in this *PVC* we will now clone this PVC. The operation of creating a clone can be done using the *OpenShift Web Console* or by creating the resource via a YAML file.
+この *PVC* 内のデータ(記事)を保護するために、この *PVC* のクローンを作ります。クローンの作成は、*OpenShift Web Console* を使用するか、以下のようなYAMLファイルでリソースを作成することで行うことができます。
 
 [source,yaml]
 ----
@@ -1257,65 +1233,66 @@ spec:
     name: postgresql
 ----
 
-Doing the same operation in the *OpenShift Web Console* would require navigating to `Storage` -> `Persistent Volume Claim` and choosing `Clone PVC`.
+*OpenShift Web Console* を使う場合は、 *Storage* -> *Persistent Volume Claim* に移動して、目的の *PVC* で *Clone PVC* を実行します。
 
 .Persistent Volume Claim clone PVC using UI
 image::images/ocs/OCP4-OCS4-Clone-PVC.png[Persistent Volume Claim clone PVC using UI]
 
-Size of new clone *PVC* is greyed out. The new *PVC* will be the same size as the original.
+新しく作られるクローン *PVC* のサイズはグレーアウトされていて変更できません。クローン *PVC* のサイズはオリジナルと同じサイズが自動で指定されるためです。
 
 .Persistent Volume Claim clone configuration
 image::images/ocs/OCP4-OCS4-Clone-PVC-config.png[Persistent Volume Claim clone configuration]
-    
-Now create a *PVC* clone for `postgresql`.
+
+ここで *Clone* を選択してクローンを実行しても構いません。 +
+YAMLファイルでクローンするのであれば、ここでは *Cancel* を選択し、次のコマンドで `postgresql` *PVC* のクローンを実行できます。
 
 [source,role="execute"]
 ----
 oc apply -f {{ HOME_PATH }}/support/postgresql-clone.yaml
 ----
-.Example output:
+.出力例:
 ----
 persistentvolumeclaim/postgresql-clone created
 ----
 
-Now check to see there is a new *PVC*.
+新しい *PVC* が作られていることを確認できます。
 
 [source,role="execute"]
 ----
 oc get pvc -n my-database-app | grep clone
 ----
-.Example output:
+.出力例:
 ----
-postgresql-clone   Bound    pvc-f5e09c63-e8aa-48a0-99df-741280d35e42   15Gi       RWO            ocs-storagecluster-ceph-rbd   3m47s
+postgresql-clone   Bound    pvc-f5ef1ed3-6ee1-41e8-869f-6f32b6fcdb5a   15Gi       RWO            ocs-storagecluster-ceph-rbd   85s
 ----
 
-You can also check the new clone *PVC* in the *OpenShift Web Console*.
+*OpenShift Web Console* でも、クローン *PVC* を確認できます。
 
 .Persistent Volume Claim clone view in UI
 image::images/ocs/OCP4-OCS4-Clone-PVC-view.png[Persistent Volume Claim clone view in UI]
 
-==== Using a CSI Volume clone for application recovery
+==== アプリケーションリカバリのためのCSI ボリュームクローンの使用
 
-Now that you have a clone for `postgresql` *PVC* you are ready to test by corrupting the database. 
-
-The following command will print all `postgresql` tables before deleting the article tables in the database and after the tables are deleted.
+これで `postgresql` *PVC* のクローンができたので、データベースを破壊するテストの準備ができました。 +
+ここでは、`postgresql` Podのデータベースが持つ、記事を保存している `articles` テーブルを削除します。 +
+次のコマンドは、`articles` テーブルを削除する前に全てのテーブルを表示し、`articles` テーブルを削除した後に、再びすべてのテーブルを表示します。
 
 [source,role="execute"]
 ----
 oc rsh -n my-database-app $(oc get pods -n my-database-app|grep postgresql | grep -v deploy | awk {'print $1}') psql -c "\c root" -c "\d+" -c "drop table articles cascade;" -c "\d+"
 ----
-.Example output:
+.出力例:
 ----
 You are now connected to database "root" as user "postgres".
                                List of relations
  Schema |         Name         |   Type   |  Owner  |    Size    | Description
 --------+----------------------+----------+---------+------------+-------------
- public | ar_internal_metadata | table    | userXNL | 16 kB      |
- public | articles             | table    | userXNL | 16 kB      |
- public | articles_id_seq      | sequence | userXNL | 8192 bytes |
- public | comments             | table    | userXNL | 8192 bytes |
- public | comments_id_seq      | sequence | userXNL | 8192 bytes |
- public | schema_migrations    | table    | userXNL | 16 kB      |
+ public | ar_internal_metadata | table    | userOXL | 16 kB      |
+ public | articles             | table    | userOXL | 16 kB      |
+ public | articles_id_seq      | sequence | userOXL | 8192 bytes |
+ public | comments             | table    | userOXL | 8192 bytes |
+ public | comments_id_seq      | sequence | userOXL | 8192 bytes |
+ public | schema_migrations    | table    | userOXL | 16 kB      |
 (6 rows)
 
 NOTICE:  drop cascades to constraint fk_rails_3bf61a60d3 on table comments
@@ -1323,124 +1300,126 @@ DROP TABLE
                                List of relations
  Schema |         Name         |   Type   |  Owner  |    Size    | Description
 --------+----------------------+----------+---------+------------+-------------
- public | ar_internal_metadata | table    | userXNL | 16 kB      |
- public | comments             | table    | userXNL | 8192 bytes |
- public | comments_id_seq      | sequence | userXNL | 8192 bytes |
- public | schema_migrations    | table    | userXNL | 16 kB      |
+ public | ar_internal_metadata | table    | userOXL | 16 kB      |
+ public | comments             | table    | userOXL | 8192 bytes |
+ public | comments_id_seq      | sequence | userOXL | 8192 bytes |
+ public | schema_migrations    | table    | userOXL | 16 kB      |
 (4 rows)
 ----
 
-Now go back to the browser tab where you created your article using this link:
+以下のリンクを使って、記事を作成したブラウザのタブに戻ります。
 
 [source,role="execute"]
 ----
 oc get route rails-pgsql-persistent -n my-database-app -o jsonpath --template="http://{.spec.host}/articles{'\n'}"  
 ----
 
-If you refresh the browser you will see the application has failed.
+ブラウザを更新すると、アプリケーションがfailしたことが表示されます。
 
 .Application failed because database table removed
 image::images/ocs/rails-postgresql-failed.png[Application failed because database table removed]
 
-Remember a *PVC* clone is an exact duplicate of the original *PVC* at the time the clone was created. Therefore you can use you `postgresql` clone to recover the application.
+*PVC* のクローンは、クローン作成時のオリジナルの *PVC* の完全な複製であることを思い出してください。したがって、アプリケーションを復旧するために、`postgresql` *PVC* のクローンを使用することができます。
 
-First you need to scale the `rails-pgsql-persistent` deployment down to zero so the *Pod* will be deleted.
+まず、`rails-pgsql-persistent` の *DeploymentConfig* を0にスケールダウンして、Podが削除されるようにする必要があります。
 
 [source,role="execute"]
 ----
 oc scale deploymentconfig rails-pgsql-persistent -n my-database-app --replicas=0
 ----
-.Example output:
+.出力例:
 ----
 deploymentconfig.apps.openshift.io/rails-pgsql-persistent scaled
 ----
 
-Verify the *Pod* is gone.
+Podが全て無くなったことを確認できます。 +
 
 [source,role="execute"]
 ----
 oc get pods -n my-database-app | grep rails | egrep -v 'deploy|build|hook' | awk {'print $1}'
 ----
 
-Wait until there is no result for this command. Repeat if necessary. 
+このコマンドの出力が何も表示されないようになるまで待ちましょう。必要であれば、繰り返してください。
 
-Now you need to patch the deployment for `postgesql` and modify to use the `postgresql-clone` *PVC*. This can be done using the `oc patch` command.
+ここで、`postgesql` *DeploymentConfig* を `postgresql-clone` *PVC* を使用するように変更する必要があります。これは `oc patch` コマンドを使用して行うことができます。
 
 [source,role="execute"]
 ----
 oc patch dc postgresql -n my-database-app --type json --patch  '[{ "op": "replace", "path": "/spec/template/spec/volumes/0/persistentVolumeClaim/claimName", "value": "postgresql-clone" }]'
 ----
-.Example output:
+.出力例:
 ----
 deploymentconfig.apps.openshift.io/postgresql patched
 ----
 
-After modifying the deployment with the clone *PVC* the `rails-pgsql-persistent` deployment needs to be scaled back up.
+`rails-pgsql-persistent` *DeploymentConfig* を再び1にスケールアップします。
 
 [source,role="execute"]
 ----
 oc scale deploymentconfig rails-pgsql-persistent -n my-database-app --replicas=1
 ----
-.Example output:
+.出力例:
 ----
 deploymentconfig.apps.openshift.io/rails-pgsql-persistent scaled
 ----
 
-Now check to see that there is a new `postgresql` and `rails-pgsql-persistent` *Pod*.
+新しく `postgresql` と `rails-pgsql-persistent` のPodが作られていることを確認しましょう。
 
 [source,role="execute"]
 ----
 oc get pods -n my-database-app | egrep 'rails|postgresql' | egrep -v 'deploy|build|hook'
 ----
-.Example output:
+.出力例:
 ----
 postgresql-4-hv5kb                  1/1     Running     0          5m58s
 rails-pgsql-persistent-1-dhwhz      1/1     Running     0          5m10s
 ----
 
-Go back to the browser tab where you created your article using this link:
+以下のリンクを使って、記事を作成したブラウザのタブに戻ります。
 
 [source,role="execute"]
 ----
 oc get route rails-pgsql-persistent -n my-database-app -o jsonpath --template="http://{.spec.host}/articles{'\n'}"  
 ----
 
-If you refresh the browser you will see the application is back online and you have your articles. You can even add more articles now.
+ブラウザを更新すると、アプリケーションがオンラインに戻り、記事が表示されていることが確認できます。さらに記事を追加することもできます。
 
-This process shows the practical reasons to create a *PVC* clone if you are testing an application where data corruption is a possibility and you want a known good copy or `clone`. 
+この手順は、*PVC* のクローンを作っておくことが、データ破損またはその可能性があるアプリケーションを復旧するための実用的な方法であることを示しています。
 
-Let's next look at a similar feature, creating a *PVC* snapshot.
+次に、同様の機能である *PVC* スナップショットの作成について見てみましょう。
 
-=== PVC Snapshot
+=== PVC スナップショット
 
-Creating the first snapshot of a PVC is the same as creating a clone from that PVC. However, after an initial PVC snapshot is created, subsequent snapshots only save the delta between the initial snapshot the current contents of the PVC. Snapshots are frequently used by backup utilities which schedule incremental backups on a periodic basis (e.g. hourly). Snapshots are more capacity efficient than creating full clones each time period (e.g. hourly), as only the deltas to the PVC are stored in each snapshot. 
+*PVC* の最初のスナップショットを作成することは、その *PVC* のクローンを作成することと同じです。しかし、最初の *PVC* スナップショットが作成されて以降のスナップショットは、最初のスナップショットと *PVC* の現在のコンテンツとの間の差分のみを保存します。 +
+スナップショットは、定期的(1時間ごとなど)に増分バックアップをスケジュールするバックアップユーティリティで頻繁に使用されます。スナップショットは差分のみを各スナップショットに格納するため、定期的に完全なクローンを作成するよりも容量効率が高くなります。
 
-A snapshot can be used to provision a new volume by creating a *PVC* clone. The volume clone can be used for application recovery as demonstrated in the previous section.
+スナップショットは、自身から *PVC* クローンを作成することで、新規ボリュームとしてアプリケーションに割り当てることができます。このクローンは、前のセクションで示したように、アプリケーションの復旧に使用することができます。
 
 ==== VolumeSnapshotClass
 
-To create a volume snapshot there first must be *VolumeSnapshotClass* resources that will be referenced in the *VolumeSnapshot* definition. The deployment of ODF (must be version 4.6 or greater) creates two *VolumeSnapshotClass* resources for creating snapshots.
+ボリューム スナップショットを作成するには、まず *VolumeSnapshot* リソースで参照される *VolumeSnapshotClass* リソースが必要です。ODFのデプロイでは、スナップショットを作成するための2つの *VolumeSnapshotClass* リソースが作成されます。
 
 [source,role="execute"]
 ----
 oc get volumesnapshotclasses
 ----
-.Example output:
+.出力例:
 ----
 $ oc get volumesnapshotclasses
 NAME                                        DRIVER                                  DELETIONPOLICY   AGE
 [...]
-ocs-storagecluster-cephfsplugin-snapclass   openshift-storage.cephfs.csi.ceph.com   Delete           4d23h
-ocs-storagecluster-rbdplugin-snapclass      openshift-storage.rbd.csi.ceph.com      Delete           4d23h
+ocs-storagecluster-cephfsplugin-snapclass   openshift-storage.cephfs.csi.ceph.com   Delete           25h
+ocs-storagecluster-rbdplugin-snapclass      openshift-storage.rbd.csi.ceph.com      Delete           25h
 ----
 
-You can see by the naming of the *VolumeSnapshotClass* that one is for creating CephFS volume snapshots and the other is for Ceph RBD.
+*VolumeSnapshotClass* の名前から、一方はCephFS volumeのスナップショット作成用で、もう一方はCeph RBD volume用であることが分かります。
 
-==== Provisioning a CSI Volume snapshot
+==== CSI ボリュームスナップショットのプロビジョニング
 
-For this exercise we will use the already created *PVC* `my-shared-storage`. Make sure you have done section <<Create a new OCP application deployment using CephFS volume>> before proceeding.
+この演習では、すでに作成されている `my-shared-storage` *PVC* を使用します。
+先に進む前に、<<CephFS volumeを使用するOCPアプリケーションを作成する>> のセクションを完了していることを確認してください。
 
-The operation of creating a snapshot can be done using the *OpenShift Web Console* or by creating the resource via a YAML file.
+スナップショットの作成は、*OpenShift Web Console* を使用するか、以下のようなYAMLファイルでリソースを作成することで行うことができます。
 
 [source,yaml]
 ----
@@ -1455,197 +1434,174 @@ spec:
     persistentVolumeClaimName: my-shared-storage
 ----
 
-Doing the same operation in the *OpenShift Web Console* would require navigating to `Storage` -> `Persistent Volume Claim` and choosing `Create Snapshot`. Make sure to be in the `my-shared-storage` project.
+*OpenShift Web Console* を使う場合は、 *Storage* -> *Persistent Volume Claim* に移動して、目的の *PVC* で *Create Snapshot* を実行します。
+`my-shared-storage` プロジェクトが選択されていることを確認してください。
 
 .Persistent Volume Claim snapshot using UI
 image::images/ocs/OCP4-OCS4-Snapshot.png[Persistent Volume Claim snapshot using UI]
 
-The *VolumeSnapshot* will be the same size as the original.
+*VolumeSnapshot* の容量は、オリジナルと同じ容量になります。
 
 .Persistent Volume Claim snapshot configuration
 image::images/ocs/OCP4-OCS4-Snapshot-config.png[Persistent Volume Claim snapshot configuration]
     
-Now create a snapshot for CephFS volume `my-shared-storage`.
+ここで *Create* を選択してスナップショットを実行しても構いません。 +
+YAMLファイルでスナップショットを作成するのであれば、ここでは *Cancel* を選択し、次のコマンドで `my-shared-storage` *PVC* のスナップショットを実行できます。
 
 [source,role="execute"]
 ----
 oc apply -f {{ HOME_PATH }}/support/my-shared-storage-snapshot.yaml
 ----
-.Example output:
+.出力例:
 ----
 volumesnapshot.snapshot.storage.k8s.io/my-shared-storage-snapshot created
 ----
 
-Now check to see there is a new *VolumeSnapshot*.
+新しく *VolumeSnapshot* が作られていることを確認できます。
 
 [source,role="execute"]
 ----
 oc get volumesnapshot -n my-shared-storage
 ----
-.Example output:
+.出力例:
 ----
-NAME                         READYTOUSE   SOURCEPVC           SOURCESNAPSHOTCONTENT   RESTORESIZE   SNAPSHOTCLASS                               SNAPSHOTCONTENT                                   CREATIONTIME   AGE
-my-shared-storage-snapshot   true         my-shared-storage                           5Gi           ocs-storagecluster-cephfsplugin-snapclass   snapcontent-2d4729bc-a127-4da6-930d-2a7d0125d3b7   24s            26s
+NAME                         READYTOUSE   SOURCEPVC           SOURCESNAPSHOTCONTENT   RESTORESIZE   SNAPSHOTCLASS
+  SNAPSHOTCONTENT                                    CREATIONTIME   AGE
+my-shared-storage-snapshot   true         my-shared-storage                           5Gi           ocs-storagecluster-cephfsplugin-snapclass
+  snapcontent-536088af-ca75-475e-8b4d-93cf96b686b4   33s            33s
 ----
 
-==== Restoring Volume Snapshot to clone PVC
+==== ボリュームスナップショットの復元
 
-You can now restore the new *VolumeSnapshot* in the *OpenShift Web Console*. Navigate to `Storage` -> `Volume Snapshots`. Select `Restore as new PVC`. Make sure to have the `my-shared-storage` project selected at the top left.
+これで、*OpenShift Web Console* で新しく作られた *VolumeSnapshot* を復元することができます。*Storage* -> *Volume Snapshots* に移動して、目的の *VolumeSnapshot* で *Restore as new PVC* を実行します。
 
 .Persistent Volume Claim snapshot restore in UI
 image::images/ocs/OCP4-OCS4-Snapshot-restore.png[Persistent Volume Claim snapshot restore in UI]
 
-Chose the correct *StorageClass* to create the new clone from snapshot *PVC* and select `Restore`. The size of the new *PVC* is greyed out and is same as the `parent` or original *PVC* `my-shared-storage`. 
+スナップショットから新しいクローンを作成するためには、元の *PVC* と同じ *StorageClass* を選択します。 +
+作られるクローン *PVC* のサイズはグレーアウトされていて変更できません。クローン *PVC* のサイズはスナップショット元の `my-shared-storage` *PVC* と同じサイズが自動で指定されるためです。
 
 .Persistent Volume Claim snapshot restore configuration
 image::images/ocs/OCP4-OCS4-Snapshot-restore-config.png[Persistent Volume Claim snapshot restore configuration]
 
-Click *Restore*.
+*Restore* をクリックします。
 
-Check to see if there is a new *PVC* restored from the *VolumeSnapshot*.
+*VolumeSnapshot* から復元された新しい *PVC* があるかどうかを確認します。
 
 [source,role="execute"]
 ----
 oc get pvc -n my-shared-storage | grep restore
 ----
-.Example output:
+.出力例:
 ----
-my-shared-storage-snapshot-restore   Bound    pvc-24999d30-09f1-4142-b150-a5486df7b3f1   5Gi        RWX            ocs-storagecluster-cephfs   108s
+my-shared-storage-snapshot-restore   Bound    pvc-c1d2ea77-c059-4f5e-844e-72d512e466b1   5Gi        RWX            ocs-storagecluster-cephfs   4s
 ----
 
-The output shows a new *PVC* that could be used to recover an application if there is corruption or lost data.
+出力された *PVC* は、データの破損や損失がある場合に、アプリケーションを復旧するために使用できます。
 
-== Using ODF for Prometheus Metrics
+== Prometheus MetricsでODFを使用する
 
-OpenShift ships with a pre-configured and self-updating monitoring stack that
-is based on the Prometheus open source project and its wider eco-system. It
-provides monitoring of cluster components and ships with a set of alerts to
-immediately notify the cluster administrator about any occurring problems. For
-production environments, it is highly recommended to configure persistent
-storage using block storage technology. ODF 4 provide block storage using Ceph
-RBD volumes. Running cluster monitoring with persistent storage means that your
-metrics are stored to a persistent volume and can survive a pod being restarted
-or recreated. This section will detail how to migrate Prometheus and
-AlertManager storage to Ceph RBD volumes for persistence.
+OpenShiftには、オープンソースプロジェクトであるPrometheusとその広範なエコシステムをベースとしたモニタリングスタックが同梱されています。このモニタリングスタックは事前設定されており、さらにユーザ自身が設定できるようになっています。また、クラスタコンポーネントをモニタリングし、発生した問題をクラスタ管理者に直ちに通知するためのアラートセットが含まれています。 +
+本番環境においては、モニタリングスタックをブロックストレージベースの永続ストレージを使って構成することが強く推奨されます。永続ストレージを使用することで、メトリクスデータやアラートデータが永続ボリュームに保存され、Podの再起動や再作成に耐えられるようになるためです。 +
+ODFでは、Ceph RBD volumeによってブロックストレージを提供します。このセクションでは、PrometheusとAlertManagerのストレージとしてODF Ceph RBD volumeを使って永続化する方法について詳しく説明します。
 
-First, let's discover what *Pods* and *PVCs* are installed in the
-`openshift-monitoring` namespace. In the prior module, OpenShift Infrastructure
-Nodes, the Prometheus and AlertManager resources were moved to the OCP infra
-nodes.
+まず、`openshift-monitoring` Namespaceで作成されているPodと *PVC* を見つけましょう。
 
 [source,role="execute"]
 ----
 oc get pods,pvc -n openshift-monitoring
 ----
-.Example output:
+.出力例:
 ----
-NAME                                               READY   STATUS         RESTARTS   AGE
-pod/alertmanager-main-0                            5/5     Running        0          6d21h
-pod/alertmanager-main-1                            5/5     Running        0          6d21h
-pod/alertmanager-main-2                            5/5     Running        0          6d21h
-pod/cluster-monitoring-operator-595888fddd-mcgnl   2/2     Running        0          4h49m
-pod/grafana-65454464fd-5spx2                       2/2     Running        0          26h
-pod/kube-state-metrics-7cb89d65d4-p9hbd            3/3     Running        0          6d21h
-pod/node-exporter-96zjb                            2/2     Running        0          6d21h
-pod/node-exporter-9jjdk                            2/2     Running        0          2d17h
-pod/node-exporter-dhnt4                            2/2     Running        0          6d21h
-pod/node-exporter-kg2fb                            2/2     Running        0          2d17h
-pod/node-exporter-l27n2                            2/2     Running        0          16h
-pod/node-exporter-qq4g7                            2/2     Running        0          16h
-pod/node-exporter-rfnxb                            2/2     Running        0          16h
-pod/node-exporter-v8kpq                            2/2     Running        0          2d17h
-pod/node-exporter-wvm8n                            2/2     Running        0          6d21h
-pod/node-exporter-wwcr9                            2/2     Running        0          6d21h
-pod/node-exporter-z8r98                            2/2     Running        0          6d21h
-pod/openshift-state-metrics-57969c7f87-h8fm4       3/3     Running        0          6d21h
-pod/prometheus-adapter-cb658c44-zmcww              1/1     Running        0          2d22h
-pod/prometheus-adapter-cb658c44-zsn85              1/1     Running        0          2d22h
-pod/prometheus-k8s-0                               6/6     Running        0          6d21h
-pod/prometheus-k8s-1                               6/6     Running        0          6d21h
-pod/prometheus-operator-8594bd77df-ftwvl           2/2     Running        0          26h
-pod/telemeter-client-79d7ddbf84-ft97l              3/3     Running        0          42h
-pod/thanos-querier-787547fbd6-qw9tr                5/5     Running        0          6d21h
-pod/thanos-querier-787547fbd6-xdsmm                5/5     Running        0          6d21h
+NAME                                               READY   STATUS    RESTARTS      AGE
+pod/alertmanager-main-0                            5/5     Running   0             2m6s
+pod/alertmanager-main-1                            5/5     Running   0             2m14s
+pod/alertmanager-main-2                            5/5     Running   0             2m24s
+pod/cluster-monitoring-operator-64fcf6fdd9-rrzq5   2/2     Running   0             30h
+pod/grafana-7fdc7d846d-lnr98                       2/2     Running   0             2m25s
+pod/kube-state-metrics-c4fd7d5d5-jq9vq             3/3     Running   0             2m27s
+pod/node-exporter-5k7bd                            2/2     Running   0             29h
+pod/node-exporter-7stxr                            2/2     Running   0             29h
+pod/node-exporter-ck2n4                            2/2     Running   0             29h
+pod/node-exporter-dp7kl                            2/2     Running   0             10m
+pod/node-exporter-f29xl                            2/2     Running   0             30h
+pod/node-exporter-fs299                            2/2     Running   0             29h
+pod/node-exporter-gch4v                            2/2     Running   0             29h
+pod/node-exporter-nv5sq                            2/2     Running   0             29h
+pod/node-exporter-ppn72                            2/2     Running   0             10m
+pod/node-exporter-qnqz8                            2/2     Running   0             30h
+pod/node-exporter-rw7d2                            2/2     Running   0             10m
+pod/node-exporter-x5crx                            2/2     Running   0             30h
+pod/node-exporter-zv6l7                            2/2     Running   0             29h
+pod/openshift-state-metrics-7f848466cf-lcvdh       3/3     Running   0             30h
+pod/prometheus-adapter-56fdd7694d-d67mn            1/1     Running   0             2m26s
+pod/prometheus-adapter-56fdd7694d-tfwk7            1/1     Running   0             2m27s
+pod/prometheus-k8s-0                               7/7     Running   0             2m7s
+pod/prometheus-k8s-1                               7/7     Running   0             2m20s
+pod/prometheus-operator-7c888bcd97-gpx58           2/2     Running   0             2m33s
+pod/telemeter-client-69bd5b755f-6pxv2              3/3     Running   0             2m27s
+pod/thanos-querier-6b55bc48bb-ft8q2                5/5     Running   0             29h
+pod/thanos-querier-6b55bc48bb-zhvlx                5/5     Running   0             29h
 ----
 
-At this point there are no *PVC* resources because Prometheus and AlertManager
-are both using ephemeral (EmptyDir) storage. This is the way OpenShift is
-initially installed. The Prometheus stack consists of the Prometheus database
-and the alertmanager data. Persisting both is best-practice since data loss on
-either of these will cause you to lose your metrics and alerting data.
+この時点では *PVC* は存在しません。これはPrometheusもAlertManagerもエフェメラルなストレージ(EmptyDir)を使用しているためです。OpenShiftがインストールされた直後はこの方法がとられます。 +
+Prometheusのスタックは、PrometheusデータベースとAlertManagerのデータで構成されています。どちらかのデータが失われるとメトリクスやアラートのデータが失われるため、両方を永続化することがベストプラクティスです。
 
-### Modifying your Prometheus environment
+### Prometheus環境の変更
 
-For Prometheus every supported configuration change is controlled through a
-central *ConfigMap*, which needs to exist before we can make changes. When you
-start off with a clean installation of Openshift, the ConfigMap to configure
-the Prometheus environment may not be present. To check if your ConfigMap is
-present, execute this:
+Prometheusでは、サポートされる全ての設定変更は中央の *ConfigMap* を通じて制御されます。したがって、この *ConfigMap* は変更を加える前に存在する必要があります。 +
+Openshiftのインストール直後は、Prometheusの環境を設定するための *ConfigMap* が存在しない場合があります。*ConfigMap* が存在するかどうかを確認するには、以下のように実行します。
 
 [source,role="execute"]
 ----
 oc -n openshift-monitoring get configmap cluster-monitoring-config
 ----
-.Output if the ConfigMap is not yet created:
+
+.ConfigMapが作成されていない場合の出力例:
 ----
 Error from server (NotFound): configmaps "cluster-monitoring-config" not found
 ----
 
-.Output if the ConfigMap is created:
+.ConfigMapが作成されている場合の出力例:
 ----
 NAME                        DATA   AGE
-cluster-monitoring-config   1      116m
+cluster-monitoring-config   1      10m
 ----
 
-If you are missing the *ConfigMap*, create it using this command:
+*ConfigMap* がない場合は、このコマンドで作成してください。
 
 [source,role="execute"]
 ----
 oc apply -f {{ HOME_PATH }}/support/ocslab_cluster-monitoring-noinfra.yaml
 ----
-.Example output:
+.出力例:
 ----
 configmap/cluster-monitoring-config created
 ----
 
-[Note]
-====
-If the *ConfigMap* already exists because of completing prior module
-`OpenShift Infrastructure Nodes`, you will apply changes to the existing
-*ConfigMap*.
-
+先行モジュールの『Infrastructure Nodes and Operators』を完了していれば、*ConfigMap* が既にあるはずです。
+次のコマンドを実行して、既存の *ConfigMap* に変更を適用してください。
 [source,role="execute"]
 ----
 oc apply -f {{ HOME_PATH }}/support/ocslab_cluster-monitoring-withinfra.yaml
 ----
-.Example output:
+.出力例:
 ----
 configmap/cluster-monitoring-config updated
 ----
-====
 
-You can view the *ConfigMap* with the following command:
+作成された *ConfigMap* は次のコマンドで見ることができます。
 
-NOTE: The size of the Ceph RBD volumes, `40Gi`, can be modified to be larger or
-smaller depending on requirements.
+NOTE: Ceph RBD volumeのサイズである `40Gi` は、要件に応じて大きくしたり小さくしたりすることができます。
 
 [source,role="execute"]
 ----
 oc -n openshift-monitoring get configmap cluster-monitoring-config -o yaml | more
 ----
 
-.ConfigMap sample output:
+.ConfigMap 出力例:
 [source,yaml]
 ----
-[...]
-      volumeClaimTemplate:
-        metadata:
-          name: prometheusdb
-        spec:
-          storageClassName: ocs-storagecluster-ceph-rbd
-          resources:
-            requests:
-              storage: 40Gi
 [...]
       volumeClaimTemplate:
         metadata:
@@ -1656,73 +1612,60 @@ oc -n openshift-monitoring get configmap cluster-monitoring-config -o yaml | mor
             requests:
               storage: 40Gi
 [...]
+      volumeClaimTemplate:
+        metadata:
+          name: prometheusdb
+        spec:
+          storageClassName: ocs-storagecluster-ceph-rbd
+          resources:
+            requests:
+              storage: 40Gi
+[...]
 ----
 
-Once you create this new *ConfigMap* `cluster-monitoring-config`, the
-affected *Pods* will automatically be restarted and the new storage will be
-mounted in the Pods.
+この新しい `cluster-monitoring-config` *ConfigMap* を作成すると、影響を受けるPodが自動的に再起動され、新しい永続ボリュームがマウントされます。
 
-NOTE: It is not possible to retain data that was written on the default
-EmptyDir-based or ephemeral installation. Thus you will start with an empty
-DB after changing the backend storage thereby starting over with metric
-collection and reporting.
+NOTE: デフォルトのEmptyDirのストレージに書き込まれたデータを、新しい永続ボリュームに引き継ぐことはできません。したがって、バックエンドのストレージを変更した後は、空の状態のデータベースからメトリクスの収集とレポーティングを始めることになります。
 
-After a couple of minutes, the AlertManager and Prometheus *Pods* will have
-restarted and you will see new *PVCs* in the `openshift-monitoring` namespace
-that they are now providing persistent storage.
+数分後には、AlertManagerとPrometheusのPodが再起動します。`openshift-monitoring` Namespace に新しい *PVC* が表示され、それらが永続ストレージを提供するようになったことが確認できます。
 
 [source,role="execute"]
 ----
-oc get pods,pvc -n openshift-monitoring
+oc get pvc -n openshift-monitoring
 ----
-.Example output:
+.出力例:
 ----
 NAME                               STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                  AGE
-[...]
-alertmanager-alertmanager-main-0   Bound    pvc-733be285-aaf9-4334-9662-44b63bb4efdf   40Gi       RWO            ocs-storagecluster-ceph-rbd   3m37s
-alertmanager-alertmanager-main-1   Bound    pvc-e07ebe61-de5d-404c-9a25-bb3a677281c5   40Gi       RWO            ocs-storagecluster-ceph-rbd   3m37s
-alertmanager-alertmanager-main-2   Bound    pvc-9de2edf2-9f5e-4f62-8aa7-ecfd01957748   40Gi       RWO            ocs-storagecluster-ceph-rbd   3m37s
-prometheusdb-prometheus-k8s-0      Bound    pvc-5b845908-d929-4326-976e-0659901468e9   40Gi       RWO            ocs-storagecluster-ceph-rbd   3m31s
-prometheusdb-prometheus-k8s-1      Bound    pvc-f2d22176-6348-451f-9ede-c00b303339af   40Gi       RWO            ocs-storagecluster-ceph-rbd   3m31s
+alertmanager-alertmanager-main-0   Bound    pvc-592e4313-c435-4120-bfc5-0efa9fdafbf3   40Gi       RWO            ocs-storagecluster-ceph-rbd   3m37s
+alertmanager-alertmanager-main-1   Bound    pvc-43d31e4d-8ceb-442a-93c1-07f7fa17f5e9   40Gi       RWO            ocs-storagecluster-ceph-rbd   3m37s
+alertmanager-alertmanager-main-2   Bound    pvc-4139266e-7621-4eee-b14d-a69bee7e22c8   40Gi       RWO            ocs-storagecluster-ceph-rbd   3m37s
+prometheusdb-prometheus-k8s-0      Bound    pvc-1d470a18-ed7b-48f2-93d2-303448572376   40Gi       RWO            ocs-storagecluster-ceph-rbd   3m31s
+prometheusdb-prometheus-k8s-1      Bound    pvc-fff015f0-be83-4d68-bd42-7d3250cf1d9f   40Gi       RWO            ocs-storagecluster-ceph-rbd   3m31s
 ----
 
-You can validate that Prometheus and AlertManager are working correctly after
-moving to persistent storage <<Monitoring the ODF environment>> in a later
-section of this lab guide.
+永続ストレージを変更した後もPrometheusとAlertManagerが正しく動作しているかは、後の<<ODF環境のモニタリング>>セクションで確認できます。
 
-== Using the Multi-Cloud-Gateway
+== Multi-Cloud Gatewayを使用する
 
-In this section, you will deploy a new OCP application that uses `Object Bucket
-Claims` (OBCs) to create dynamic buckets via the `Multicloud Object Gateway`
-(MCG). You will also use the `MCG Console` to validate new objects in the
-`Object Bucket`.
+このセクションでは、オブジェクトバケットを使用するアプリケーションをデプロイします。アプリケーションは、`Multi-Cloud Gateway (MCG)` を介して *ObjectBucketClaim (OBC)* というリソースを使うことで、動的にオブジェクトバケットを獲得します。 +
+また、`MCG Console` を使って *Object Bucket (OB)* に正しくオブジェクトが置かれていることを確認します。
 
-NOTE: The `MCG Console` is not fully integrated with the *Openshift Web Console*
-and resources created in the `MCG Console` are not synchronized back to the
-Openshift Cluster. 
+NOTE: `MCG Console` は *Openshift Web Console* とは完全に統合されていません。そのため `MCG Console` を使って作成したリソースは、OpenShift クラスタに反映されません。
 
 === Checking on the MCG status
 
-The MCG status can be checked with the NooBaa CLI. Make sure you are in the
-`openshift-storage` project when you execute this command.
+MCGのステータスはNooBaa CLIで確認できます。`openshift-storage` Namespaceを指定して、次のコマンドを実行します。
 
 [source,role="execute"]
 ----
 noobaa status -n openshift-storage
 ----
-.Example output:
+.出力例:
 ----
 INFO[0000] CLI version: 5.9.0
-INFO[0000] noobaa-image: noobaa/noobaa-core:5.9.0
-INFO[0000] operator-image: noobaa/noobaa-operator:5.9.0
-[~] $ noobaa status -n openshift-storage
-INFO[0000] CLI version: 5.9.0
-INFO[0000] noobaa-image: registry.redhat.io/odf4/mcg-core-rhel8@sha256:5507f2c1
-074bfb023415f0fef16ec42fbe6e90c540fc45f1111c8c929e477910
-INFO[0000] operator-image: registry.redhat.io/odf4/mcg-rhel8-operator@sha256:b3
-14ad9f15a10025bade5c86857a7152c438b405fdba26f64826679a5c5bff1b
-INFO[0000] noobaa-db-image: registry.redhat.io/rhel8/postgresql-12@sha256:623bd
-aa1c6ae047db7f62d82526220fac099837afd8770ccc6acfac4c7cff100
+INFO[0000] noobaa-image: registry.redhat.io/odf4/mcg-core-rhel8@sha256:a6614c8fe182ba2c39ddb3aaa0f5a37bd392cc5d69bdbf05c7e96125ee3535a2
+INFO[0000] operator-image: registry.redhat.io/odf4/mcg-rhel8-operator@sha256:e535691f95556959dd61b651e0ab8afae82b67fae0ddf2284615b1502b93a108
+INFO[0000] noobaa-db-image: registry.redhat.io/rhel8/postgresql-12@sha256:fa920188f567e51d75aacd723f0964026e42ac060fed392036e8d4b3c7a8129f
 INFO[0000] Namespace: openshift-storage
 INFO[0000]
 INFO[0000] CRD Status:
@@ -1730,21 +1673,19 @@ INFO[0000] ✅ Exists: CustomResourceDefinition "noobaas.noobaa.io"
 INFO[0000] ✅ Exists: CustomResourceDefinition "backingstores.noobaa.io"
 INFO[0000] ✅ Exists: CustomResourceDefinition "namespacestores.noobaa.io"
 INFO[0000] ✅ Exists: CustomResourceDefinition "bucketclasses.noobaa.io"
-INFO[0000] ✅ Exists: CustomResourceDefinition "objectbucketclaims.objectbucket.
-io"
+INFO[0000] ✅ Exists: CustomResourceDefinition "objectbucketclaims.objectbucket.io"
 INFO[0000] ✅ Exists: CustomResourceDefinition "objectbuckets.objectbucket.io"
 INFO[0000]
 INFO[0000] Operator Status:
 INFO[0000] ✅ Exists: Namespace "openshift-storage"
 INFO[0000] ✅ Exists: ServiceAccount "noobaa"
 INFO[0000] ✅ Exists: ServiceAccount "noobaa-endpoint"
-INFO[0000] ✅ Exists: Role "mcg-operator.v4.9.2-noobaa-76ccc964f4"
-INFO[0000] ✅ Exists: Role "mcg-operator.v4.9.2-noobaa-endpoint-fbd669c99"
-INFO[0000] ✅ Exists: RoleBinding "mcg-operator.v4.9.2-noobaa-76ccc964f4"
-INFO[0000] ✅ Exists: RoleBinding "mcg-operator.v4.9.2-noobaa-endpoint-fbd669c99
-"
-INFO[0000] ✅ Exists: ClusterRole "mcg-operator.v4.9.2-7bd4dbdd57"
-INFO[0000] ✅ Exists: ClusterRoleBinding "mcg-operator.v4.9.2-7bd4dbdd57"
+INFO[0000] ✅ Exists: Role "mcg-operator.v4.9.8-noobaa-79b477964"
+INFO[0000] ✅ Exists: Role "mcg-operator.v4.9.8-noobaa-endpoint-6bfd8f48c7"
+INFO[0000] ✅ Exists: RoleBinding "mcg-operator.v4.9.8-noobaa-79b477964"
+INFO[0000] ✅ Exists: RoleBinding "mcg-operator.v4.9.8-noobaa-endpoint-6bfd8f48c7"
+INFO[0000] ✅ Exists: ClusterRole "mcg-operator.v4.9.8-f46845887"
+INFO[0000] ✅ Exists: ClusterRoleBinding "mcg-operator.v4.9.8-f46845887"
 INFO[0000] ✅ Exists: Deployment "noobaa-operator"
 INFO[0000]
 INFO[0000] System Wait Ready:
@@ -1773,8 +1714,7 @@ INFO[0000] ✅ Exists: Deployment "noobaa-endpoint"
 INFO[0000] ✅ Exists: HorizontalPodAutoscaler "noobaa-endpoint"
 INFO[0000] ✅ (Optional) Exists: BackingStore "noobaa-default-backing-store"
 INFO[0000] ✅ (Optional) Exists: CredentialsRequest "noobaa-aws-cloud-creds"
-INFO[0000] ⬛ (Optional) Not Found: CredentialsRequest "noobaa-azure-cloud-creds
-"
+INFO[0000] ⬛ (Optional) Not Found: CredentialsRequest "noobaa-azure-cloud-creds"
 INFO[0000] ⬛ (Optional) Not Found: Secret "noobaa-azure-container-creds"
 INFO[0000] ⬛ (Optional) Not Found: Secret "noobaa-gcp-bucket-creds"
 INFO[0000] ⬛ (Optional) Not Found: CredentialsRequest "noobaa-gcp-cloud-creds"
@@ -1791,50 +1731,46 @@ INFO[0000] ✅ Exists:  "noobaa-admin"
 #- Mgmt Addresses -#
 #------------------#
 
-ExternalDNS : [https://noobaa-mgmt-openshift-storage.apps.cluster-fm28w.fm28w.s
-andbox1663.opentlc.com https://a354324566c1e4b7bb679ef4154a9ae1-759109935.us-ea
-st-2.elb.amazonaws.com:443]
+ExternalDNS : [https://noobaa-mgmt-openshift-storage.apps.cluster-d6qlm.d6qlm.sandbox458.opentlc.com https://ab1768603a7e3435a9a5eef23dd385bb-1738493587.
+us-east-2.elb.amazonaws.com:443]
 ExternalIP  : []
-NodePorts   : [https://10.0.188.70:31095]
+NodePorts   : [https://10.0.219.73:31910]
 InternalDNS : [https://noobaa-mgmt.openshift-storage.svc:443]
-InternalIP  : [https://172.30.159.157:443]
-PodPorts    : [https://10.130.2.25:8443]
+InternalIP  : [https://172.30.112.229:443]
+PodPorts    : [https://10.131.2.19:8443]
 
 #--------------------#
 #- Mgmt Credentials -#
 #--------------------#
 
 email    : admin@noobaa.io
-password : WXoD7ujXftk5PYU+89EX0w==
+password : +tymeanDJtTZkhhMQuKezQ==
 
 #----------------#
 #- S3 Addresses -#
 #----------------#
 
-ExternalDNS : [https://s3-openshift-storage.apps.cluster-fm28w.fm28w.sandbox166
-3.opentlc.com https://a55f25cdeb6e745b8a92ca6ebec53fa6-1685855806.us-east-2.elb
-.amazonaws.com:443]
+ExternalDNS : [https://s3-openshift-storage.apps.cluster-d6qlm.d6qlm.sandbox458.opentlc.com https://aba4c23b3771e4d0b8e84b4134d0e34f-1563330099.us-east-2
+.elb.amazonaws.com:443]
 ExternalIP  : []
-NodePorts   : [https://10.0.188.70:30956]
+NodePorts   : [https://10.0.219.73:30906]
 InternalDNS : [https://s3.openshift-storage.svc:443]
-InternalIP  : [https://172.30.82.233:443]
-PodPorts    : [https://10.130.2.27:6443]
+InternalIP  : [https://172.30.72.123:443]
+PodPorts    : [https://10.131.2.21:6443]
 
 #------------------#
 #- S3 Credentials -#
 #------------------#
 
-AWS_ACCESS_KEY_ID     : cbE7Y5UxCUw4C1Rsnb3D
-AWS_SECRET_ACCESS_KEY : 3O/SpuHoCmTzeJabdfqF0QcndALJdjK/Z7Uus9oz
+AWS_ACCESS_KEY_ID     : Q4dCJr2hKLpEX4GAWH9q
+AWS_SECRET_ACCESS_KEY : OqtAermCqSmHTe9agjlNo/Tgj8MldpOmf41251Ux
 
 #------------------#
 #- Backing Stores -#
 #------------------#
 
-NAME                           TYPE     TARGET-BUCKET
-                        PHASE   AGE
-noobaa-default-backing-store   aws-s3   nb.1644544595212.cluster-fm28w.fm28w.sa
-ndbox1663.opentlc.com   Ready   2m10s
+NAME                           TYPE     TARGET-BUCKET                                                 PHASE   AGE
+noobaa-default-backing-store   aws-s3   nb.1654144193284.cluster-d6qlm.d6qlm.sandbox458.opentlc.com   Ready   1d4h17m0s
 
 #--------------------#
 #- Namespace Stores -#
@@ -1846,10 +1782,8 @@ No namespace stores found.
 #- Bucket Classes -#
 #------------------#
 
-NAME                          PLACEMENT
-                NAMESPACE-POLICY   PHASE   AGE
-noobaa-default-bucket-class   {"tiers":[{"backingStores":["noobaa-default-backi
-ng-store"]}]}   null               Ready   2m10s
+NAME                          PLACEMENT                                                        NAMESPACE-POLICY   PHASE   AGE
+noobaa-default-bucket-class   {"tiers":[{"backingStores":["noobaa-default-backing-store"]}]}   null               Ready   1d4h17m0s
 
 #-----------------#
 #- Bucket Claims -#
@@ -1858,24 +1792,16 @@ ng-store"]}]}   null               Ready   2m10s
 No OBCs found.
 ----
 
-The NooBaa status command will first check on the environment and will then
-print all the information about the environment. Besides the status of the MCG,
-the second most intersting information for us are the available S3 addresses
-that we can use to connect to our MCG buckets. We can chose between using the
-external DNS which incurs DNS traffic cost, or route internally inside of our
-Openshift cluster.
+NooBaa CLIは最初に環境をチェックし、次に環境に関するすべての情報を出力します。MCGのステータスに加えて、MCGバケットへの接続に使用できる使用可能なS3アドレスとS3クレデンシャルが表示されます。 +
+S3アドレスはOpenShiftクラスタ内で内部的にルーティングするか、外部DNSを使用するかを選択できます。 +
 
-=== Creating and Using Object Bucket Claims
+=== Object Bucket Claimの作成
 
-MCG *ObjectBucketClaims* (OBCs) are used to dynamically create S3 compatible
-buckets that can be used by an OCP application. When an OBC is created MCG
-creates a new *ObjectBucket* (OB), *ConfigMap* (CM) and *Secret* that together
-contain all the information your application needs to connect to the new bucket
-from within your deployment.
+*ObjectBucketClaim (OBC)* は、OCPアプリケーションが使用できるS3互換のバケットを動的に作る場合に使われます。*OBC* を作成すると、実体である *ObjectBucket (OB)* と、アプリケーションがオブジェクトストレージサービスを使用するために必要なすべての情報を含む *ConfigMap* と *Secret* が作られます。
 
-To demonstrate this feature we will use the Photo-Album demo application. 
+この機能のデモを行うために、Photo-Albumのデモアプリケーションを使用します。
 
-Run the application startup script which will build and deploy the application to your cluster. 
+アプリケーションの起動スクリプトを実行し、アプリケーションをビルドしてクラスタにデプロイします。
 
 [source,role="execute"]
 ----
@@ -1883,12 +1809,11 @@ cd {{ HOME_PATH }}/support/photo-album
 ./demo.sh
 ----
 
-NOTE: Please make sure you follow the continuation prompts by pressing enter. 
+NOTE: プロンプトに従ってエンターキーを押して勧めてください。 
 
-.Example output:
+.出力例:
 ----
-[ OK    ] Using apps.cluster-fm28w.fm28w.sandbox1663.opentlc.com as our base do
-main
+[ OK    ] Using apps.cluster-d6qlm.d6qlm.sandbox458.opentlc.com as our base domain
 
 Object Bucket Demo
 
@@ -1903,8 +1828,7 @@ Press any key to continue...
  * Import dependencies and create build config
 
 Press any key to continue...
-[ OK    ] oc import-image ubi8/python-38 --from=registry.redhat.io/ubi8/python-
-38 --confirm -n demo
+[ OK    ] oc import-image ubi8/python-38 --from=registry.redhat.io/ubi8/python-38 --confirm -n demo
 ubi8/python-38 imported
 
  * Deploy application
@@ -1922,64 +1846,62 @@ photo-album setup
 /opt/app-root/src/support/photo-album
 ----
 
-IMPORTANT: *Deployment might take up to 5 minutes or more to complete.*
+IMPORTANT: デプロイには最大5分以上かかる場合があります。
 
-Check the photo-album deployment is complete by running:
+次のコマンドを実行してPhoto-Albumがデプロイが完了したことを確認します。
 [source,role="execute"]
 ----
 oc -n demo get pods
 ----
-.Example output:
+.出力例:
 ----
 NAME                   READY   STATUS      RESTARTS   AGE
-photo-album-1-build    0/1     Completed   0          10m
-photo-album-1-deploy   0/1     Completed   0          10m
-photo-album-1-rtplt    1/1     Running     0          10m
+photo-album-1-build    0/1     Completed   0          3m8s
+photo-album-1-deploy   0/1     Completed   0          2m2s
+photo-album-1-dsvkk    1/1     Running     0          119s
 ----
 
-Now that the photo-album application has been deployed you can view the *ObjectBucketClaim* it created. Run the following:
+Photo-Albumアプリケーションのデプロイ中に作成した、*OBC* を見ることができます。以下を実行してください。
 
 [source,role="execute"]
 ----
 oc -n demo get obc 
 ----
-.Example output:
+.出力例:
 ----
 NAME          STORAGE-CLASS                 PHASE   AGE
-photo-album   openshift-storage.noobaa.io   Bound   23m
+photo-album   openshift-storage.noobaa.io   Bound   4m8s
 ----
 
-To view the *ObjectBucket* (OB) that was created by the *OBC* above run the following:
+*OBC* によって動的に作成された、*OB* も確認できます。
 
 [source,role="execute"]
 ----
 oc get ob 
 ----
-.Example output:
+.出力例:
 ----
-NAME                   STORAGE-CLASS                 CLAIM-NAMESPACE   CLAIM-NAME    RECLAIM-POLICY   PHASE   AGE
-obc-demo-photo-album   openshift-storage.noobaa.io   demo              photo-album   Delete           Bound   23m
+NAME                   STORAGE-CLASS                 CLAIM-NAMESPACE   CLAIM-NAME   RECLAIM-POLICY   PHASE   AGE
+obc-demo-photo-album   openshift-storage.noobaa.io                                  Delete           Bound   6m8s
 ----
 
-NOTE: *OBs*, similar to *PVs*, are cluster-scoped resources so therefore adding the namespace is not needed.
+NOTE: *OB* は *PV* と同様に cluster-scoped なリソースなので、Namespaceを指定しなくても表示されます。
 
-You can also view the new bucket *ConfigMap* and *Secret* using the following commands.
 
-The *ConfigMap* will contain important information such as the bucket name, service and port. All are used to configure the connection from within the deployment to the s3 endpoint.
-
-To view the *ConfigMap* created by the OBC, run the following:
+また、以下のコマンドで新しいバケットの *ConfigMap* と *Secret* を表示することができます。 +
+*ConfigMap* には、バケット名、*Service*、ポートなどの重要な情報が含まれています。これらはすべて、S3エンドポイントへ接続するために使用されます。
 
 [source,role="execute"]
 ----
 oc -n demo get cm photo-album -o yaml | more
 ----
-.Example output:
+.出力例:
 [source,yaml]
 ----
 apiVersion: v1
 data:
   BUCKET_HOST: s3.openshift-storage.svc
-  BUCKET_NAME: photo-album-2c0d8504-ae02-4632-af83-b8b458b9b923
+  BUCKET_NAME: photo-album-b1a7792d-dc51-498c-875a-42973290d09f
   BUCKET_PORT: "443"
   BUCKET_REGION: ""
   BUCKET_SUBREGION: ""
@@ -1987,36 +1909,34 @@ kind: ConfigMap
 [...]
 ----
 
-The *Secret* will contain the credentials required for the application to connect and access the new object bucket. The credentials or keys are `base64` encoded in the *Secret*.
-
-To view the *Secret* created for the OBC run the following:
+*Secret* には、アプリケーションが新しいバケットにアクセスするために必要なクレデンシャルが含まれます。クレデンシャルやキーは `base64` でエンコードされて *Secret* に保存されます。
 
 [source,role="execute"]
 ----
 oc -n demo get secret photo-album -o yaml | more
 ----
-.Example output:
+.出力例:
 [source,yaml]
 ----
 apiVersion: v1
 data:
-  AWS_ACCESS_KEY_ID: MTAyc3pJNnBsM3dXV0hOUzUyTEk=
-  AWS_SECRET_ACCESS_KEY: cWpyWWhuendDcjNaR1ZyVkZVN1p4c2hRK2xicy9XVW1ETk50QmJpWg==
+  AWS_ACCESS_KEY_ID: WUZSalBiMXRSMEM3aDdIeTRxcFk=
+  AWS_SECRET_ACCESS_KEY: cnJselMyNUx3RldRM3BmOGVlYmdBRnhUWGoyYmh3UTNlcnNHYUpRUQ==
 kind: Secret
 [...]
 ----
 
-As you can see when the new *OBC* and *OB* are created, MCG creates an associated *Secret* and *ConfigMap* which contain all the information required for our photo-album application to use the new bucket.
+新しい *OBC* と *OB* が作成されると、MCG は関連する *Secret* と *ConfigMap* を作成し、photo-albumアプリケーションが新しいバケットを使用するために必要な全ての情報が含まれていることが分かるでしょう。
 
-To view exactly how the application uses the information in the new *Secret* and *ConfigMap* have a look at the file `photo-album/app.yaml` after you have deployed the app. 
+新しい *Secret* と *ConfigMap* の情報をアプリケーションがどのように使用するかを確認するには、アプリをデプロイした後に `photo-album/app.yaml` ファイルを参照してください。
 
-In order to view the details of the *ObjectBucketClaim* view the start of `photo-album/app.yaml`. In the *DeploymentConfig* specification section, find `env:` and you can see how the *ConfigMap* and *Secret* details are mapped to environment variables. 
+*OBC* の詳細を見るには、`photo-album/app.yaml` の冒頭部分を見てください。*DeploymentConfig* の指定セクションで `env:` を見つけると、*ConfigMap* と *Secret* の詳細が環境変数にどのようにマッピングされているかを確認することができます。
 
 [source,role="execute"]
 ---- 
 cat {{ HOME_PATH }}/support/photo-album/app.yaml | more
 ----
-.Example output:
+.出力例:
 [source,yaml]
 ----
 ---
@@ -2030,13 +1950,13 @@ spec:
   storageClassName: openshift-storage.noobaa.io
 ---
 [...]
-     spec:
+      spec:
         containers:
         - image: image-registry.openshift-image-registry.svc:5000/default/photo-album
           name: photo-album
           env:
             - name: ENDPOINT_URL
-              value: 'https://s3-openshift-storage.apps.cluster-7c31.7c31.sandbox905.opentlc.com'
+              value: 'https://s3-openshift-storage.apps.cluster-d6qlm.d6qlm.sandbox458.opentlc.com'
             - name: BUCKET_NAME
               valueFrom:
                 configMapKeyRef:
@@ -2055,36 +1975,34 @@ spec:
 [...]
 ----
 
-In order to create objects in your new bucket you must first find the route for the `photo-album` application.
+新しいバケットにオブジェクトを作成するには、まず `photo-album` アプリケーションの *Route* を見つける必要があります。
 
 [source,role="execute"]
 ----
 oc get route photo-album -n demo -o jsonpath --template="http://{.spec.host}{'\n'}"
 ----
-.Example output:
+.出力例:
 ----
-http://photo-album.apps.cluster-7c31.7c31.sandbox905.opentlc.com
+http://photo-album.apps.cluster-d6qlm.d6qlm.sandbox458.opentlc.com
 ----
 
-Copy and paste this route into a web browser tab. 
+このURLをコピーして、Webブラウザーのタブに貼り付けてください。
 
 .Select Photo and Upload
 image::images/ocs/photo-album-select-upload.png[Select Photo and Upload]
 
-Select one or more photos of your choosing on your local machine. Then make sure to click the `Upload` button for each photo.
+ローカルマシンにあるお好きな写真を1枚以上選択して、 *Upload* ボタンをクリックしてください。
 
 .View photos after uploading
 image::images/ocs/photo-album-images.png[View photos after uploading]
 
-To view the photos in your object bucket navigate back to the `OpenShift
-Data Foundation` *Dashboard* under `Storage` and select
-`ocs-storagecluster-storagesystem` and then view the *Object* dashboard. Select
-the `Mulitcloud Object Gateway` link under `System Name`.
+オブジェクトバケットにオブジェクトが正しく保存されているかを確認します。 +
+まず *OpenShift Web Console* でODFダッシュボードを開き、*Storage Systems* タブの下で `ocs-storagecluster-storagesystem` を選択します。次の画面で *Object* ダッシュボードを表示し、`System Name` の下にある `Mulitcloud Object Gateway` のリンクをクリックします。
 
 .Launch MCG console from Object dashboard
 image::images/ocs/System-Name-MCG-Console.png[Launch MCG console from Object dashboard]
 
-Login to the `MCG Console` using `username` kubeadmin and your `password`. 
+別のタブで `MCG Console` が開かれるので、kubeadminユーザーでログインします。パスワードはこちらです。
 
 [source,role="copypaste"]
 ----
@@ -2092,159 +2010,139 @@ Login to the `MCG Console` using `username` kubeadmin and your `password`.
 ----
 
 You can navigate to the bucket details by selecting the `Buckets` on the far right side. Now select `Object Buckets`.
-
+画面左端にある `Buckets` を選択するとバケットの詳細に移動できます。ここで、`Object Buckets` タブを選択します。
 .Login to MCG Console and select Buckets
 image::images/ocs/MCG-Console-photo-album-buckets.png[Login to MCG Console and select Buckets]
 
-Select your bucket name under `Object Buckets` and then select the `Objects` tab to view the individual objects create when you uploaded your photos.
+あなたのバケット名を選択し、次に `Objects` タブを選択すると、写真をアップロードした際に作成された個々のオブジェクトを表示することができます。
 
 .Validate uploaded photos are in your Object Bucket
 image::images/ocs/MCG-Console-photo-album-objects.png[Validate uploaded photos are in your object bucket]
 
-== Adding storage to the Ceph Cluster
+== Cephクラスタへストレージを追加する
 
-Adding storage to ODF adds capacity and performance to your already present
-cluster.
+ODFクラスタにストレージを追加することで、容量が追加されパフォーマンスが向上されます。 +
+このセクションでは、現在のストレージクラスタにODF Workerノードを追加する方法について説明します。
 
-NOTE: The reason for adding more OCP worker nodes for storage is because the
-existing nodes do not have adequate CPU and/or Memory available.
+=== Workerノードを追加する
 
-=== Add storage worker nodes
+現在のストレージクラスタにODF Workerノードを追加します。その後、次のサブセクションでODFクラスタを拡張して新しいノードにストレージをプロビジョニングする方法について説明します。
 
-This section will explain how one can add more worker nodes to the present
-storage cluster. Afterwards follow the next sub-section on how to extend the
-ODF cluster to provision storage on these new nodes.
+ノードを追加するには、*MachineSet* を追加するか、既存のODFノード用 *MachieSet* をスケールアップします。
+このトレーニングでは、既存のODFノード用 *MachineSet* をスケールアップして、より多くのworker nodeを生成します。
 
-To add more nodes, we could either add more *machinesets* like we did before,
-or scale the already present ODF *machinesets*. For this training, we will
-spawn more workers by scaling the already present ODF worker instances up from 1 to 2 *machines*.
+NOTE: ODF Workerノードを追加するときは、既存のノードに十分なCPUやメモリがない場合などが挙げられます。
 
-.Check on our current workerocs *machinesets* and *machine* counts:
+現在のworkerocs *MachineSet* と *Machine* の数を確認してください。
 [source,role="execute"]
 ----
 oc get machinesets -n openshift-machine-api | egrep 'NAME|workerocs'
 ----
-Example output:
+.出力例:
 ----
-NAME                                           DESIRED   CURRENT   READY   AVAILABLE   AGE
-cluster-ocs4-8613-bc282-workerocs-us-east-2a   1         1         1       1           2d
-cluster-ocs4-8613-bc282-workerocs-us-east-2b   1         1         1       1           2d
-cluster-ocs4-8613-bc282-workerocs-us-east-2c   1         1         1       1           2d
+NAME                                       DESIRED   CURRENT   READY   AVAILABLE   AGE
+cluster-d6qlm-mbttv-workerocs-us-east-2a   1         1         1       1           32h
+cluster-d6qlm-mbttv-workerocs-us-east-2b   1         1         1       1           32h
+cluster-d6qlm-mbttv-workerocs-us-east-2c   1         1         1       1           32h
 ----
 
-Let's scale the workerocs machinesets up with this command:
+このコマンドで、workerocs *MachineSet* をスケールアップしてみましょう。
 
 [source,role="execute"]
 ----
 oc get machinesets -n openshift-machine-api -o name | grep workerocs | xargs -n1 -t oc scale -n openshift-machine-api --replicas=2
 ----
-.Example output:
+.出力例:
 ----
-oc scale -n openshift-machine-api --replicas=2 machineset.machine.openshift.io/cluster-ocs4-8613-bc282-workerocs-us-east-2a
-machineset.machine.openshift.io/cluster-ocs4-8613-bc282-workerocs-us-east-2a scaled
-oc scale -n openshift-machine-api --replicas=2 machineset.machine.openshift.io/cluster-ocs4-8613-bc282-workerocs-us-east-2b
-machineset.machine.openshift.io/cluster-ocs4-8613-bc282-workerocs-us-east-2b scaled
-oc scale -n openshift-machine-api --replicas=2 machineset.machine.openshift.io/cluster-ocs4-8613-bc282-workerocs-us-east-2c
-machineset.machine.openshift.io/cluster-ocs4-8613-bc282-workerocs-us-east-2c scaled
+oc scale -n openshift-machine-api --replicas=2 machineset.machine.openshift.io/cluster-d6qlm-mbttv-workerocs-us-east-2a
+machineset.machine.openshift.io/cluster-d6qlm-mbttv-workerocs-us-east-2a scaled
+oc scale -n openshift-machine-api --replicas=2 machineset.machine.openshift.io/cluster-d6qlm-mbttv-workerocs-us-east-2b
+machineset.machine.openshift.io/cluster-d6qlm-mbttv-workerocs-us-east-2b scaled
+oc scale -n openshift-machine-api --replicas=2 machineset.machine.openshift.io/cluster-d6qlm-mbttv-workerocs-us-east-2c
+machineset.machine.openshift.io/cluster-d6qlm-mbttv-workerocs-us-east-2c scaled
 ----
 
-Wait until the new OCP workers are available. This could take 5 minutes or more
-so be patient. You will know the new OCP worker nodes are available when you
-have the number `2` in all columns.
+新しいWorkerノードが使用可能になるまで待ちます。全てのカラムで `2` と表示されるまで待ちましょう。
 
 [source,role="execute"]
 ----
 watch "oc get machinesets -n openshift-machine-api | egrep 'NAME|workerocs'"
 ----
+kbd:[Ctrl+C] を押すと終了できます。
 
-You can exit by pressing kbd:[Ctrl+C].
+新しいノードが使用可能になったら、次のようにラベルを確認できます。
 
-Once they are available, you can check to see if the new OCP worker nodes have
-the ODF label applied. The total of OCP nodes with the ODF label should now be
-six.
-
-NOTE: The ODF label `cluster.ocs.openshift.io/openshift-storage=` is already
-applied because it is configured in the workerocs *machinesets* that you used
-to create the new worker nodes.
+NOTE: 新しく追加したWorkerノードにも `cluster.ocs.openshift.io/openshift-storage=` ラベルは既に付けられています。これは *MachineSet* 自体にラベルの設定を行ったためで、新しく作られるノードにも自動的にラベルが付けられます。
 
 [source,role="execute"]
 ----
 oc get nodes -l cluster.ocs.openshift.io/openshift-storage -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}'
 ----
-.Example output:
+.出力例:
 ----
-ip-10-0-147-230.us-east-2.compute.internal
-ip-10-0-157-22.us-east-2.compute.internal
-ip-10-0-175-8.us-east-2.compute.internal
-ip-10-0-183-84.us-east-2.compute.internal
-ip-10-0-209-53.us-east-2.compute.internal
-ip-10-0-214-36.us-east-2.compute.internal
+ip-10-0-142-148.us-east-2.compute.internal
+ip-10-0-153-93.us-east-2.compute.internal
+ip-10-0-173-143.us-east-2.compute.internal
+ip-10-0-181-161.us-east-2.compute.internal
+ip-10-0-201-210.us-east-2.compute.internal
+ip-10-0-219-73.us-east-2.compute.internal
 ----
 
-Now that you have the new instances created with the ODF label, the next step
-is to add more storage to the Ceph cluster. The ODF operator will prefer the
-new OCP nodes with the ODF label because they have no ODF *Pods* scheduled yet.
+ODFラベルが付いた新しいノードが作成できたので、次のステップでは、Cephクラスタにストレージを追加します。ODF Operatorは、ODFラベルの付いた新しいWorkerノードを優先してストレージを追加します。なぜなら、これらのノードにはまだODF Podがスケジュールされていないためです。
 
-=== Add storage capacity
+=== ストレージ容量を追加する
 
-In this section we will add storage capacity and performance to the
-configured ODF worker nodes and the Ceph cluster. If you have followed the
-previous section you should now have 6 ODF nodes.
+このセクションでは、構成済みのODF Workerノードでストレージ容量とパフォーマンスを追加します。
 
-To add storage, go to the *Openshift Web Console* and follow these steps to
-reach the ODF storage cluster overview:
+前のセクションを実行した後は、6つのODF Workerノードが存在するはずです。
 
- - Click on `Operators` on the left navigation bar
- - Select `Installed Operators` and select `openshift-storage` project
- - Click on `OpenShift Data Foundation Operator`
- - In the top navigation bar, scroll right to find the item `Storage System` and click on it
+ストレージを追加するには、*OpenShift Web Console* に移動し、手順にしたがってODFストレージクラスタの概要を表示します。
+
+ - 左側のメニューから *Operators* -> *Installed Operators* をクリックする
+ - `openshift-storage` Projectを選択する
+ - `OpenShift Data Foundation Operator` をクリックする
+ - 上部のナビゲーションバーで `Storage System` をクリックする
+
 
 image::images/ocs/OCS4-OCP4-Storage-Cluster-overview-reachit.png[]
 
- - The visible list should list only one item - click on the three dots on the far right to extend the options menu
- - Select `Add Capacity` from the options menu
+ - 表示される `ocs-storagecluster-storagesystem` の右端にある3つのドットをクリックして、オプションメニューを表示する
+ - `Add Capacity` を選択し、新しいダイアログを開く
 
 .Add Capacity dialog
 image::images/ocs/OCS4-add-capacity.png[Add Capacity dialog]
 
-The storage class should be set to `gp2`. The added provisioned capacity will
-be three times as much as you see in the `Raw Capacity` field, because ODF uses
-a replica count of 3.
+StorageClassは `gp2` を選ぶ必要があります。また、`Raw Capacity` に表示される容量を拡張できます。ODFは三重でレプリカを取るため、`Raw Capacity` は希望する追加容量はの3倍の容量になります。
 
-NOTE: *The size chosen for ODF Service Capacity during the initial deployment of ODF is greyed out and cannot be changed.*
+NOTE: *`Raw Capacity` は最初にODFクラスタを構成した時点で選択したストレージ容量で決まるため、変更することはできません。*
 
-Once you are done with your setting, proceed by clicking on *Add*. 
+設定が完了したら、 *Add* をクリックして続行します。ストレージクラスタのステータスが再び `Ready` になるまで変化します。
 
-CAUTION: It may take more than 5 minutes for new OSD pods to be in a `Running` state.
+CAUTION: 新しいOSD Podが `Running` の状態になるには5分以上かかる場合があります。
 
-Use this command to see the new OSD pods:
+次のコマンドで、新しいOSD Podが追加されていることが分かります。新しいOSD Podが、新規に追加したODF worker nodeの上で動いていることに注目して下さい。
 
 [source,role="execute"]
 ----
 oc get pod -o=custom-columns=NAME:.metadata.name,STATUS:.status.phase,NODE:.spec.nodeName -n openshift-storage | grep osd | grep -v prepare
 ----
-.Example output:
+.出力例:
 ----
-rook-ceph-osd-0-7d45696497-jwgb7            Running     ip-10-0-147-230.us-east-
-2.compute.internal
-rook-ceph-osd-1-6f49b665c7-gxq75            Running     ip-10-0-209-53.us-east-2
-.compute.internal
-rook-ceph-osd-2-76ffc64cd-9zg65             Running     ip-10-0-175-8.us-east-2.
-compute.internal
-rook-ceph-osd-3-97b5d9844-jpwgm             Running     ip-10-0-157-22.us-east-2
-.compute.internal
-rook-ceph-osd-4-9cb667b76-mftt9             Running     ip-10-0-214-36.us-east-2
-.compute.internal
-rook-ceph-osd-5-55b8d97855-2bp85            Running     ip-10-0-157-22.us-east-2
-.compute.internal
+rook-ceph-osd-0-7c9cb6fdd9-fwvxs                                  Running     ip-10-0-142-148.us-east-2.compute.internal
+rook-ceph-osd-1-8568c7d4b4-7p8hs                                  Running     ip-10-0-219-73.us-east-2.compute.internal
+rook-ceph-osd-2-67d878cd95-qpbkg                                  Running     ip-10-0-173-143.us-east-2.compute.internal
+rook-ceph-osd-3-577c47b6b8-ffwg2                                  Running     ip-10-0-201-210.us-east-2.compute.internal
+rook-ceph-osd-4-5d665b7497-cbqz5                                  Running     ip-10-0-153-93.us-east-2.compute.internal
+rook-ceph-osd-5-6bf7684498-k24qb                                  Running     ip-10-0-181-161.us-east-2.compute.internal
 ----
 
-This is everything that you need to do to extend the ODF storage.
+以上でODFクラスタを拡張することができました。
 
-=== Verify new storage
+=== 新しいストレージを確認する
 
-Once you added the capacity and made sure that the OSD pods are present, you
-can also optionally check the additional storage capacity using the Ceph *toolbox* created earlier. Follow these steps:
+容量を追加し、OSD podの存在を確認したら、*toolbox* を使用して追加したストレージ容量を確認することができます。
+
+まずは次のコマンドで toolbox Podに入ります。
 
 [source,role="execute"]
 ----
@@ -2252,95 +2150,87 @@ TOOLS_POD=$(oc get pods -n openshift-storage -l app=rook-ceph-tools -o name)
 oc rsh -n openshift-storage $TOOLS_POD
 ----
 
-.Check the status of the Ceph cluster:
+次にCephクラスタのステータスを確認します。
+
 [source,role="execute"]
 ----
 ceph status
 ----
-.Example output:
+.出力例:
 ----
 sh-4.4$ ceph status
   cluster:
-    id:     ff3d0a9d-4e9b-459b-9421-1ef4a5db89fc
+    id:     cbeb7c9d-2a30-4646-b5a6-72d5c1db914c
     health: HEALTH_OK
 
   services:
-    mon: 3 daemons, quorum a,b,c (age 47m)
-    mgr: a(active, since 47m)
+    mon: 3 daemons, quorum a,b,c (age 29h)
+    mgr: a(active, since 29h)
     mds: 1/1 daemons up, 1 hot standby
-    osd: 6 osds: 6 up (since 2m), 6 in (since 2m) <1>
+    osd: 6 osds: 6 up (since 7m), 6 in (since 8m) <1>
 
   data:
     volumes: 1/1 healthy
     pools:   4 pools, 289 pgs
-    objects: 101 objects, 127 MiB
-    usage:   329 MiB used, 12 TiB / 12 TiB avail <2>
+    objects: 1.76k objects, 5.9 GiB
+    usage:   18 GiB used, 12 TiB / 12 TiB avail <2>
     pgs:     289 active+clean
 
   io:
-    client:   1.2 KiB/s rd, 2 op/s rd, 0 op/s wr
+    client:   0 B/s rd, 1 op/s rd, 0 op/s wr
 ----
 
-In the Ceph status output, we can already see that:
+この出力から次のことがわかります。
 
-<1> We now use 6 osds in total and they are `up` and `in` (meaning the daemons are running and being used to store data)
-<2> The available raw capacity has increased from 6 TiB to 12 TiB
+<1> 現在合計6つのOSDを使用しているが、それらは `up` で `in` である。(つまり、OSDデーモンが実行されており、ストレージの領域として使用されている)
+<2> 利用可能な物理容量が6TiBから12TiBに増加している。
 
-Besides that, nothing has changed in the output.
+これら以外にはCephステータスの出力は何も変わっていません。
 
-.Check the topology of your cluster:
+続いて、Cephクラスタのトポロジーを確認します。
 [source,role="execute"]
 ----
 ceph osd crush tree
 ----
-.Example output:
+.出力例:
 ----
-ID  CLASS WEIGHT   TYPE NAME
- -1       12.00000 root default
- -5       12.00000     region us-east-2
- -4        4.00000         zone us-east-2a
- -3        2.00000             host ocs-deviceset-gp2-0-data-0-9977n
-  0   ssd  2.00000                 osd.0
--21        2.00000             host ocs-deviceset-gp2-2-data-1-nclgr <1>
-  4   ssd  2.00000                 osd.4
--14        4.00000         zone us-east-2b
--13        2.00000             host ocs-deviceset-gp2-1-data-0-nnmpv
-  2   ssd  2.00000                 osd.2
--19        2.00000             host ocs-deviceset-gp2-0-data-1-mg987 <1>
-  3   ssd  2.00000                 osd.3
--10        4.00000         zone us-east-2c
- -9        2.00000             host ocs-deviceset-gp2-2-data-0-mtbtj
-  1   ssd  2.00000                 osd.1
--17        2.00000             host ocs-deviceset-gp2-0-data-2-l8tmb <1>
-  5   ssd  2.00000                 osd.5
+ID   CLASS  WEIGHT    TYPE NAME
+ -1         12.00000  root default
+ -5         12.00000      region us-east-2
+ -4          4.00000          zone us-east-2a
+-19          2.00000              host ocs-deviceset-gp2-1-data-1stbzz
+  4    ssd   2.00000                  osd.4
+ -3          2.00000              host ocs-deviceset-gp2-2-data-04xwqf
+  0    ssd   2.00000                  osd.0
+-14          4.00000          zone us-east-2b
+-13          2.00000              host ocs-deviceset-gp2-0-data-0pdj4t
+  2    ssd   2.00000                  osd.2
+-21          2.00000              host ocs-deviceset-gp2-2-data-1q4qp5
+  5    ssd   2.00000                  osd.5
+-10          4.00000          zone us-east-2c
+-17          2.00000              host ocs-deviceset-gp2-0-data-1dppqr
+  3    ssd   2.00000                  osd.3
+ -9          2.00000              host ocs-deviceset-gp2-1-data-0m5bzn
+  1    ssd   2.00000                  osd.1
 ----
 
-<1> We now have additional hosts, which are extending the storage in the respective zone.
+<1> Workerノードが追加されたことで、それぞれの `zone` の中で `host` が拡張されている。
 
-Since our Ceph cluster's CRUSH rules are set up to replicate data between the
-zones, this is an effective way to reduce the load on the 3 initial nodes.
+ODFで構成されたCephクラスタでは、それぞれのPoolごとにCRUSHルールが設定されています。どのルールでもデフォルトは `zone` でデータを複製するように設定されていて、高い冗長性を保ち、追加前のノードの負荷を緩和するために効果的な方法です。 +
+また、元のOSDにある既存のデータは自動的にバランスされ、新旧のOSDが負荷を分担するようになります。
 
-Existing data on the original OSDs will be balanced out automatically, so
-that the old and the new OSDs share the load.
-
-You can exit the *toolbox* by either pressing kbd:[Ctrl+D] or by executing exit.
+kbd:[Ctrl+D] を押すか、`exit` を実行して toolbox から出ることができます.
 
 [source,role="execute"]
 ----
 exit
 ----
 
-== Monitoring the ODF environment
+== ODF環境のモニタリング
 
-This section covers the different tools available when it comes to monitoring
-ODF the environment. This section relies on using the *OpenShift Web Console*.
+このセクションでは、ODF環境のモニターに利用できるさまざまなツールについて説明します。このセクションでは、*OpenShift Web Console* を使用することになります。
 
-Individuals already familiar with OCP will feel comfortable with this section
-but for those who are not, it will be a good primer.
-
-The monitoring tools are accessible through the main *OpenShift Web Console*
-left pane. Click the *Observe* menu item to expand and have access to the
-following 3 selections:
+各種ツールは、*OpenShift Web Console* の左側メニューバーからアクセスできます。*Observe* メニューを展開し、次の3つのアイテムにアクセスします。
 
 * Alerting
 * Metrics
@@ -2348,57 +2238,52 @@ following 3 selections:
 
 === Alerting
 
-Click on the *Alerting* item to open the Alert window as illustrated in the
-screen capture below.
+以下に示すように *Alerting* のページに移動します。
 
 .OCP Observe Menu choose Alerting
 image::images/ocs/metrics-alertingleftpanemenu.png[OCP Observe Menu choose Alerting]
 
-This will take you to the *Alerting* homepage as illustrated below.
+下図のような *Alerting* のページが表示されます。
 
 .OCP Alerting Homepage
 image::images/ocs/metrics-alertinghomepage.png[OCP Alerting Homepage]
 
-You can display the alerts in the main window using the filters at your
-disposal.
+メインウィンドウに表示されるアラートは、自由にフィルターを使用することができます。
 
-* 1 - Will let you select alerts by State, Severity and Source
-* 2 - Will let you select if you want to search a specific character string
-  using either the `Name` or the `Label`
-* 3 - Will let you enter the character string you are searching for
+* 1 - 状態、重要度、ソースで警告を選択する
+* 2 - 特定の文字列を検索する場合、`Name` または `Label` のどちらかを選択する
+* 3 - 検索する文字列を入力する
 
-The alert `State` can be.
+アラートの状態は次のとおりです。
 
-* `Firing` - Alert has been confirmed
-* `Silenced` - Alerts that have been silenced while they were in `Pending` or `Firing` state
-* `Pending` - Alerts that have been triggered but not confirmed
+* `Firing` - 確認されているアラート
+* `Silenced` - `Pending` や `Firing` 状態によって上がっていないアラート
+* `Pending` - トリガーされたが確認されていないアラート
+* `Not Firing` - トリガーされていないアラート
 
-NOTE: An alert transitions from `Pending` to `Firing` state if the alert
-persists for more than the amount of time configured in the alert definition
-(e.g. 10 minutes for the `CephClusterWarningState` alert).
+NOTE: 定義された時間を超えて `Pending` が継続したアラートは、 `Firing` 状態に移行します。例えば `CephClusterWarningState` の場合は10分です。
 
-The alert `Severity` can be.
+アラートの重要度は次のとおりです。
 
-* `Critical` - Alert is tagged as critical
-* `Warning` - Alert is tagged as warning
-* `Info` - Alert is tagged as informational
-* `None` - The alert has no `Severity` assigned
+* `Critical` - Criticalのタグ付けがされているアラート
+* `Warning` - Warningのタグ付けがされているアラート
+* `Info` - Informationalのタグ付けがされているアラート
+* `None` - 重要度が設定されていないアラート
 
-The alert `Source` can be.
+アラートのソースは次のとおりです。
 
-* `Platform` - Alert is generated by an OCP component
-* `User` - Alert is generated by a user application
+* `Platform` - OCPコンポーネントによって生成されたアラート
+* `User` - ユーザーアプリケーションによって生成されたアラート
 
-As illustrated below, alerts can be filtered precisely using multiple criteria.
+下図のように、アラートは複数の基準を組み合わせることで、精密にフィルタリングすることができます。
 
 .OCP Alerting Status Filtering
 image::images/ocs/metrics-alertingstatusfilter.png[OCP Alert Status Filtering]
 
-NOTE: You can clear all filters to view all the existing alerts.
+NOTE: 既存のアラートをすべて表示するには、すべてのフィルターをクリアします。
 
-If you select `View Alerting Rule` you will get access to the details of the
-rule that triggered the alert. The details include the Prometheus query used
-by the alert to perform the detection of the condition.
+`View Alerting Rule` を選択すると、アラートのトリガールールの詳細にアクセスできます。
+詳細には、トリガーするためにアラートが使用するPrometheusのクエリが含まれます。
 
 .OCP Alert Contextual Menu
 image::images/ocs/metrics-alertingcontextualmenu.png[OCP Alert Contextual Menu]
@@ -2406,100 +2291,87 @@ image::images/ocs/metrics-alertingcontextualmenu.png[OCP Alert Contextual Menu]
 .OCP Alert Detail Display
 image::images/ocs/metrics-alertingviewrule.png[OCP Alert Detailed Display]
 
-NOTE: If desired, you can click the Prometheus query embedded in the alert.
-Doing so will take you to the *Metrics* page where you will be able to
-execute the query for the alert and if desired make changes to the rule.
+NOTE: 必要に応じて、アラートに埋め込まれたPrometheusクエリをクリックできます。
+これを行うと *Metrics* ページに移動し、アラートのを実行や更新をテストすることができます。
 
 === Metrics
-
-Click on the *Metrics* item as illustrated below in the `Observe` menu.
+以下に示すように *Metrics* のページに移動します。
 
 .OCP Observe Menu choose Metrics
 image::images/ocs/metrics-metricsleftpanemenu.png[OCP Observe Menu choose Metrics]
 
-This will take you to the *Metrics* homepage as illustrated below.
+下図のような *Alerting* のページが表示されます。
 
 .OCP Monitoring Metrics Homepage
 image::images/ocs/metrics-queryfield.png[OCP Monitoring Metrics Homepage]
 
-Use the query field to either enter the formula of your choice or to search for
-metrics by name. The metrics available will let you query both OCP related
-information or ODF related information. The queries can be simple or complex
-using the Prometheus query syntax and all its available functions.
+クエリフィールドを使って、式を入力するか、名前でメトリクスを検索します。
+使用可能なメトリクスにより、OCP関連情報またはODF関連情報の両方を照会できます。
+クエリは、Prometheusクエリ構文とそのすべての利用可能な機能を使用することができます。
 
-Let's start testing a simple query example and enter the following text
-`ceph_osd_op` in the query field. When you are done typing, simply hit
-`[Enter]` or select `Run Queries`.
+簡単なクエリの例のテストしてみましょう。クエリフィールドに `ceph_osd_op` を入力し、
+kbd:[Enter] を実行します。
 
 .Simple Ceph Query
 image::images/ocs/metrics-simplecephquery.png[Ceph Simple Query]
 
-The window should refresh with a graph similar to the one below.
+ウィンドウが更新され、次のようなグラフが表示されます。
 
 .Simple Ceph Graph
 image::images/ocs/metrics-simplecephgraph.png[Ceph Simple Graph]
 
-Then let's try a more relevant query example and enter the following text
-`rate(ceph_osd_op[5m])` or `irate(ceph_osd_op[5m])` in the query field. When
-you are done typing, simply hit `[Enter]`or select `Run Queries`.
+より複雑なクエリの例を試してみます。
+クエリフィールドに `rate(ceph_osd_op[5m])` または `irate(ceph_osd_op[5m])` を入力し、kbd:[Enter] を実行します。
 
 .Complex Ceph Query
 image::images/ocs/metrics-complexcephquery.png[Ceph Complex Query]
 
-The window should refresh with a graph similar to the one below.
+ウィンドウが更新され、次のようなグラフが表示されます。
 
 .Complex Ceph Graph
 image::images/ocs/metrics-complexcephgraph.png[Ceph Complex Graph]
 
-All OCP metrics are also available through the integrated *Metrics* window.
-Feel free to try with any of the OCP related metrics such as
-`irate(process_cpu_seconds_total[5m])` for example.
+すべてのOCPメトリクスが統合された *Metrics* ウィンドウからも利用できます
+例えば `irate(process_cpu_seconds_total[5m])` のようなOCP関連のメトリクスで自由に試してみてください。
 
 .Complex OCP Graph
 image::images/ocs/metrics-complexocpgraph.png[OCP Complex Graph]
 
-Have a look at the difference between `sum(irate(process_cpu_seconds_total[5m]))` and the last query `irate(process_cpu_seconds_total[5m])`.
+`sum(irate(process_cpu_seconds_total[5m]))` と `irate(process_cpu_seconds_total[5m])` の違いを見てみましょう。
 
-NOTE: For more information on the Prometheus query language visit the
+NOTE: Prometheusクエリ言語の詳細については、
 link:https://prometheus.io/docs/prometheus/latest/querying/basics/[Prometheus
-Query Documentation].
+Query Documentation]を参照して下さい。
 
-== Using must-gather
+== must-gatherの使用
 
-Must-gather is a tool for collecting data about your running Openshift cluster.
-It loads a predefined set of containers that execute multiple programs and
-write results on the local workstation's filesystem. The local files can then
-be uploaded to a Red Hat case and used by a remote support engineer to debug a
-problem without needing direct access to your cluster. This utility and method
-for diagnostic collection is similar to sosreports for RHEL hosts.
+`must-gather` は、稼働中のOpenshiftクラスタに関するデータを収集するためのツールです。`must-gather` はデータ収集のために、事前に定義された複数のコンテナのセットを実行します。これらのコンテナは複数のプログラムを実行し、収集したファイルをローカルワークステーションのファイルシステムに書き込みます。ユーザーはこの収集したファイルをRed Hatのサポートケースにアップロードすることで、サポートエンジニアはクラスタに直接アクセスすることなく問題をデバッグするために使用することができます。この診断収集のためのユーティリティと方法は、RHELホスト用の`sosreports`に似ています。
 
-The ODF team has released its own must-gather image for the must-gather tool
-that runs storage specific commands.
+ODFではストレージ固有のコマンドを実行するために、独自の `must-gather` ツールのイメージをリリースしています。
 
-You can run this diagnostic tool like this for generic OpenShift debugging:
+一般的なOpenShiftの `must-gather` は次のコマンドで実行できます。
 
 [source,role="execute"]
 ----
 oc adm must-gather
 ----
 
-Or like this for ODF specific results:
+あるいは、ODFに特化した `must-gather` の結果を得るにはこのようにします。
 
 [source,role="execute"]
 ----
 oc adm must-gather --image=registry.redhat.io/odf4/ocs-must-gather-rhel8:v4.9
 ----
 
-The output will then be saved in the current directory inside of a new folder
-called `must-gather.local.(random)`
+出力は、カレントディレクトリにある `must-gather.local.(random)` という新しいフォルダの中に保存されます。
 
-More runtime options can be displayed with this command:
+実行時のオプションを表示するには、次のコマンドを実行します。
 
 [source,role="execute"]
 ----
 oc adm must-gather -h
 ----
-.Example output:
+.出力例:
 ----
 Launch a pod to gather debugging information
 
@@ -2539,83 +2411,65 @@ Use "oc adm options" for a list of global command-line options (applies to all c
 ----
 
 [appendix]
-== Introduction to Ceph
+== Cephの概要
 
-This section will go through Ceph fundamental knowledge for a better
-understanding of the underlying storage solution
-used by ODF 4.
+このセクションでは、ODFで使用されるストレージソリューションの理解を深めるために、Cephの基礎知識を説明します。
 
 
-NOTE: The content in this Appendix is relevant to learning about the critical
-components of Ceph and how Ceph works. ODF 4 uses Ceph in a prescribed manner
-for providing storage to OpenShift applications. Using *Operators* and
-*CustomResourceDefinitions* (CRDs) for deploying and managing ODF 4 may
-restrict some of Ceph's advanced features when compared to general use
-outside of OCP 4.
+NOTE: この付録の内容は、Cephの重要なコンポーネントとCephの動作について学習することを目的としています。
+ODFではOpenShiftアプリケーションにストレージを提供するために、 *Operators* と *CustomResourceDefinitions(CRDs)* を使用した方法でCephをデプロイおよび管理します。
+これにより一般的なスタンドアロンのCephと比べて、Cephの高度な機能の一部が制限されていることがあります。
+
 
 [.lead]
-*Timeline*
+*Cephの歴史*
 
-The Ceph project has a long history as you can see in the timeline below.
+Cephプロジェクトは以下のタイムラインでわかるように長い歴史があります。
 
 .Ceph Project History
 image::images/ocs/ceph101-timeline.png[Ceph Project Timeline]
 
 [.lead]
-It is a battle-tested software defined storage (SDS) solution that has been
-available as a storage backend for OpenStack and Kubernetes for quite some
-time.
+Cephは、OpenStackとKubernetesのストレージバックエンドとしてかなり長い間使用されてきた、歴戦のSoftware-defined Storage(SDS)ソリューションです。
 
 [.lead]
 *Architecture*
 
-The Ceph cluster provides a scalable storage solution while providing
-multiple access methods to enable the different types of
-clients present within the IT infrastructure to get access to the data.
+Cephクラスタは、スケーラブルなストレージソリューションを提供すると同時に、ITインフラストラクチャ内に存在するさまざまなタイプのクライアントがデータにアクセスできるように、複数のアクセス方法を提供します。
 
 .Ceph Architecture
 image::images/ocs/ceph101-overview.png[Ceph From Above]
 
 [.lead]
-The entire Ceph architecture is resilient and does not present any single point
-of failure (SPOF).
+CephはResilientなアーキテクチャで、単一障害点(SPOF)がありません。
 
 [.lead]
 *RADOS*
 
-The heart of Ceph is an object store known as RADOS (Reliable Autonomic
-Distributed Object Store) bottom layer on the screen. This layer provides the
-Ceph software defined storage with the ability to store data (serve IO
-requests, to protect the data, to check the consistency and the integrity of
-the data through built-in mechanisms. The RADOS layer is composed of the
-following daemons:
+Cephの中核は、アーキテクチャ図の最下層にあるRADOS(Reliable Autonomic Distributed Object Store)と呼ばれるオブジェクトストアです。 +
+RADOSによってCephはストレージとしてデータを保存する機能を提供します。
+(つまり、IO要求を処理し、データを保護し、組み込みメカニズムによりデータの整合性と一貫性をチェックします) +
+RADOSは次のデーモンで構成されます。
 
-1. MONs or Monitors
-2. OSDs or Object Storage Devices
-3. MGRs or Managers
-4. MDSs or Meta Data Servers
+<1> MONs or Monitors
+<2> OSDs or Object Storage Devices
+<3> MGRs or Managers
+<4> MDSs or Meta Data Servers
 
-.*_Monitors_*
-The Monitors maintain the cluster map and state and provide distributed
-decision-making while configured in an odd number, 3 or 5 depending on the
-size and the topology of the cluster, to prevent split-brain situations. The
-Monitors are not in the data-path and do not serve IO requests to and from
-the clients.
+.*_MONs_*
+MONはCephのクラスタマップと状態を維持し、クラスタのサイズとトポロジーに応じて3または5といった奇数台で構成されます。
+MONは複数台で分散意思決定を提供することでスプリットブレインの状況を防ぎます。 +
+またMONはDataPathになく、クライアントとの間でIO要求を処理しません。
 
 .*_OSDs_*
-One OSD is typically deployed for each local block devices and the native
-scalable nature of Ceph allows for thousands of OSDs to be part of the
-cluster. The OSDs are serving IO requests from the clients while guaranteeing
-the protection of the data (replication or erasure coding), the rebalancing
-of the data in case of an OSD or a node failure, the coherence of the data
-(scrubbing and deep-scrubbing of the existing data).
+OSDは、データの保護(replication または erasure coding)、OSDまたはノード障害時のデータのリバランス、
+データの一貫性(既存のデータのscrubbingおよびdeep-scrubbing)を保証しながら、クライアントからのIO要求を処理しています。 +
+通常、1つのブロックデバイスごとに1つのOSDが展開され、Cephのスケーラブルな性質により、数千のOSDをクラスタに含めることができます。
 
 .*_MGRs_*
-The Managers are tightly integrated with the Monitors and collect the
-statistics within the cluster. Additionally they provide an extensible
-framework for the cluster through a pluggable Python interface aimed at
-expanding the Ceph existing capabilities. The current list of modules
-developed around the Manager framework are:
+MGRはMONと緊密に統合されており、クラスタ内の統計を収集します。 +
+さらに、Cephの機能拡張を目的としたpluggableなPythonインターフェイスを介して、拡張可能なフレームワークを提供します。
+Managerフレームワークを中心に開発されたモジュールの現在のリストは次のとおりです。
 
 * Balancer module
 * Placement Group auto-scaler module
@@ -2626,64 +2480,57 @@ developed around the Manager framework are:
 * Rook module
 
 .*_MDSs_*
-The Meta Data Servers manage the metadata for the POSIX compliant shared
-filesystem such as the directory hierarchy and the file metadata (ownership,
-timestamps, mode, ...). All the metadata is stored with RADOS and they do not
-serve any data to the clients. MDSs are only deployed when a shared
-filesystem is configured in the Ceph cluster.
+MDSはディレクトリ階層やファイルのメタデータ(ownership, timestamp、modeなど)など、POSIX準拠の共有ファイルシステムのメタデータを管理します。
+すべてのメタデータはRADOSで保存され、クライアントでメタデータを管理することはありません。 +
+MDSは、CephFSによる共有ファイルシステムが構成されている場合にのみデプロイされます。
 
-If we look at the Ceph cluster foundation layer, the full picture with the
-different types of daemons or containers looks like this.
+Cephクラスタの基盤の全体像はさまざまな種類のデーモンまたはコンテナによって構成されています。
 
 .RADOS as it stands
 image::images/ocs/ceph101-rados.png[RADOS Overview]
 
-The circles represent the MONs, the Ms represent the MGRs and the squares
-with the bars represent the OSDs. In the diagram above, the cluster operates
-with 3 Monitors, 2 Managers and 23 OSDs.
+上の図では、円はMONを表し、「M」はMGRを表し、バーのある四角はOSDを表します。
+上の図ではクラスタは3つのMON、2つのMGR、23のOSDで動作しています。
 
 [.lead]
-*Access Methods*
+*アクセス方式*
 
-Ceph was designed to provide the IT environment with all the necessary
-access methods so that any application can use what is the best solution for
-its use-case.
+Cephは、すべてのアプリケーションがそのユースケースに最適なストレージを使用できるように、すべてのアクセス方法を提供するように設計されています。
 
 .Different Storage Types Supported
 image::images/ocs/ceph101-differentstoragetypes.png[Ceph Access Modes]
 
-Ceph supports block storage through the RADOS Block Device (aka RBD) access
-method, file storage through the Ceph Filesystem (aka CephFS) access method
-and object storage through its native `librados` API or through the RADOS
-Gateway (aka RADOSGW or RGW) for compatibility with the S3 and Swift
-protocols.
+Cephは、
+
+* RADOS Block Device(RBD)アクセス方式によるブロックストレージ
+* Ceph Filesystem(CephFS)アクセス方式によるファイルストレージ
+* ネイティブの `librados` API、またはRADOS Gateway(RADOSGWまたはRGW)によるS3/Swiftプロトコルを使用するオブジェクトストレージ
+
+をサポートします。
 
 [.lead]
 *Librados*
 
-Librados allows developers to code natively against the native Ceph cluster
-API for maximum efficiency combined with a small footprint.
+Libradosを使用すると、アプリケーション開発者はのCephクラスタがネイティブに持つAPIでコーディングできます。 +
+この結果、小さなフットプリントで大きな効率を得ることができます。
 
 .Application Native Object API
 image::images/ocs/ceph101-librados.png[librados]
 
-The Ceph native API offers different wrappers such as C, C++, Python, Java,
-Ruby, Erlang, Go and Rust.
+CephのネイティブAPIは、C, C++, Python, Java, Ruby, Erlang, Go, Rustなどのさまざまなラッパーを提供しています。
 
 [.lead]
 *RADOS Block Device (RBD)*
 
-This access method is used in Red Hat Enterprise Linux or OpenShift version
-3.x or 4.x. RBDs can be accessed either through a kernel module (RHEL, ODF4)
-or through the `librbd` API (RHOSP). In the OCP world, RBDs are designed to
-address the need for RWO PVCs.
+このアクセス方法は、Red Hat Enterprise LinuxまたはOpenShiftバージョン3.xまたは4.xで使用されます。
+RBDは、カーネルモジュール(RHEL、OCP4) または `librbd` API(RHOSP)からアクセスできます。
+OCPの世界では、RBDはRWO PVCの必要性に対処するように設計されています。
 
 [.lead]
 *_Kernel Module (kRBD)_*
 
-The kernel RBD driver offers superior performance compared to the userspace
-`librbd` method. However, kRBD is currently limited and does not provide the
-same level of functionality. e.g., no RBD Mirroring support.
+kRBDドライバーは、ユーザースペースの `librbd` 方式と比較して優れたパフォーマンスを提供します。
+ただし、kRBDは現在制限されており `librbd` と同じレベルの機能を提供していません。例えば、RBDミラーリングはサポートされていません。
 
 .kRBD Diagram
 image::images/ocs/ceph101-krbd.png[Kernel based RADOS Block Device]
@@ -2691,35 +2538,28 @@ image::images/ocs/ceph101-krbd.png[Kernel based RADOS Block Device]
 [.lead]
 *_Userspace RBD (librbd)_*
 
-This access method is used in Red Hat OpenStack Environment or OpenShift
-through the RBD-NBD driver when available starting in the RHEL 8.1 kernel.
-This mode allows us to leverage all existing RBD features such as RBD
-Mirroring.
+このアクセス方法は、RHEL 8.1 KernelからRed Hat OpenStackまたはOpenShiftでRBD-NBDドライバーを介して使用されます。 +
+このモードにより、RBDミラーリングなどの既存のRBD機能をすべて活用できます。
 
 .librbd Diagram
 image::images/ocs/ceph101-librbd.png[Userspace RADOS Block Device]
 
 [.lead]
-*_Shared Filesystem (CephFS)_*
+*_共有ファイルシステム (CephFS)_*
 
-This method allows clients to jointly access a shared POSIX compliant
-filesystem. The client initially contacts the Meta Data Server to obtain the
-location of the object(s) for a given inode and then communicates directly
-with an OSD to perform the final IO request.
+この方法により、クライアントはPOSIX互換の共有ファイルシステムに同時にアクセスできます。 +
+クライアントは最初にメタデータサーバーに接続して、特定のi-nodeのオブジェクトの場所を取得し、最終的にOSDと直接通信してIO要求を実行します。
 
 .File Access (Ceph Filesystem or CephFS)
 image::images/ocs/ceph101-cephfs.png[Kernel Based CephFS Client]
 
-CephFS is typically used for RWX claims but can also be used to support RWO claims.
+CephFSは通常はRWXのPVCに使用されますが、RWO PVCもサポートします。
 
 [.lead]
-*_Object Storage, S3 and Swift (Ceph RADOS Gateway)_*
+*_S3/Swiftオブジェクトストレージ (Ceph RADOS Gateway)_*
 
-This access method offers support for the Amazon S3 and OpenStack Swift
-support on top of a Ceph cluster. The OpenShift Data Foundation Multi Cloud
-Gateway can leverage the RADOS Gateway to support Object Bucket Claims. From
-the Multi Cloud Gateway perspective the RADOS Gateway will be tagged as a
-compatible S3 endpoint.
+このアクセス方法は、Cephクラスタ上でAmazon S3およびOpenStack Swift互換のオブジェクトアクセスをサポートします。 +
+ODF MCGでは、RADOSGWを活用してObject Bucket Claimを処理することも可能です。この場合は、MCGからは、RADOSGWはS3互換性のあるS3 endpointとしてタグ付けされます。
 
 .Amazone S3 or OpenStack Swift (Ceph RADOS Gateway)
 image::images/ocs/ceph101-rgw.png[S3 and Swift Support]
@@ -2727,91 +2567,67 @@ image::images/ocs/ceph101-rgw.png[S3 and Swift Support]
 [.lead]
 *CRUSH*
 
-The Ceph cluster, being a distributed architecture, some solution had to be
-designed to provide an efficient way to distribute the data across the
-multiple OSDs in the cluster. The technique used is called CRUSH or
-Controlled Replication Under Scalable Hashing. With CRUSH, every object is
-assigned to one and only one hash bucket known as a Placement Group (PG).
+分散アーキテクチャであるCephクラスタは、クラスタ内の複数のOSDにデータを効率的に分散するように設計されています。 +
+そのためにCRUSH(Controlled Replication Under Scalable Hashing)と呼ばれる手法が使われます。 +
+CRUSHでは、すべてのオブジェクトはPlacement Group(PG)と呼ばれる、1つのユニークなハッシュバケットに割り当てられます。
 
 image::images/ocs/ceph101-crushfromobjecttoosd.png[From Object to OSD]
 
-CRUSH is the central point of configuration for the topology of the cluster.
-It offers a pseudo-random placement algorithm to distribute the objects
-across the PGs and uses rules to determine the mapping of the PGs to the
-OSDs. In essence, the PGs are an abstraction layer between the objects
-(application layer) and the OSDs (physical layer). In case of failure, the
-PGs will be remapped to different physical devices (OSDs) and eventually see
-their content resynchronized to match the protection rules selected by the
-storage administrator.
+CRUSHはCephクラスタのトポロジー構成の中心です。 +
+擬似ランダム配置アルゴリズムによってRADOS内のオブジェクトを分散し、CRUSHルールを使用してPGとOSDのマッピングを決定します。本質的にPGはオブジェクト(アプリケーション層)とOSD(物理層)の間の抽象化層と言えます。 +
+障害が発生した場合、PGは異なるOSDに再マップされ、最終的にストレージ管理者が選択したルールに一致するようにデータが再同期されます。
 
 [.lead]
-*Cluster Partitioning*
+*クラスタのパーティショニング*
 
-The Ceph OSDs will be in charge of the protection of the data as well as the
-constant checking of the integrity of the data stored in the entire cluster.
-The cluster will be separated into logical partitions, known as pools. Each
-pool has the following properties that can be adjusted:
+クラスタはPoolと呼ばれる論理的なパーティションで分割されます。各プールには次のプロパティがあります。
 
-* An ID (immutable)
-* A name
-* A number of PGs to distribute the objects across the OSDs
-* A CRUSH rule to determine the mapping of the PGs for this pool
-* A type of protection (Replication or Erasure Coding)
-* Parameters associated with the type of protection
-** Number of copies for replicated pools
-** K and M chunks for Erasure Coding
-* Various flags to influence the behavior of the cluster
+* Pool ID (変更不可)
+* 名前
+* PGの数
+* PGとOSDのマッピングを決定するCRUSHルール
+* データ保護のタイプ(Replication or Erasure Coding)
+* データ保護のタイプに関連するパラメータ
+** Rreplicated poolにおけるレプリカの数
+** Erasure Coded poolにおけるチャンク数(K+M)
+* クラスタの動作に影響を与えるさまざまなフラ
 
 [.lead]
-*Pools and PGs*
+*PoolとPG*
 
 .Pools and PGs
 image::images/ocs/ceph101-thefullpicture.png[From Object to OSD]
 
-The diagram above shows the relationship end to end between the object at the
-access method level down to the OSDs at the physical layer.
+上の図は、クライアントIOにより保存されるオブジェクトから物理層のOSDまでの、End-to-Endの関係を示しています。
 
-NOTE: A Ceph pool has no size and is able to consume the space available on any
-OSD where it's PGs are created. A Placement Group or PG belongs to only one
-pool.
+NOTE: Poolにはサイズがなく、PGが作成されたOSDで使用可能なスペースを消費できます。また1つのPGは1つのプールのみに属します。
 
 [.lead]
-*Data Protection*
+*データ保護*
 
-Ceph supports two types of data protection presented in the diagram below.
+Cephは、次の図に示す2つのタイプのデータ保護をサポートしています。
 
 .Ceph Data Protection
 image::images/ocs/ceph101-dataprotection.png[Replicated Pools vs Erasure Coded Pools]
 
-Replicated pools provide better performance in almost all cases at the cost
-of a lower usable to raw storage ratio (1 usable byte is stored using 3 bytes
-of raw storage) while `Erasure Coding` provides a cost efficient way to store
-data with less performance. Red Hat supports the following `Erasure Coding`
-profiles with their corresponding usable to raw ratio:
+Replicated poolは、オブジェクトを複製するため容量効率が低い(物理3バイトに対して実効は1バイト)一方で、ほとんどの場合においてErasure Coded poolよりも良好なパフォーマンスを示します。
 
-* 4+2 (1:2 ratio)
-* 8+3 (1:1.375 ratio)
-* 8+4 (1:2 ratio)
+Erasure Coded poolは、パフォーマンスはReplicated poolに劣る一方で、高い容量効率を示します。
+Erasure Coded poolは使用するパリティの数を構成できるため、高いResiliencyと耐久性を提供できることです。
+Erasure Coded poolでは次のようなK+Mの比率をサポートします。
 
-Another advantage of `Erasure Coding` (EC) is its ability to offer extreme
-resilience and durability as we can configure the number of parities being
-used. EC can be used for the RADOS Gateway access method and for the RBD
-access method (performance impact).
+* 4+2 (実効容量:物理容量 = 2:3)
+* 8+3 (実効容量:物理容量 = 8:11)
+* 8+4 (実効容量:物理容量 = 2:3)
 
 [.lead]
-*Data Distribution*
+*データの分散*
 
-To leverage the Ceph architecture at its best, all access methods but
-librados, will access the data in the cluster through a collection of
-objects. Hence a 1GB block device will be a collection of objects, each
-supporting a set of device sectors. Therefore, a 1GB file is stored in a
-CephFS directory will be split into multiple objects. Also a 5GB S3 object
-stored through the RADOS Gateway via the Multi Cloud Gateway will be divided
-in multiple objects.
+Cephアーキテクチャを最大限に活用するために、libradosを除くすべてのアクセス方法でオブジェクに分割して保存されます。 +
+1GBのRBDイメージは複数のオブジェクトに分割されてRADOSに保存されます。CephFSやRADOSGWも同様です。
 
 .Data Distribution
 image::images/ocs/ceph101-rbdlayout.png[RADOS Block Device Layout]
 
-NOTE: By default, each access method uses an object size of 4MB. The above
-diagram details how a 32MB RBD (Block Device) supporting a RWO PVC will be
-scattered throughout the cluster.
+NOTE: デフォルトでは、各アクセス方法は4MBのオブジェクトサイズを使用します。
+上の図はRWO PVCをサポートする32MB RBDがCephクラスター全体にどのように分散して保存されるかを示しています。
