@@ -64,7 +64,7 @@ cluster-d6qlm-mbttv-worker-us-east-2b   1         1         1       1           
 cluster-d6qlm-mbttv-worker-us-east-2c   1         1         1       1           27m
 ----
 
-インフラストラクチャーノードの演習と同様に、新しい *MachineSets* を作成して、各AWS AZにOCP クラスターのストレージ専用ノードを作成します。
+インフラストラクチャーノードの演習と同様に、新しい *MachineSets* を作成して、各AWS AZにOCP クラスタのストレージ専用ノードを作成します。
 
 [source,role="execute"]
 ----
@@ -148,7 +148,7 @@ ip-10-0-219-73.us-east-2.compute.internal    Ready    worker   14m   v1.22.8+c02
 
 === ODF Operatorを使ったODFクラスタの作成
 
-このセクションではOpenShift Data Foundation(ODF) Operatorをインストールし、新しく追加した3つのWorkerノードを使ってODFクラスターを作成します。 +
+このセクションではOpenShift Data Foundation(ODF) Operatorをインストールし、新しく追加した3つのWorkerノードを使ってODFクラスタを作成します。 +
 以下がインストールされます。
 - ODF *OperatorGroup*
 - ODF *Subscription*
@@ -160,8 +160,6 @@ ip-10-0-219-73.us-east-2.compute.internal    Ready    worker   14m   v1.22.8+c02
 ----
 oc create namespace openshift-storage
 ----
-
-You must add the monitoring label to this namespace. This is required to get prometheus metrics and alerts for the OCP storage dashboards. To label the `openshift-storage` namespace use the following command:
 
 このNamespaceには、モニタリング用のラベルを追加する必要があります。これは、OCPストレージダッシュボードの Prometheus メトリクスとアラートを取得するために必要です。 +
 `openshift-storage` Namespaceにラベルを付けるには、次のコマンドを使用します。
@@ -244,7 +242,7 @@ odf-operator-controller-manager-5b767b7f4c-6jm2j   2/2     Running   0          
 rook-ceph-operator-54d974474c-k82xz                1/1     Running   0          5m35s
 ----
 
-*Openshift Web Console* に戻ってそれでは続いてストレージクラスターを作成します。 +
+*Openshift Web Console* に戻ってそれでは続いてストレージクラスタを作成します。 +
 
 *Create StorageSystem* をクリックします。
 
@@ -261,7 +259,7 @@ image::images/ocs/OCS4-config-screen-partial1.png[Configure storage system setti
 
 *Next* をクリックします 。
 
-NOTE: 他のメニューの `Create a new StorageClass using local storage devices` は、Baremetal方式でインストールしたOCPクラスターでODFを構成する場合や、AWS EBSではないEC2 Instanceに元から存在するデバイスを使ってODFクラスターを構成する場合に使います。 +
+NOTE: 他のメニューの `Create a new StorageClass using local storage devices` は、Baremetal方式でインストールしたOCPクラスタでODFを構成する場合や、AWS EBSではないEC2 Instanceに元から存在するデバイスを使ってODFクラスタを構成する場合に使います。 +
 また `Connect an external storage platform` は、外部ストレージとコントロールプレーンを統一する特殊なケースで使います。
 
 .Select capacity and nodes for new storage system
@@ -272,7 +270,7 @@ image::images/ocs/OCS4-config-screen-partial2.png[Select capacity and nodes for 
 CAUTION: *ここで選択する Requested Capacity は、将来容量を拡張する際の最小単位として利用されます。* +
 例えば初めに2 TiBを選択した場合は、以降は 2TiB 単位で拡張することになります。
 
-*Select nodes* で、ODFクラスターで使うnodeを指定して *Next* をクリックします。
+*Select nodes* で、ODFクラスタで使うnodeを指定して *Next* をクリックします。
 ODF用のラベル `cluster.ocs.openshift.io/openshift-storage` が付けられたノードは、ここで自動で選択されるようになっています。そのため、はじめから3つのWorkerノードが選択されているはずです。以下のコマンドを実行して、間違いがないことを確認してみましょう。
 
 [source,role="execute"]
@@ -286,12 +284,12 @@ oc get nodes --show-labels | grep ocs | cut -d ' ' -f1
 image::images/ocs/ODF4.9-config-screen-partial3.png[Select encryption and network]
 
 *Encryption* では、何も選択しません。 +
-クラスター全体、または部分的な暗号化を利用したい場合は、ここでチェックを入れます。今回の Lab では暗号化はしないので、チェックを外したままで構いません。 + 
+クラスタ全体、または部分的な暗号化を利用したい場合は、ここでチェックを入れます。今回の Lab では暗号化はしないので、チェックを外したままで構いません。 + 
 （興味のある方は、チェックしてみてどのようなメニューが表示されるか確認されて構いません。*最後はチェックを外すよう注意してください*)
 
 *Network* では、`Default (SDN)` を選択します。 +
-Multus CNIを使ってPodで複数のネットワークを使用できる構成になっているOpenShiftクラスターでは、ODFでPublic NetworkとCluster Networkを分離することが可能です。 +
-ここでは一般的な構成である、ネットワークを分離しないODFクラスターを構成するため、`Default (SDN)` を選択します。
+Multus CNIを使ってPodで複数のネットワークを使用できる構成になっているOpenShiftクラスタでは、ODFでPublic NetworkとCluster Networkを分離することが可能です。 +
+ここでは一般的な構成である、ネットワークを分離しないODFクラスタを構成するため、`Default (SDN)` を選択します。
 
 *Next* をクリックします。
 
@@ -354,7 +352,7 @@ kbd:[Ctrl+C]を押すと終了できます。
 
 OperatorとOpenShiftの素晴らしいところは、デプロイされたコンポーネントに関するインテリジェンスをOperatorが内蔵していることです。
 また、Operatorは `CustomResource` を定義します。そのため `CustomResource` 自体を見ることでステータスを確認することができます。 +
-ODFを例にすると、ODFクラスターをデプロイすると最終的には `StorageSystem` と `StorageCluster` のインスタンスが生成されていることが分かります。この `StorageSystem` と `StorageCluster` は ODF Operator によって定義された `CustomeResource` です。
+ODFを例にすると、ODFクラスタをデプロイすると最終的には `StorageSystem` と `StorageCluster` のインスタンスが生成されていることが分かります。この `StorageSystem` と `StorageCluster` は ODF Operator によって定義された `CustomeResource` です。
 
 `StorageCluster` のステータスは次のようにチェックできます。
 
@@ -367,7 +365,7 @@ oc get storagecluster -n openshift-storage
 
 ### ストレージダッシュボードの使用
 
-このセクションでは、*OpenShift Web Console* に含まれている、ODF独自のダッシュボードを使ってストレージクラスターのステータスを確認します。 +
+このセクションでは、*OpenShift Web Console* に含まれている、ODF独自のダッシュボードを使ってストレージクラスタのステータスを確認します。 +
 まず、ODF Operatorのインストール後に画面右上に次のようなポップアップが表示されている場合は、*Refersh web console* をクリックして画面を更新してください。
 
 .ODF Dashboard after successful operator installation
@@ -379,8 +377,6 @@ NOTE: ODFのデプロイが完了したばかりの場合、ダッシュボー�
 
 .Storage Dashboard after successful storage installation
 image::images/ocs/OCS-dashboard-healthy.png[Storage Dashboard after successful storage installation]
-
-Reference the for more information on how to use the *Dashboards*.
 
 ダッシュボードの使用方法の詳細については、 https://access.redhat.com/documentation/en-us/red_hat_openshift_data_foundation/4.9/html/monitoring_openshift_data_foundation/cluster_health#verifying-openshift-data-foundation-is-healthy_rhodf[ODFモニタリングガイド]を参照してください。
 
@@ -402,9 +398,9 @@ oc get storageclasses
 
 NOTE: MCGは `noobaa-core` Pod内部の `db` コンテナで利用するために `ocs-storagecluster-ceph-rbd` StorageClassを使用してPVCを作成しています。
 
-=== Rook-Ceph toolboxを利用したCephクラスターの確認
+=== Rook-Ceph toolboxを利用したCephクラスタの確認
 
-このセクションでは、Rook-Ceph *toolbox* を利用して作成されたCephクラスターに対してcephコマンドを実行し、クラスター構成を確認します。
+このセクションでは、Rook-Ceph *toolbox* を利用して作成されたCephクラスタに対してcephコマンドを実行し、クラスタ構成を確認します。
 Rook-Ceph *toolbox* はODFに同梱されていないため、手動でデプロイする必要があります。
 
 以下のコマンドで `OCSInitialization ocsinit` を修正します。
@@ -421,7 +417,7 @@ oc patch OCSInitialization ocsinit -n openshift-storage --type json --patch  '[{
 TOOLS_POD=$(oc get pods -n openshift-storage -l app=rook-ceph-tools -o name)
 oc rsh -n openshift-storage $TOOLS_POD
 ----
-*toolbox* Podに入ったら、次のcephコマンドを実行してみて下さい。これらのコマンドによってCephクラスターの詳細な構成を確認することができます。
+*toolbox* Podに入ったら、次のcephコマンドを実行してみて下さい。これらのコマンドによってCephクラスタの詳細な構成を確認することができます。
 
 [source,role="execute"]
 ----
@@ -2026,11 +2022,11 @@ image::images/ocs/MCG-Console-photo-album-objects.png[Validate uploaded photos a
 == Cephクラスタへストレージを追加する
 
 ODFクラスタにストレージを追加することで、容量が追加されパフォーマンスが向上されます。 +
-このセクションでは、現在のストレージクラスターにODF Workerノードを追加する方法について説明します。
+このセクションでは、現在のストレージクラスタにODF Workerノードを追加する方法について説明します。
 
 === Workerノードを追加する
 
-現在のストレージクラスターにODF Workerノードを追加します。その後、次のサブセクションでODFクラスターを拡張して新しいノードにストレージをプロビジョニングする方法について説明します。
+現在のストレージクラスタにODF Workerノードを追加します。その後、次のサブセクションでODFクラスタを拡張して新しいノードにストレージをプロビジョニングする方法について説明します。
 
 ノードを追加するには、*MachineSet* を追加するか、既存のODFノード用 *MachieSet* をスケールアップします。
 このトレーニングでは、既存のODFノード用 *MachineSet* をスケールアップして、より多くのworker nodeを生成します。
@@ -2100,7 +2096,7 @@ ODFラベルが付いた新しいノードが作成できたので、次のス�
 
 前のセクションを実行した後は、6つのODF Workerノードが存在するはずです。
 
-ストレージを追加するには、*OpenShift Web Console* に移動し、手順にしたがってODFストレージクラスターの概要を表示します。
+ストレージを追加するには、*OpenShift Web Console* に移動し、手順にしたがってODFストレージクラスタの概要を表示します。
 
  - 左側のメニューから *Operators* -> *Installed Operators* をクリックする
  - `openshift-storage` Projectを選択する
@@ -2120,7 +2116,7 @@ StorageClassは `gp2` を選ぶ必要があります。また、`Raw Capacity` �
 
 NOTE: *`Raw Capacity` は最初にODFクラスタを構成した時点で選択したストレージ容量で決まるため、変更することはできません。*
 
-設定が完了したら、 *Add* をクリックして続行します。ストレージクラスターのステータスが再び `Ready` になるまで変化します。
+設定が完了したら、 *Add* をクリックして続行します。ストレージクラスタのステータスが再び `Ready` になるまで変化します。
 
 CAUTION: 新しいOSD Podが `Running` の状態になるには5分以上かかる場合があります。
 
@@ -2140,7 +2136,7 @@ rook-ceph-osd-4-5d665b7497-cbqz5                                  Running     ip
 rook-ceph-osd-5-6bf7684498-k24qb                                  Running     ip-10-0-181-161.us-east-2.compute.internal
 ----
 
-以上でODFクラスターを拡張することができました。
+以上でODFクラスタを拡張することができました。
 
 === 新しいストレージを確認する
 
@@ -2154,7 +2150,7 @@ TOOLS_POD=$(oc get pods -n openshift-storage -l app=rook-ceph-tools -o name)
 oc rsh -n openshift-storage $TOOLS_POD
 ----
 
-次にCephクラスターのステータスを確認します。
+次にCephクラスタのステータスを確認します。
 
 [source,role="execute"]
 ----
@@ -2191,7 +2187,7 @@ sh-4.4$ ceph status
 
 これら以外にはCephステータスの出力は何も変わっていません。
 
-続いて、Cephクラスターのトポロジーを確認します。
+続いて、Cephクラスタのトポロジーを確認します。
 [source,role="execute"]
 ----
 ceph osd crush tree
@@ -2220,7 +2216,7 @@ ID   CLASS  WEIGHT    TYPE NAME
 
 <1> Workerノードが追加されたことで、それぞれの `zone` の中で `host` が拡張されている。
 
-ODFで構成されたCephクラスターでは、それぞれのPoolごとにCRUSHルールが設定されています。どのルールでもデフォルトは `zone` でデータを複製するように設定されていて、高い冗長性を保ち、追加前のノードの負荷を緩和するために効果的な方法です。 +
+ODFで構成されたCephクラスタでは、それぞれのPoolごとにCRUSHルールが設定されています。どのルールでもデフォルトは `zone` でデータを複製するように設定されていて、高い冗長性を保ち、追加前のノードの負荷を緩和するために効果的な方法です。 +
 また、元のOSDにある既存のデータは自動的にバランスされ、新旧のOSDが負荷を分担するようになります。
 
 kbd:[Ctrl+D] を押すか、`exit` を実行して toolbox から出ることができます.
@@ -2347,30 +2343,29 @@ NOTE: Prometheusクエリ言語の詳細については、
 link:https://prometheus.io/docs/prometheus/latest/querying/basics/[Prometheus
 Query Documentation]を参照して下さい。
 
-== Using must-gather
+== must-gatherの使用
 
-Must-gather is a tool for collecting data about your running Openshift cluster. It loads a predefined set of containers that execute multiple programs and write results on the local workstation's filesystem. The local files can then be uploaded to a Red Hat case and used by a remote support engineer to debug a problem without needing direct access to your cluster. This utility and method for diagnostic collection is similar to sosreports for RHEL hosts.
+`must-gather` は、稼働中のOpenshiftクラスタに関するデータを収集するためのツールです。`must-gather` はデータ収集のために、事前に定義された複数のコンテナのセットを実行します。これらのコンテナは複数のプログラムを実行し、収集したファイルをローカルワークステーションのファイルシステムに書き込みます。ユーザーはこの収集したファイルをRed Hatのサポートケースにアップロードすることで、サポートエンジニアはクラスタに直接アクセスすることなく問題をデバッグするために使用することができます。この診断収集のためのユーティリティと方法は、RHELホスト用の`sosreports`に似ています。
 
-The ODF team has released its own must-gather image for the must-gather tool that runs storage specific commands.
+ODFではストレージ固有のコマンドを実行するために、独自の `must-gather` ツールのイメージをリリースしています。
 
-You can run this diagnostic tool like this for generic OpenShift debugging:
+一般的なOpenShiftの `must-gather` は次のコマンドで実行できます。
 
 [source,role="execute"]
 ----
 oc adm must-gather
 ----
 
-Or like this for ODF specific results:
+あるいは、ODFに特化した `must-gather` の結果を得るにはこのようにします。
 
 [source,role="execute"]
 ----
 oc adm must-gather --image=registry.redhat.io/odf4/ocs-must-gather-rhel8:v4.9
 ----
 
-The output will then be saved in the current directory inside of a new folder
-called `must-gather.local.(random)`
+出力は、カレントディレクトリにある `must-gather.local.(random)` という新しいフォルダの中に保存されます。
 
-More runtime options can be displayed with this command:
+実行時のオプションを表示するには、次のコマンドを実行します。
 
 [source,role="execute"]
 ----
@@ -2416,83 +2411,65 @@ Use "oc adm options" for a list of global command-line options (applies to all c
 ----
 
 [appendix]
-== Introduction to Ceph
+== Cephの概要
 
-This section will go through Ceph fundamental knowledge for a better
-understanding of the underlying storage solution
-used by ODF 4.
+このセクションでは、ODFで使用されるストレージソリューションの理解を深めるために、Cephの基礎知識を説明します。
 
 
-NOTE: The content in this Appendix is relevant to learning about the critical
-components of Ceph and how Ceph works. ODF 4 uses Ceph in a prescribed manner
-for providing storage to OpenShift applications. Using *Operators* and
-*CustomResourceDefinitions* (CRDs) for deploying and managing ODF 4 may
-restrict some of Ceph's advanced features when compared to general use
-outside of OCP 4.
+NOTE: この付録の内容は、Cephの重要なコンポーネントとCephの動作について学習することを目的としています。
+ODFではOpenShiftアプリケーションにストレージを提供するために、 *Operators* と *CustomResourceDefinitions(CRDs)* を使用した方法でCephをデプロイおよび管理します。
+これにより一般的なスタンドアロンのCephと比べて、Cephの高度な機能の一部が制限されていることがあります。
+
 
 [.lead]
-*Timeline*
+*Cephの歴史*
 
-The Ceph project has a long history as you can see in the timeline below.
+Cephプロジェクトは以下のタイムラインでわかるように長い歴史があります。
 
 .Ceph Project History
 image::images/ocs/ceph101-timeline.png[Ceph Project Timeline]
 
 [.lead]
-It is a battle-tested software defined storage (SDS) solution that has been
-available as a storage backend for OpenStack and Kubernetes for quite some
-time.
+Cephは、OpenStackとKubernetesのストレージバックエンドとしてかなり長い間使用されてきた、歴戦のSoftware-defined Storage(SDS)ソリューションです。
 
 [.lead]
 *Architecture*
 
-The Ceph cluster provides a scalable storage solution while providing
-multiple access methods to enable the different types of
-clients present within the IT infrastructure to get access to the data.
+Cephクラスタは、スケーラブルなストレージソリューションを提供すると同時に、ITインフラストラクチャ内に存在するさまざまなタイプのクライアントがデータにアクセスできるように、複数のアクセス方法を提供します。
 
 .Ceph Architecture
 image::images/ocs/ceph101-overview.png[Ceph From Above]
 
 [.lead]
-The entire Ceph architecture is resilient and does not present any single point
-of failure (SPOF).
+CephはResilientなアーキテクチャで、単一障害点(SPOF)がありません。
 
 [.lead]
 *RADOS*
 
-The heart of Ceph is an object store known as RADOS (Reliable Autonomic
-Distributed Object Store) bottom layer on the screen. This layer provides the
-Ceph software defined storage with the ability to store data (serve IO
-requests, to protect the data, to check the consistency and the integrity of
-the data through built-in mechanisms. The RADOS layer is composed of the
-following daemons:
+Cephの中核は、アーキテクチャ図の最下層にあるRADOS(Reliable Autonomic Distributed Object Store)と呼ばれるオブジェクトストアです。 +
+RADOSによってCephはストレージとしてデータを保存する機能を提供します。
+(つまり、IO要求を処理し、データを保護し、組み込みメカニズムによりデータの整合性と一貫性をチェックします) +
+RADOSは次のデーモンで構成されます。
 
-1. MONs or Monitors
-2. OSDs or Object Storage Devices
-3. MGRs or Managers
-4. MDSs or Meta Data Servers
+<1> MONs or Monitors
+<2> OSDs or Object Storage Devices
+<3> MGRs or Managers
+<4> MDSs or Meta Data Servers
 
-.*_Monitors_*
-The Monitors maintain the cluster map and state and provide distributed
-decision-making while configured in an odd number, 3 or 5 depending on the
-size and the topology of the cluster, to prevent split-brain situations. The
-Monitors are not in the data-path and do not serve IO requests to and from
-the clients.
+.*_MONs_*
+MONはCephのクラスタマップと状態を維持し、クラスタのサイズとトポロジーに応じて3または5といった奇数台で構成されます。
+MONは複数台で分散意思決定を提供することでスプリットブレインの状況を防ぎます。 +
+またMONはDataPathになく、クライアントとの間でIO要求を処理しません。
 
 .*_OSDs_*
-One OSD is typically deployed for each local block devices and the native
-scalable nature of Ceph allows for thousands of OSDs to be part of the
-cluster. The OSDs are serving IO requests from the clients while guaranteeing
-the protection of the data (replication or erasure coding), the rebalancing
-of the data in case of an OSD or a node failure, the coherence of the data
-(scrubbing and deep-scrubbing of the existing data).
+OSDは、データの保護(replication または erasure coding)、OSDまたはノード障害時のデータのリバランス、
+データの一貫性(既存のデータのscrubbingおよびdeep-scrubbing)を保証しながら、クライアントからのIO要求を処理しています。 +
+通常、1つのブロックデバイスごとに1つのOSDが展開され、Cephのスケーラブルな性質により、数千のOSDをクラスタに含めることができます。
 
 .*_MGRs_*
-The Managers are tightly integrated with the Monitors and collect the
-statistics within the cluster. Additionally they provide an extensible
-framework for the cluster through a pluggable Python interface aimed at
-expanding the Ceph existing capabilities. The current list of modules
-developed around the Manager framework are:
+MGRはMONと緊密に統合されており、クラスタ内の統計を収集します。 +
+さらに、Cephの機能拡張を目的としたpluggableなPythonインターフェイスを介して、拡張可能なフレームワークを提供します。
+Managerフレームワークを中心に開発されたモジュールの現在のリストは次のとおりです。
 
 * Balancer module
 * Placement Group auto-scaler module
@@ -2503,64 +2480,57 @@ developed around the Manager framework are:
 * Rook module
 
 .*_MDSs_*
-The Meta Data Servers manage the metadata for the POSIX compliant shared
-filesystem such as the directory hierarchy and the file metadata (ownership,
-timestamps, mode, ...). All the metadata is stored with RADOS and they do not
-serve any data to the clients. MDSs are only deployed when a shared
-filesystem is configured in the Ceph cluster.
+MDSはディレクトリ階層やファイルのメタデータ(ownership, timestamp、modeなど)など、POSIX準拠の共有ファイルシステムのメタデータを管理します。
+すべてのメタデータはRADOSで保存され、クライアントでメタデータを管理することはありません。 +
+MDSは、CephFSによる共有ファイルシステムが構成されている場合にのみデプロイされます。
 
-If we look at the Ceph cluster foundation layer, the full picture with the
-different types of daemons or containers looks like this.
+Cephクラスタの基盤の全体像はさまざまな種類のデーモンまたはコンテナによって構成されています。
 
 .RADOS as it stands
 image::images/ocs/ceph101-rados.png[RADOS Overview]
 
-The circles represent the MONs, the Ms represent the MGRs and the squares
-with the bars represent the OSDs. In the diagram above, the cluster operates
-with 3 Monitors, 2 Managers and 23 OSDs.
+上の図では、円はMONを表し、「M」はMGRを表し、バーのある四角はOSDを表します。
+上の図ではクラスタは3つのMON、2つのMGR、23のOSDで動作しています。
 
 [.lead]
-*Access Methods*
+*アクセス方式*
 
-Ceph was designed to provide the IT environment with all the necessary
-access methods so that any application can use what is the best solution for
-its use-case.
+Cephは、すべてのアプリケーションがそのユースケースに最適なストレージを使用できるように、すべてのアクセス方法を提供するように設計されています。
 
 .Different Storage Types Supported
 image::images/ocs/ceph101-differentstoragetypes.png[Ceph Access Modes]
 
-Ceph supports block storage through the RADOS Block Device (aka RBD) access
-method, file storage through the Ceph Filesystem (aka CephFS) access method
-and object storage through its native `librados` API or through the RADOS
-Gateway (aka RADOSGW or RGW) for compatibility with the S3 and Swift
-protocols.
+Cephは、
+
+* RADOS Block Device(RBD)アクセス方式によるブロックストレージ
+* Ceph Filesystem(CephFS)アクセス方式によるファイルストレージ
+* ネイティブの `librados` API、またはRADOS Gateway(RADOSGWまたはRGW)によるS3/Swiftプロトコルを使用するオブジェクトストレージ
+
+をサポートします。
 
 [.lead]
 *Librados*
 
-Librados allows developers to code natively against the native Ceph cluster
-API for maximum efficiency combined with a small footprint.
+Libradosを使用すると、アプリケーション開発者はのCephクラスタがネイティブに持つAPIでコーディングできます。 +
+この結果、小さなフットプリントで大きな効率を得ることができます。
 
 .Application Native Object API
 image::images/ocs/ceph101-librados.png[librados]
 
-The Ceph native API offers different wrappers such as C, C++, Python, Java,
-Ruby, Erlang, Go and Rust.
+CephのネイティブAPIは、C, C++, Python, Java, Ruby, Erlang, Go, Rustなどのさまざまなラッパーを提供しています。
 
 [.lead]
 *RADOS Block Device (RBD)*
 
-This access method is used in Red Hat Enterprise Linux or OpenShift version
-3.x or 4.x. RBDs can be accessed either through a kernel module (RHEL, ODF4)
-or through the `librbd` API (RHOSP). In the OCP world, RBDs are designed to
-address the need for RWO PVCs.
+このアクセス方法は、Red Hat Enterprise LinuxまたはOpenShiftバージョン3.xまたは4.xで使用されます。
+RBDは、カーネルモジュール(RHEL、OCP4) または `librbd` API(RHOSP)からアクセスできます。
+OCPの世界では、RBDはRWO PVCの必要性に対処するように設計されています。
 
 [.lead]
 *_Kernel Module (kRBD)_*
 
-The kernel RBD driver offers superior performance compared to the userspace
-`librbd` method. However, kRBD is currently limited and does not provide the
-same level of functionality. e.g., no RBD Mirroring support.
+kRBDドライバーは、ユーザースペースの `librbd` 方式と比較して優れたパフォーマンスを提供します。
+ただし、kRBDは現在制限されており `librbd` と同じレベルの機能を提供していません。例えば、RBDミラーリングはサポートされていません。
 
 .kRBD Diagram
 image::images/ocs/ceph101-krbd.png[Kernel based RADOS Block Device]
@@ -2568,35 +2538,28 @@ image::images/ocs/ceph101-krbd.png[Kernel based RADOS Block Device]
 [.lead]
 *_Userspace RBD (librbd)_*
 
-This access method is used in Red Hat OpenStack Environment or OpenShift
-through the RBD-NBD driver when available starting in the RHEL 8.1 kernel.
-This mode allows us to leverage all existing RBD features such as RBD
-Mirroring.
+このアクセス方法は、RHEL 8.1 KernelからRed Hat OpenStackまたはOpenShiftでRBD-NBDドライバーを介して使用されます。 +
+このモードにより、RBDミラーリングなどの既存のRBD機能をすべて活用できます。
 
 .librbd Diagram
 image::images/ocs/ceph101-librbd.png[Userspace RADOS Block Device]
 
 [.lead]
-*_Shared Filesystem (CephFS)_*
+*_共有ファイルシステム (CephFS)_*
 
-This method allows clients to jointly access a shared POSIX compliant
-filesystem. The client initially contacts the Meta Data Server to obtain the
-location of the object(s) for a given inode and then communicates directly
-with an OSD to perform the final IO request.
+この方法により、クライアントはPOSIX互換の共有ファイルシステムに同時にアクセスできます。 +
+クライアントは最初にメタデータサーバーに接続して、特定のi-nodeのオブジェクトの場所を取得し、最終的にOSDと直接通信してIO要求を実行します。
 
 .File Access (Ceph Filesystem or CephFS)
 image::images/ocs/ceph101-cephfs.png[Kernel Based CephFS Client]
 
-CephFS is typically used for RWX claims but can also be used to support RWO claims.
+CephFSは通常はRWXのPVCに使用されますが、RWO PVCもサポートします。
 
 [.lead]
-*_Object Storage, S3 and Swift (Ceph RADOS Gateway)_*
+*_S3/Swiftオブジェクトストレージ (Ceph RADOS Gateway)_*
 
-This access method offers support for the Amazon S3 and OpenStack Swift
-support on top of a Ceph cluster. The OpenShift Data Foundation Multi Cloud
-Gateway can leverage the RADOS Gateway to support Object Bucket Claims. From
-the Multi Cloud Gateway perspective the RADOS Gateway will be tagged as a
-compatible S3 endpoint.
+このアクセス方法は、Cephクラスタ上でAmazon S3およびOpenStack Swift互換のオブジェクトアクセスをサポートします。 +
+ODF MCGでは、RADOSGWを活用してObject Bucket Claimを処理することも可能です。この場合は、MCGからは、RADOSGWはS3互換性のあるS3 endpointとしてタグ付けされます。
 
 .Amazone S3 or OpenStack Swift (Ceph RADOS Gateway)
 image::images/ocs/ceph101-rgw.png[S3 and Swift Support]
@@ -2604,91 +2567,67 @@ image::images/ocs/ceph101-rgw.png[S3 and Swift Support]
 [.lead]
 *CRUSH*
 
-The Ceph cluster, being a distributed architecture, some solution had to be
-designed to provide an efficient way to distribute the data across the
-multiple OSDs in the cluster. The technique used is called CRUSH or
-Controlled Replication Under Scalable Hashing. With CRUSH, every object is
-assigned to one and only one hash bucket known as a Placement Group (PG).
+分散アーキテクチャであるCephクラスタは、クラスタ内の複数のOSDにデータを効率的に分散するように設計されています。 +
+そのためにCRUSH(Controlled Replication Under Scalable Hashing)と呼ばれる手法が使われます。 +
+CRUSHでは、すべてのオブジェクトはPlacement Group(PG)と呼ばれる、1つのユニークなハッシュバケットに割り当てられます。
 
 image::images/ocs/ceph101-crushfromobjecttoosd.png[From Object to OSD]
 
-CRUSH is the central point of configuration for the topology of the cluster.
-It offers a pseudo-random placement algorithm to distribute the objects
-across the PGs and uses rules to determine the mapping of the PGs to the
-OSDs. In essence, the PGs are an abstraction layer between the objects
-(application layer) and the OSDs (physical layer). In case of failure, the
-PGs will be remapped to different physical devices (OSDs) and eventually see
-their content resynchronized to match the protection rules selected by the
-storage administrator.
+CRUSHはCephクラスタのトポロジー構成の中心です。 +
+擬似ランダム配置アルゴリズムによってRADOS内のオブジェクトを分散し、CRUSHルールを使用してPGとOSDのマッピングを決定します。本質的にPGはオブジェクト(アプリケーション層)とOSD(物理層)の間の抽象化層と言えます。 +
+障害が発生した場合、PGは異なるOSDに再マップされ、最終的にストレージ管理者が選択したルールに一致するようにデータが再同期されます。
 
 [.lead]
-*Cluster Partitioning*
+*クラスタのパーティショニング*
 
-The Ceph OSDs will be in charge of the protection of the data as well as the
-constant checking of the integrity of the data stored in the entire cluster.
-The cluster will be separated into logical partitions, known as pools. Each
-pool has the following properties that can be adjusted:
+クラスタはPoolと呼ばれる論理的なパーティションで分割されます。各プールには次のプロパティがあります。
 
-* An ID (immutable)
-* A name
-* A number of PGs to distribute the objects across the OSDs
-* A CRUSH rule to determine the mapping of the PGs for this pool
-* A type of protection (Replication or Erasure Coding)
-* Parameters associated with the type of protection
-** Number of copies for replicated pools
-** K and M chunks for Erasure Coding
-* Various flags to influence the behavior of the cluster
+* Pool ID (変更不可)
+* 名前
+* PGの数
+* PGとOSDのマッピングを決定するCRUSHルール
+* データ保護のタイプ(Replication or Erasure Coding)
+* データ保護のタイプに関連するパラメータ
+** Rreplicated poolにおけるレプリカの数
+** Erasure Coded poolにおけるチャンク数(K+M)
+* クラスタの動作に影響を与えるさまざまなフラ
 
 [.lead]
-*Pools and PGs*
+*PoolとPG*
 
 .Pools and PGs
 image::images/ocs/ceph101-thefullpicture.png[From Object to OSD]
 
-The diagram above shows the relationship end to end between the object at the
-access method level down to the OSDs at the physical layer.
+上の図は、クライアントIOにより保存されるオブジェクトから物理層のOSDまでの、End-to-Endの関係を示しています。
 
-NOTE: A Ceph pool has no size and is able to consume the space available on any
-OSD where it's PGs are created. A Placement Group or PG belongs to only one
-pool.
+NOTE: Poolにはサイズがなく、PGが作成されたOSDで使用可能なスペースを消費できます。また1つのPGは1つのプールのみに属します。
 
 [.lead]
-*Data Protection*
+*データ保護*
 
-Ceph supports two types of data protection presented in the diagram below.
+Cephは、次の図に示す2つのタイプのデータ保護をサポートしています。
 
 .Ceph Data Protection
 image::images/ocs/ceph101-dataprotection.png[Replicated Pools vs Erasure Coded Pools]
 
-Replicated pools provide better performance in almost all cases at the cost
-of a lower usable to raw storage ratio (1 usable byte is stored using 3 bytes
-of raw storage) while `Erasure Coding` provides a cost efficient way to store
-data with less performance. Red Hat supports the following `Erasure Coding`
-profiles with their corresponding usable to raw ratio:
+Replicated poolは、オブジェクトを複製するため容量効率が低い(物理3バイトに対して実効は1バイト)一方で、ほとんどの場合においてErasure Coded poolよりも良好なパフォーマンスを示します。
 
-* 4+2 (1:2 ratio)
-* 8+3 (1:1.375 ratio)
-* 8+4 (1:2 ratio)
+Erasure Coded poolは、パフォーマンスはReplicated poolに劣る一方で、高い容量効率を示します。
+Erasure Coded poolは使用するパリティの数を構成できるため、高いResiliencyと耐久性を提供できることです。
+Erasure Coded poolでは次のようなK+Mの比率をサポートします。
 
-Another advantage of `Erasure Coding` (EC) is its ability to offer extreme
-resilience and durability as we can configure the number of parities being
-used. EC can be used for the RADOS Gateway access method and for the RBD
-access method (performance impact).
+* 4+2 (実効容量:物理容量 = 2:3)
+* 8+3 (実効容量:物理容量 = 8:11)
+* 8+4 (実効容量:物理容量 = 2:3)
 
 [.lead]
-*Data Distribution*
+*データの分散*
 
-To leverage the Ceph architecture at its best, all access methods but
-librados, will access the data in the cluster through a collection of
-objects. Hence a 1GB block device will be a collection of objects, each
-supporting a set of device sectors. Therefore, a 1GB file is stored in a
-CephFS directory will be split into multiple objects. Also a 5GB S3 object
-stored through the RADOS Gateway via the Multi Cloud Gateway will be divided
-in multiple objects.
+Cephアーキテクチャを最大限に活用するために、libradosを除くすべてのアクセス方法でオブジェクに分割して保存されます。 +
+1GBのRBDイメージは複数のオブジェクトに分割されてRADOSに保存されます。CephFSやRADOSGWも同様です。
 
 .Data Distribution
 image::images/ocs/ceph101-rbdlayout.png[RADOS Block Device Layout]
 
-NOTE: By default, each access method uses an object size of 4MB. The above
-diagram details how a 32MB RBD (Block Device) supporting a RWO PVC will be
-scattered throughout the cluster.
+NOTE: デフォルトでは、各アクセス方法は4MBのオブジェクトサイズを使用します。
+上の図はRWO PVCをサポートする32MB RBDがCephクラスター全体にどのように分散して保存されるかを示しています。
