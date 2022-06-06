@@ -408,3 +408,183 @@ Kibanaでは、クエリを保存して後で使えるようにすることが�
 時間をかけて _Kibana_ のページを探索し、より多くのクエリを追加したり実行したりして経験を積んでください。
 これは本番環境のクラスタを使用する際に役立つでしょう。
 探しているログをこのコンソールから取得することができるようになります。
+
+
+
+### ログを外部システムに転送する
+
+このセクションでは、ログを外部ログシステムに転送する方法を示します。
+
+`ClusterLogForwarder` によって指定された新しい `CustomResourceDefinition（CRD）` は、ログを外部（または内部）システムに転送するために内部のFluentd `configmas` を作成または変更するために使用されます。Cluster Logging Operatorクラスタに存在できる `ClusterLogForwarder` は1つだけであり、すべてのログ転送ルールが組み合わされています。
+
+外部のサードパーティシステムにクラスタログを転送するには、 `ClusterLogForwarder` カスタムリソース（CR）で指定された出力とパイプラインを組み合わせて、OpenShift Container Platformクラスタの内部および外部の特定のエンドポイントにログを送信することが必要です。また、 `inputs` を使用して、特定のプロジェクトに関連するアプリケーションログをエンドポイントに転送することができます。これらの概念について詳しく学びましょう。
+
+* `output` は、定義したログデータの宛先、またはログの送信先です。`output` の種類は以下の通りです。
+** `elasticsearch` : 外部のElasticsearch v5.xまたはv6.xインスタンス。Elasticsearchの出力はTLS接続を使用できます。
+** `fluentdForward` : Fluentdをサポートする外部のログアグリゲーションソリューションです。このオプションはFluentdの転送プロトコルを使用します。`fluentForward` outputはTCPまたはTLS接続を使用でき、秘密鍵のshared_keyフィールドを提供することで *共有鍵認証* をサポートします。共有鍵認証は、TLS の有無にかかわらず使用できます。 
+** `syslog` : syslogRFC3164またはRFC5424プロトコルをサポートする外部ログ集約ソリューションです。syslog出力は、UDP、TCP、またはTLS接続を使用できます。
+** `kafka` : Kafkaブローカーです。`kafka` outputは、TCPまたはTLS接続を使用できます。
+** `default` : 内部の OpenShift Container Platform Elasticsearch インスタンスです。デフォルトのoutputを設定する必要はありません。デフォルトのoutputを設定した場合、デフォルトのoutputはクラスターロギングオペレーター用に予約されているため、エラーメッセージが表示されます。
+
+output URL スキームが TLS (HTTPS、TLS、または UDPS) を必要とする場合、TLS サーバーサイド認証が有効になります。クライアント認証も有効にするには、output に `openshift-logging` プロジェクト内の secret を指定する必要があります。この secret には、それぞれの証明書を指す *tls.crt*、*tls.key*、および *ca-bundle.crt* というキーが必要です。
+
+* `pipeline` は、1つのログタイプから1つまたは複数の出力への単純なルーティング、またはどのログを送信するかを定義します。ログタイプは以下のいずれかです。
+** `application` : インフラストラクチャコンテナアプリケーションを除く、クラスタで実行されているユーザーアプリケーションによって生成されたコンテナログ。
+** `infrastructure` : openshift *、kube *、またはデフォルトのプロジェクトで実行されるポッドからのコンテナーログと、ノードファイルシステムから供給されるジャーナルログ。
+** `audit` : ノードの監査システム（auditd）が生成するログと、Kubernetes APIサーバーおよびOpenShift APIサーバーの監査ログ。
+
+パイプラインのキーと値のペアを使用して、送信ログメッセージにラベルを追加することができます。たとえば、他のデータセンターに転送されるメッセージにラベルを追加したり、タイプ別にログにラベルを付けることができます。オブジェクトに追加されたラベルは、ログメッセージと一緒に転送されます。
+
+* inputは、特定のプロジェクトに関連付けられたアプリケーションログをパイプラインに転送します。
+
+詳細については、
+link:https://docs.openshift.com/container-platform/4.10/logging/cluster-logging-external.html[OpenShiftの公式ドキュメントサイト]をご覧ください。
+
+#### 外部Syslogサーバーへのログの送信
+
+ここでは簡略化のため、コンテナ化したSyslogサーバーを `external-logs` という名前空間に配置し、外部のSyslogサーバーをエミュレートすることにします。
+
+アプリケーションログとインフラログを分離する方法も紹介したいので、2つの（コンテナ化した）外部Syslogをデプロイします。1つは転送されたアプリケーションログを受信するため、もう1つは転送されたインフラログを受信するためです。
+
+まず、`external-logs` というネームスペースを作成し、そこにSyslogサーバを配置します。
+
+----
+oc new-project external-logs
+----
+
+では、そのネームスペースに `Syslog` サーバをデプロイしてみましょう。そのために、必要なリソースをすべて含むYAMLファイルを使用します。
+
+----
+oc create -f /opt/app-root/src/support/extlogs-syslog.yaml -n external-logs
+----
+
+すべてが正常に機能していることを確認しましょう。外部レジストリ用にイメージがプルされるまで1分かかる場合があります。すべてがOKの場合、次のような出力が得られるはずです。
+
+----
+oc get pods -n external-logs
+----
+
+次の出力が表示されます。
+
+----
+NAME                               READY   STATUS    RESTARTS   AGE
+syslog-ng-84c59fdc8-mdwrs          1/1     Running   0          81s
+syslog-ng-infra-697fc7597f-gwrxd   1/1     Running   0          81s
+----
+
+いずれかのPodが `CrashLoopBackOff` 状態になっている場合は、`oc delete pods --all -n external-logs` を実行してPodを再起動してください。
+
+外部 Syslog サーバが利用可能になったので、`ClusterLogForwarder` を作成してログ転送ルールを設定しましょう。まず、YAMLファイルを見てみましょう。
+
+----
+apiVersion: logging.openshift.io/v1
+kind: ClusterLogForwarder
+metadata:
+  name: instance
+  namespace: openshift-logging
+spec:
+  outputs: (1)
+  - name: rsyslog-app
+    syslog:
+      facility: user
+      payloadKey: message
+      rfc: RFC3164
+      severity: informational
+    type: syslog (2)
+    url: udp://syslog-ng.external-logs.svc:514 (3)
+  - name: rsyslog-infra
+    syslog:
+      facility: user
+      payloadKey: message
+      rfc: RFC3164
+      severity: informational
+    type: syslog
+    url: udp://syslog-ng-infra.external-logs.svc:514 (4)
+  pipelines: (5)
+  - inputRefs: (6)
+    - application (7)
+    labels:
+      syslog: app
+    name: syslog-app
+    outputRefs:
+    - rsyslog-app (8)
+    - default
+  - inputRefs:
+    - infrastructure (8)
+    labels:
+      syslog: infra
+    name: syslog-infra
+    outputRefs:
+    - rsyslog-infra (9)
+    - default
+----
+
+このYAMLファイルには、いくつかの注目すべきフィールドがあります。
+
+* (1) `outputs` セクションは、すべてのリモートログシステムを定義します。この例では、2つの Syslog サーバーがあります。
+* (2) 使用されているログアグリゲータの種類を定義します。
+* (3) アプリケーション関連のログを保存するためのURLです。 `external-logs` ネームスペースにあるサービスを指しています。
+* (4) インフラ関連のログを保存するためのURLです。`external-logs` ネームスペースにあるサービスを指しています。
+* (5）`pipeline` は、先に定義したアウトプットに送るべきログのソースと性質を定義しています。
+* (6) `inputRefs` は送信するログの性質を記述するためのもので、注意点として、アプリケーション、インフラ、OpenShift の監査ログ (API アクセスなど) のための監査のいずれかを指定できます。
+* 2つのinputRefがあり、(7)はアプリケーションログ用、(8)はインフラストラクチャログ用です。
+
+各 `inputRefs` セクションには、ログがどこに送られるかを示す `outRefs` が含まれており、`spec` セクションの最初に定義された `outputs` (1) を参照しています。
+
+では、YAML ファイルを使用して `ClusterLogForwarder` リソースを作成してみましょう。
+
+----
+oc create -f /opt/app-root/src/support/extlogs-clusterlogforwarder.yaml
+----
+
+CRが作成されると、Cluster Logging Operatorは `Collector` Podsをデプロイします。デプロイされるのを待ちます。
+
+----
+oc rollout status ds/collector -n openshift-logging
+----
+
+Podが再展開されない場合は、 `Collector` Podを手動で削除して、強制的に再展開させることができます。
+
+----
+oc delete pod --selector logging-infra=collector -n openshift-logging
+----
+
+すべての `Collector` Podが Running 状態になったことを確認しましょう。
+
+----
+oc get pod --selector logging-infra=collector -n openshift-logging
+----
+
+このようなものが出力されるはずです。
+
+----
+NAME              READY   STATUS    RESTARTS   AGE
+collector-2mk4h   2/2     Running   0          37s
+collector-4dfnc   2/2     Running   0          38s
+collector-99rh4   2/2     Running   0          37s
+collector-c7msc   2/2     Running   0          38s
+collector-gb7nh   2/2     Running   0          38s
+collector-k8khn   2/2     Running   0          37s
+collector-lt8j4   2/2     Running   0          38s
+collector-pzqxw   2/2     Running   0          37s
+collector-w54c5   2/2     Running   0          37s
+----
+
+ここで、2台のSyslogサーバにログが転送されていることを確認しましょう。Syslogサーバーはコンテナ内の `/var/log/messages` ファイルにログを保存していますので、Webコンソールからコンテナに`oc exec` して内容を確認する必要があります。
+
+今回はOpenShift Console Terminalを使用してPodにアクセスし、 `/var/log/messages` の内容を確認します。
+
+1. Administrator Viewを開き、 `workloads→Pods` と進みます。 `external-logs` Projectにいることを確認します。
++
+image::images/logging-syslog-pods.png[Syslog Pods]
++
+2. `syslog-ng-infra-xyz` のような名前の `syslog-infra` ポッドをクリックし、`Terminal` タブに移動します (# プロンプトを表示するには、何度かエンターキーを押す必要があるかもしれません)。
++
+image::images/logging-syslog-terminal-infra.png[Syslog Terminal]
++
+3. ターミナルボックスに、`tail -f /var/log/messages` と入力します。すると、転送されたログがターミナルに表示されるはずです。
++
+image::images/logging-syslog-logs.png[Syslog logs]
+
+
+これで完了です！この手順をもう一方のポッドで繰り返して、アプリケーション・ログも正しく転送されることを確認できます。
