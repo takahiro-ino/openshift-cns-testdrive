@@ -41,25 +41,20 @@ apiVersion: config.openshift.io/v1
 kind: OAuth
 metadata:
   annotations:
+    include.release.openshift.io/ibm-cloud-managed: "true"
+    include.release.openshift.io/self-managed-high-availability: "true"
+    include.release.openshift.io/single-node-developer: "true"
     release.openshift.io/create-only: "true"
-  creationTimestamp: "2021-01-04T18:09:16Z"
+  creationTimestamp: "2022-02-09T23:06:59Z"
   generation: 1
-  managedFields:
-  - apiVersion: config.openshift.io/v1
-    fieldsType: FieldsV1
-    fieldsV1:
-      f:metadata:
-        f:annotations:
-          .: {}
-          f:release.openshift.io/create-only: {}
-      f:spec: {}
-    manager: cluster-version-operator
-    operation: Update
-    time: "2021-01-04T18:09:16Z"
   name: cluster
-  resourceVersion: "1807"
-  selfLink: /apis/config.openshift.io/v1/oauths/cluster
-  uid: 8090316c-209e-425c-9ed6-39930337f557
+  ownerReferences:
+  - apiVersion: config.openshift.io/v1
+    kind: ClusterVersion
+    name: version
+    uid: c9cbd13c-99bf-4e82-b2ad-690810a01f2f
+  resourceVersion: "1715"
+  uid: 1bedd82d-b235-4e39-af98-e40f411c3c8e
 spec: {}
 ----
 
@@ -76,32 +71,20 @@ oc get secret -n kube-system kubeadmin -o yaml
 ----
 apiVersion: v1
 data:
-  kubeadmin: JDJhJDEwJDNyLjhRNUdzdzExSFFyckFMeEF5NU9RT0hILzZYSEVpNHIxYURpNks3WVZPLnlxRGVnaHpx
+  kubeadmin: JDJhJDEwJFYwcVBXRjZGTlNOOU1RYUN6SGtJVGV4T3I5Ym9DbGRTT0VmNS44UGl2cWZOUGdsTnkvb3hT
 kind: Secret
 metadata:
-  creationTimestamp: "2021-01-04T18:08:15Z"
-  managedFields:
-  - apiVersion: v1
-    fieldsType: FieldsV1
-    fieldsV1:
-      f:data:
-        .: {}
-        f:kubeadmin: {}
-      f:type: {}
-    manager: cluster-bootstrap
-    operation: Update
-    time: "2021-01-04T18:08:15Z"
+  creationTimestamp: "2022-02-09T23:06:14Z"
   name: kubeadmin
   namespace: kube-system
-  resourceVersion: "98"
-  selfLink: /api/v1/namespaces/kube-system/secrets/kubeadmin
-  uid: b5177429-c0db-443e-bbed-8d0912779a96
+  resourceVersion: "576"
+  uid: 834a86fd-96e6-4d6a-8c16-6eca251b10f0
 type: Opaque
 ----
 
 この `Secret` には、`kubeadmin` パスワードがエンコードされたハッシュが含まれています。このアカウントは、新しい `OAuth` を設定した後も動作します。このアカウントを無効にしたい場合は、Secretを削除する必要があります。
 
-現実世界の環境では、既存のID管理ソリューションがあり、これと統合したいと思うでしょう。このラボでは、`identityProvider` としてLDAPを構成しています。以下はOAuth構成の例です。`identityProviders` で `type.LDAP` の要素に注目してみましょう。
+実際の環境では、既存のID管理ソリューションと統合することをお勧めします。このラボでは、`identityProvider` としてLDAPを構成しています。以下はOAuth構成の例です。`identityProviders` で `type.LDAP` の要素に注目してみましょう。
 
 [source,yaml]
 ----
@@ -149,11 +132,11 @@ spec:
 
 <5> `bindPassword`: 検索時にバインドする際に使用するパスワードを持つSecretを参照します。
 
-<6> `ca`: LDAPサーバーのSSL証明書を検証するために使用するCA証明書を含むConfigMapの参照。
+<6> `ca`: LDAPサーバーのSSL証明書を検証するために使用するCA証明書を含むConfigMapを参照します。
 
-<7> `url`: LDAPサーバーと実行する検索。
+<7> `url`: LDAPサーバーのURLです。
 
-OpenShiftにおけるLDAP認証の具体的な詳細については、link:https://docs.openshift.com/container-platform/4.5/authentication/identity_providers/configuring-ldap-identity-provider.html[Configuring
+OpenShiftにおけるLDAP認証の具体的な詳細については、link:https://docs.openshift.com/container-platform/4.10/authentication/identity_providers/configuring-ldap-identity-provider.html[Configuring
 an LDAP identity provider]のドキュメントを参照してください。
 
 LDAP IDプロバイダを設定するには、以下を行う必要があります。
@@ -178,8 +161,8 @@ oc apply -f {{ HOME_PATH }}/support/oauth-cluster.yaml
 ====
 
 #### LDAPグループをOpenShiftグループに同期する
-OpenShiftでは、グループを使用してユーザを管理し、複数のユーザの権限を一度に制御することができます。LDAPでグループを同期する方法については、link:https://docs.openshift.com/container-platform/3.11/install_config/syncing_groups_with_ldap.html[sync
-groups with LDAP]の中にセクションがあります。グループを同期するには、`cluster-admin` 権限を持つユーザとしてOpenShiftにログインした状態で `groupsync` というプログラムを実行し、OpenShiftが様々なグループ内で見つけたユーザをどうするかを指示する設定ファイルを使う必要があります。
+OpenShiftでは、グループを使用してユーザを管理し、複数のユーザの権限を一度に制御することができます。LDAPでグループを同期する方法については、link:https://docs.openshift.com/container-platform/4.10/authentication/ldap-syncing.html[Syncing LDAP groups
+]の中にセクションがあります。グループを同期するには、`cluster-admin` 権限を持つユーザとしてOpenShiftにログインした状態で `groupsync` というプログラムを実行し、OpenShiftが様々なグループ内で見つけたユーザをどうするかを指示する設定ファイルを使う必要があります。
 
 このラボでは次のような `groupsync` の設定ファイルを提供しています。
 
@@ -242,27 +225,25 @@ YAMLは以下のようになっています。
 
 [source,yaml]
 ----
-apiVersion: user.openshift.io/v1
+aapiVersion: user.openshift.io/v1
 kind: Group
 metadata:
   annotations:
-    openshift.io/ldap.sync-time: "2021-01-04T21:43:40Z"
-    openshift.io/ldap.uid: cn=ose-fancy-dev,ou=Users,o=5e615ba46b812e7da02e93b5,dc=jumpcloud,dc=co
-m
+    openshift.io/ldap.sync-time: "2022-02-10T01:49:07Z"
+    openshift.io/ldap.uid: cn=ose-fancy-dev,ou=Users,o=5e615ba46b812e7da02e93b5,dc=jumpcloud,dc=com
     openshift.io/ldap.url: ldap.jumpcloud.com:636
-  creationTimestamp: "2021-01-04T21:43:40Z"
+  creationTimestamp: "2022-02-10T01:49:07Z"
   labels:
     openshift.io/ldap.host: ldap.jumpcloud.com
   name: ose-fancy-dev
-  resourceVersion: "80943"
-  selfLink: /apis/user.openshift.io/v1/groups/ose-fancy-dev
-  uid: 652f296a-b2ea-41ca-9b1e-5cfd98389438
+  resourceVersion: "68628"
+  uid: 374c463a-bdd2-4da1-ae1a-619eca0994f6
 users:
 - fancyuser1
 - fancyuser2
 ----
 
-OpenShiftは自動的にいくつかのLDAPメタデータを *Group* に関連付け、グループ内のユーザをリストアップしました。
+OpenShiftは自動的にいくつかのLDAPメタデータを *Group* に関連付け、グループに含まれるユーザーを一覧表示します。
 
 *Users* をリストアップするとどうなるでしょうか?
 
@@ -282,7 +263,7 @@ No resources found.
 *Users* は、最初にログインしようとするまで実際には作成されません。*Group* の定義に表示されているのは、OpenShiftがその特定のIDを持つ *User* に遭遇した場合、その *User* を *Group* に関連付けるべきであるとOpenShiftに伝えているだけのプレースホルダーです。
 
 #### グループポリシーの変更
-あなたの環境では、`cluster-reader` という特別な権限を持つ _ose-fancy-dev_ と呼ばれる特別なグループがあります。これは、ユーザがクラスタに関する管理者レベルの情報を閲覧できるようにする役割です。例えば、クラスタ内のすべての *Projects* のリストを見ることができます。
+この環境では、`ose-fancy-dev` というスーパー開発者グループがあります。この人たちに特別な  `cluster-reader` 権限を与えてみましょう。これは、クラスタに関する管理レベルの情報を閲覧できるようにする役割です。たとえば、クラスター内のすべての *Projects* のリストを見ることができます。
 
 `ose-fancy-dev` *Group* のポリシーを変更します。
 
@@ -293,7 +274,7 @@ oc adm policy add-cluster-role-to-group cluster-reader ose-fancy-dev
 
 [Note]
 ====
-OpenShiftに付属するさまざまなロールに興味がある方は、link:https://docs.openshift.com/container-platform/4.5/authentication/using-rbac.html[Role-Based Access Control (RBAC)^] のドキュメントを参照してください。
+OpenShiftに付属するさまざまなロールに興味がある方は、link:https://docs.openshift.com/container-platform/4.10/authentication/using-rbac.html[Role-Based Access Control (RBAC)^] のドキュメントを参照してください。
 ====
 
 #### cluster-reader ポリシーを調べる
@@ -329,7 +310,7 @@ oc login -u fancyuser1 -p Op#nSh1ft
 ----
 NAME                                                    DISPLAY NAME                        STATUS
     app-management
-  * default
+    default
     kube-public
     kube-system
     labguide
@@ -371,7 +352,7 @@ oc adm new-project app-prod --display-name="Application Production"
 ====
 
 #### GroupsをProjectにマップする
-先ほど見たように、OpenShift内にはいくつかのロールがあらかじめ設定されています。*Project*に関しても同様に、閲覧(View)、編集(Edit)、管理者アクセスを付与することができます。`ose-teamed-app` のユーザにDevelopment ProjectとTest Projectを編集するためのアクセス権を与えてみましょう。
+先ほど見たように、OpenShift内にはいくつかのロールがあらかじめ設定されています。 *Project* に関しても同様に、閲覧(View)、編集(Edit)、管理者アクセスを付与することができます。`ose-teamed-app` のユーザにDevelopment ProjectとTest Projectを編集するためのアクセス権を与えてみましょう。
 
 [source,bash,role="execute"]
 ----
@@ -436,11 +417,16 @@ oc new-app docker.io/siamaksade/mapit
 以下のようにうまくいかないことが分かります。
 
 ----
-error: can't lookup images: imagestreamimports.image.openshift.io is forbidden: User "teamuser1" cannot create resource "imagestreamimports" in API group "image.openshift.io" in the namespace "app-prod"
-error:  local file access failed with: stat docker.io/siamaksade/mapit: no such file or directory
-error: unable to locate any images in image streams, templates loaded in accessible projects, template files, local docker images with name "docker.io/siamaksade/mapit"
+error: can't lookup images: imagestreamimports.image.openshift.io is forbidden: User "teamuser1
+" cannot create resource "imagestreamimports" in API group "image.openshift.io" in the namespac
+e "app-prod"
+error:  local file access failed with: stat docker.io/siamaksade/mapit: no such file or directo
+ry
+error: unable to locate any images in image streams, templates loaded in accessible projects, t
+emplate files, local docker images with name "docker.io/siamaksade/mapit"
 
-Argument 'docker.io/siamaksade/mapit' was classified as an image, image~source, or loaded template reference.
+Argument 'docker.io/siamaksade/mapit' was classified as an image, image~source, or loaded templ
+ate reference.
 
 The 'oc new-app' command will match arguments to the following types:
 
