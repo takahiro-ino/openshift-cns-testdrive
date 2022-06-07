@@ -22,7 +22,6 @@ Windowsコンテナのスケジューリングを有効にすることができ�
 
 次の図は、WMCOの動作の概要を示しています。
 
-.Windows MachineConfig Operator Design
 image::images/wmcodiagram.png[wmco diagram]
 
 Windows Machine Config Operator自体は、OpenShift上のLinuxベースのNodeで実行されます。WindowsタイプのMachine Objectを監視し、SSH経由で接続します。
@@ -129,19 +128,16 @@ Windows Nodeを展開する前に、Windows Machine Config Operator（WMCO）を
 
 ログイン後、*Operators* - *OperatorHub* メニューに移動してください。
 
-.OperatorHub
 image::images/operatorhub-menu.png[OperatorHub Menu]
 
 
 ここで、*Filter by _keyword..._* ボックスに *Windows Machine Config Operator* と入力します。
 コミュニティバージョンを使用しないように注意しながら、*Windows Machine Config Operator* のカードをクリックします。
 
-.WMCO Operator
 image::images/wmco-card.png[WMCO Install Card]
 
 Overviewページにて、*Install* を選択してください。
 
-.WMCO Operator Overview
 image::images/install-overview.png[WMCO Overview]
 
 
@@ -154,20 +150,17 @@ image::images/install-overview.png[WMCO Overview]
 
 以下の図を参考にしてください。
 
-.WMCO Install Operator Overview
 image::images/wmco-install-operator-overivew-page.png[WMCO Install Overview]
 
 
 Installing Operatorのページが表示されます。
 
 
-.WMCO Install Operator status page
 image::images/installing-the-wmco-status-operator.png[WMCO Installing]
 
 
 画面 *ready for use* と表示されれば、WMCO Operatorは正常にインストールされています。
 
-.WMCO Install Operator status page
 image::images/wmco-ready-for-use.png[WMCO Installing]
 
 CLIに戻ると、WMCOPodが動作しているのが確認できるはずです。
