@@ -144,7 +144,7 @@ image::images/install-overview.png[WMCO Overview]
 *Install Operator* の概要ページの *Update channel* セクションで *stable* が選択されていることを確認します。
 また、*Installation mode* セクションでは、*A specifc namespace on the cluster* が選択されたままになっていることを確認します。
 
-*Installed Namspace*セクションは、*Operator recommended Namespace*のままにして、*Enable Cluster Monitoring* にチェックを入れます。
+*Installed Namspace*セクションは、 *Operator recommended Namespace* のままにして、*Enable Cluster Monitoring* にチェックを入れます。
 
 最後に、*Approval strategy* を *Automatic* のままにしておきます。次に、*Install* をクリックします。
 
