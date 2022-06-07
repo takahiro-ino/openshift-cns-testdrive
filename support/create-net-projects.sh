@@ -11,4 +11,8 @@ image=$(oc get deployments -n openshift-image-registry image-registry --template
 
 # deploy the DC definition into the projects
 oc process -f netproj-template.yaml NAMESPACE=netproj-a IMAGE="$image" | oc apply -n netproj-a -f -
+<<<<<<< HEAD
 oc process -f netproj-template.yaml NAMESPACE=netproj-b IMAGE="$image" | oc apply -n netproj-b -f -
+=======
+oc process -f netproj-template.yaml NAMESPACE=netproj-b IMAGE="$image" | oc apply -n netproj-b -f -
+>>>>>>> upstream/ocp4-jp
