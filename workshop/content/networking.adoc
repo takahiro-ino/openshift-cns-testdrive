@@ -29,7 +29,6 @@ oc project default
 
 [source,bash,role="execute"]
 ----
-cd {{ HOME_PATH }}/support/
 bash {{ HOME_PATH }}/support/create-net-projects.sh
 ----
 
