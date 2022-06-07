@@ -92,27 +92,10 @@ kind: ClusterRoleBinding
 metadata:
   annotations:
     rbac.authorization.kubernetes.io/autoupdate: "true"
-  creationTimestamp: "2020-12-07T23:29:30Z"
-  managedFields:
-  - apiVersion: rbac.authorization.k8s.io/v1
-    fieldsType: FieldsV1
-    fieldsV1:
-      f:metadata:
-        f:annotations:
-          .: {}
-          f:rbac.authorization.kubernetes.io/autoupdate: {}
-      f:roleRef:
-        f:apiGroup: {}
-        f:kind: {}
-        f:name: {}
-      f:subjects: {}
-    manager: openshift-apiserver
-    operation: Update
-    time: "2020-12-07T23:29:30Z"
+  creationTimestamp: "2022-06-07T02:52:33Z"
   name: self-provisioners
-  resourceVersion: "10302"
-  selfLink: /apis/rbac.authorization.k8s.io/v1/clusterrolebindings/self-provisioners
-  uid: 1bbfe87b-697c-4702-81d1-00e7f8e98207
+  resourceVersion: "9988"
+  uid: 24f23fdd-4a10-40f2-8ca2-0068d4b51a8a
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -154,33 +137,10 @@ kind: ClusterRoleBinding
 metadata:
   annotations:
     rbac.authorization.kubernetes.io/autoupdate: "false"
-  creationTimestamp: "2020-12-07T23:29:30Z"
-  managedFields:
-  - apiVersion: rbac.authorization.k8s.io/v1
-    fieldsType: FieldsV1
-    fieldsV1:
-      f:metadata:
-        f:annotations: {}
-      f:roleRef:
-        f:apiGroup: {}
-        f:kind: {}
-        f:name: {}
-    manager: openshift-apiserver
-    operation: Update
-    time: "2020-12-07T23:29:30Z"
-  - apiVersion: rbac.authorization.k8s.io/v1
-    fieldsType: FieldsV1
-    fieldsV1:
-      f:metadata:
-        f:annotations:
-          f:rbac.authorization.kubernetes.io/autoupdate: {}
-    manager: kubectl-patch
-    operation: Update
-    time: "2020-12-08T00:15:02Z"
+  creationTimestamp: "2022-06-07T02:52:33Z"
   name: self-provisioners
-  resourceVersion: "36456"
-  selfLink: /apis/rbac.authorization.k8s.io/v1/clusterrolebindings/self-provisioners
-  uid: 1bbfe87b-697c-4702-81d1-00e7f8e98207
+  resourceVersion: "66495"
+  uid: 24f23fdd-4a10-40f2-8ca2-0068d4b51a8a
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
