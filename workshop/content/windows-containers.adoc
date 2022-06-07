@@ -36,7 +36,7 @@ Windows Machine Config Operator自体は、OpenShift上のLinuxベースのNode�
 
 詳しくは、link:https://docs.openshift.com/container-platform/4.9/windows_containers/understanding-windows-container-workloads.html[公式ドキュメント] をご参照下さい。
 
-#### 前提条件
+# 前提条件
 
 インストール済みのOpenShiftクラスタの現在の構成を確認し、前提条件を確認していきます。
 
@@ -318,7 +318,7 @@ NAME                          STATUS   ROLES    AGE   VERSION
 ip-10-0-140-10.ec2.internal   Ready    worker   22m   v1.20.0-1081+d0b1ad449a08b3
 ----
 
-#### Windows Nodeの管理
+# Windows Nodeの管理
 
 Windows NodeはLinux Nodeと同じように管理できるようになります。MachineAPI を使用して、Nodeのスケールと削除ができるようになります。
 
