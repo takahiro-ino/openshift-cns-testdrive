@@ -333,7 +333,7 @@ ip-10-0-169-24.ec2.internal    Ready    master   3h35m   v1.22.3+ffbb954
 
 3つのMasterと3つのWorkerがあります。OpenShift *Master* はSDN（Software Defined Network）に参加する必要があるため、*Node* でもあります。追加の目的でノードが必要な場合は、IPIでクラウドプロバイダーのOperatorを活用すると、非常に簡単にノードを作成できます。OpenShiftのインフラコンポーネント(レジストリ、ルーターなど)を実行するためのノードを作成するのは、後の演習で行います。
 
- `ec2-user` ユーザーのシェルからexitします。
+ 次のコマンドで`ec2-user` ユーザーのシェルからexitします。
 
 [source,role="execute"]
 ----
