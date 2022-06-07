@@ -845,7 +845,11 @@ oc get nodes -l kubernetes.io/os=linux
 oc get pods -n netcandystore -l deploymentconfig=mssql -o wide
 ----
 
-link:http://netcandystore-netcandystore.{{ ROUTE_SUBDOMAIN }}[Net Candystore Route]にアクセスすると、アプリケーションを見ることができます。
+[source,role="copypaste"]
+----
+http://netcandystore-netcandystore.{{ ROUTE_SUBDOMAIN }}[Net Candystore Route]
+----
+にアクセスすると、アプリケーションを見ることができます。
 
 フロントページはこのようになっています。
 
@@ -856,6 +860,8 @@ image::images/ncs.png[netcandy store page]
 
 このラボでは、OpenShift Container Platfrom 上で Windowsコンテナを操作しました。
 そして、Windows コンテナーをサポートするためにクラスターがどのように準備されたかを確認しました。
+
 また、Windows Machine Config Operator が Windows Nodeをプロビジョニングするためにどのように使用されるかを学習しました。
 Machine APIを使用してWindows Nodeを管理する方法と、Linux Nodeと同じツールを使用してWindowsコンテナを管理する方法についても学びました。
+
 最後に、LinuxとWindowsコンテナからなる混合ワークロードを使用する方法について学びました。
