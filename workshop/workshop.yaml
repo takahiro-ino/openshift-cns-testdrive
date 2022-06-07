@@ -1,27 +1,14 @@
-name: Container and Cloud Native Roadshow - Ops Track
+name: OpenShift and Container Storage for Admins
 
 modules:
   activate:
-  - introduction
   - environment
-  - ocp4ws-ops
-  - ocp4ws-ops-1-1
-  - ocp4ws-ops-1-2
-  - ocp4ws-ops-1-3
-  - ocp4ws-ops-1-4
-  - ocp4ws-ops-1-5
-  - ocs4
-  - ocs4-1
-  - ocs4-2
-  - ocs4-3
-  - ocs4-4
-  - ocs4-5
-  - option-placeholder
   - installation
   - app-mgmt-basics
   - app-storage-basics
   - machinesets
   - infra-nodes
+  - odf4
   - logging
   - ldap-groupsync
   - monitoring-basics
@@ -29,5 +16,6 @@ modules:
   - networking
   - disabling-project-self-provisioning
   - clusterresourcequota
-  - cluster-metering
   - taints-and-tolerations
+  - windows-containers
+  
