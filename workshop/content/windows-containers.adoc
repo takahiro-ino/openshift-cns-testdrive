@@ -25,6 +25,7 @@ Windowsコンテナのスケジューリングを有効にすることができ�
 .Windows MachineConfig Operator Design
 image::images/wmcodiagram.png[wmco diagram]
 
+
 Windows Machine Config Operator自体は、OpenShift上のLinuxベースのNodeで実行されます。WindowsタイプのMachine Objectを監視し、SSH経由で接続します。
 
 セットアップ中、WMCOは次の処理を行います。
