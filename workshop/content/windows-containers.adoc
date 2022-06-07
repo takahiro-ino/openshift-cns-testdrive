@@ -845,11 +845,12 @@ oc get nodes -l kubernetes.io/os=linux
 oc get pods -n netcandystore -l deploymentconfig=mssql -o wide
 ----
 
+下記のURLにアクセスすると、アプリケーションを見ることができます。
+
 [source,role="copypaste"]
 ----
 http://netcandystore-netcandystore.{{ ROUTE_SUBDOMAIN }}[Net Candystore Route]
 ----
-にアクセスすると、アプリケーションを見ることができます。
 
 フロントページはこのようになっています。
 
