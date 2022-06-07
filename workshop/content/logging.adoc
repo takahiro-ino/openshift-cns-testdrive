@@ -26,7 +26,7 @@ Logging スタックはそのラボで作成された `infra` ノードにイン
 [Note]
 ====
 詳細は、以下にあるOpenShiftの公式ドキュメントサイトに記載されています。:
- https://docs.openshift.com/container-platform/4.1/logging/efk-logging.html
+ https://docs.openshift.com/container-platform/4.10/logging/cluster-logging.html
 ====
 
 [Note]
@@ -83,7 +83,7 @@ oc create -f {{ HOME_PATH }}/support/openshift_logging_namespace.yaml
 これらは、クラスタ内から `Operator Hub` から GUI を介してインストールすることができます。
 
 OpenShift で Operator を使用する際には、Operator を構成するいくつかの基本的な原理を理解しておくことが重要です。
-`CustomResourceDefinion (CRD)` と `CustomResource (CR)` は、簡単に説明する 2 つの Kubernetes オブジェクトです。
+`CustomResourceDefinion (CRD)` と `CustomResource (CR)` は、Kubernetes オブジェクトであり、簡単に説明すると以下の通りです。
 `CRD` は、ジェネリックな事前定義された、データの構造体です。
 Operator は、`CRD` で定義されたデータをどのように適用するかを理解します。
 プログラミング的には、`CRD` はクラスに似ていると考えることができます。
@@ -93,7 +93,7 @@ Operator は、`CRD` で定義されたデータをどのように適用する�
 
 Operator を使用するための一般的なパターンは、まず Operator をインストールし、必要な `CRD` を作成します。
 `CRD` が作成された後、どのように動作するか、何をインストールするか、何を設定するかを Operator に伝える `CR` を作成します。
-openshift-logging　をインストールするには、このパターンに従います。
+openshift-logging をインストールするには、このパターンに従います。
 
 まず、OpenShift ClusterのGUIにログインします。
 `{{ MASTER_URL }}`
@@ -102,8 +102,8 @@ openshift-logging　をインストールするには、このパターンに従
 
 1. Elasticsearch Operator のインストール:
   a. OpenShift コンソールから、 `Operators` → `OperatorHub` をクリックします。
-  b. `Elasticsearch Operator` を、Operator リストから選択し、 `Install` をクリックします。
-  c. `Create Operator Subscription` ページで、*Update Channel 4.2* を選択し、他のすべてのデフォルト設定をそのままに、`Subscribe`　をクリックします。
+  b. 検索フィールドに `Elasticsearch Operator` と入力し、使用可能なオペレーターのリストから `OpenShift Elasticsearch Operator` を選択し、 `Install` をクリックします。
+  c. `Create Operator Subscription` ページで、Update Channelにて *Stable* を選択し、他のすべてのデフォルト設定をそのままに、`Subscribe` をクリックします。
 +
 これにより、この OpenShift Container Platform クラスタを使用するすべてのユーザーとプロジェクトがこの Operator を利用できるようになります。
 
@@ -116,15 +116,14 @@ openshift-logging　をインストールするには、このパターンに従
 ====
 
   a. OpenShift コンソールで、`Operators` → `OperatorHub` をクリックします。
-  b. 利用可能な Operator のリストから `Cluster Logging` を選択し、`Install` をクリックする。
-  c. `Create Operator Subscription` ページで、`Installation Mode` で、クラスタ上の特定の名前空間が選択されていることを確認し、`openshift-logging` を選択します。
-     さらに、*select Update Channel 4.2* を選択し、他のすべてのデフォルトを残してから `Subscribe` をクリックします。
+  b. 検索フィールドに `OpenShift Logging` と入力し、使用可能なオペレーターのリストから `Red Hat OpenShift Logging` を選択し、 `Install` をクリックします。
+  c. `Create Operator Subscription` ページで、`Update Channel` にて *Stable* を選択します。また `Installation Mode` で、*A specific namespace on the cluster* が選択されていることを確認し、`Installed Namespace` にて *openshift-logging* が設定されていることを確認します。他のすべてのデフォルト設定をそのままに、`Subscribe` をクリックします。
 
 3. Operator のインストールを確認する。:
 
-  a. `Operators` → `Installed Operators` のページに切り替える。
+  a. `Operators` → `Installed Operators` のページに切り替えます。
 
-  b. `openshift-logging` プロジェクトが選択されていることを確認する。
+  b. 画面上部のプロジェクト選択にて `Show default projects` のトグルをONにした後、 `openshift-logging` プロジェクトを選択します。
 
   c. _Status_ 列で、緑色のチェックで、 `InstallSucceeded` もしくは `Copied` そして _Up to date_ のテキストが見えるはずです。
 +
@@ -138,11 +137,9 @@ Operator が  `InstallSucceeded` メッセージを表示してインストー�
 +
 どちらかの Operator がインストールされているように表示されない場合は、さらにトラブルシューティングを行います。:
 +
-* Installed Operators ページの Copied タブで、Operator に Status of Copied が表示されている場合、これはインストールが進行中であり、期待される動作であることを示しています。
+* `Installed Operators` ページで該当のOperatorを選択し、`Subscription` のタブで、ステータスの下に障害やエラーがないかどうかを確認します。
 +
-* Catalog → Operator Management ページに切り替え、Operator Subscriptions and Install Plans のタブで、ステータスの下に障害やエラーがないかどうかを確認します。
-+
-* Workloads → Pods のページに切り替えて、openshift-logging と openshift-operators プロジェクトで問題を報告している任意の Pod のログを確認します。
+* `Workloads` → `Pods` のページに切り替えて、`openshift-logging` と `openshift-operators` プロジェクトで問題を報告している任意の `Pod` のログを確認します。
 
 
 #### Logging `CustomResource (CR)` インスタンスを作成する
@@ -152,7 +149,7 @@ Operator を `CRD` と一緒にインストールしたので、Logging `CR` を
 
 1. OpenShift Consoleで、`Administration` → `Custom Resource Definitions` ページに切り替えます。
 
-2. `Custom Resource Definitions` のページで、 `ClusterLogging` をクリックする。
+2. `Custom Resource Definitions` のページで、 `ClusterLogging` をクリックします。
 
 3. `Custom Resource Definition Overview` ページで、`Actions` メニューから `View Instances` を選択する。
 +
@@ -226,7 +223,7 @@ Logging が作成されたので、動作しているかどうかを確認して
 
 2. `openshift-logging` プロジェクトを選択します。
 
-クラスタ Logging （Operator 自身）、Elasticsearch、Fluentd、Kibana　のポッドが表示されているはずです。
+クラスタ Logging （Operator 自身）、Elasticsearch、Fluentd、Kibana のポッドが表示されているはずです。
 
 または、次のコマンドを使用してコマンドラインから検証することもできます。:
 
@@ -239,20 +236,26 @@ oc get pods -n openshift-logging
 
 ----
 NAME                                            READY   STATUS    RESTARTS   AGE
-cluster-logging-operator-cb795f8dc-xkckc        1/1     Running   0          32m
-elasticsearch-cdm-b3nqzchd-1-5c6797-67kfz       2/2     Running   0          14m
-elasticsearch-cdm-b3nqzchd-2-6657f4-wtprv       2/2     Running   0          14m
-elasticsearch-cdm-b3nqzchd-3-588c65-clg7g       2/2     Running   0          14m
-fluentd-2c7dg                                   1/1     Running   0          14m
-fluentd-9z7kk                                   1/1     Running   0          14m
-fluentd-br7r2                                   1/1     Running   0          14m
-fluentd-fn2sb                                   1/1     Running   0          14m
-fluentd-pb2f8                                   1/1     Running   0          14m
-fluentd-zqgqx                                   1/1     Running   0          14m
-kibana-7fb4fd4cc9-bvt4p                         2/2     Running   0          14m
+cluster-logging-operator-5d4b6f7b99-ksr5s       1/1     Running   0          113s
+collector-2p5fx                                 2/2     Running   0          26s
+collector-7lw5r                                 2/2     Running   0          42s
+collector-8stvf                                 2/2     Running   0          32s
+collector-b7qs8                                 2/2     Running   0          27s
+collector-clfsc                                 2/2     Running   0          16s
+collector-f2tzf                                 2/2     Running   0          31s
+collector-j6hxp                                 2/2     Running   0          10s
+collector-kdvj8                                 2/2     Running   0          30s
+collector-q6wck                                 2/2     Running   0          21s
+collector-sgndk                                 2/2     Running   0          17s
+collector-w5ds9                                 2/2     Running   0          29s
+collector-zswpb                                 2/2     Running   0          34s
+elasticsearch-cdm-mnc985r3-1-5c45b9bd9f-4nx56   2/2     Running   0          70s
+elasticsearch-cdm-mnc985r3-2-779989b7bb-z9dpp   1/2     Running   0          69s
+elasticsearch-cdm-mnc985r3-3-6d754c8cbf-fx8wd   1/2     Running   0          68s
+kibana-655877db88-njsqq                         2/2     Running   0          70s
 ----
 
-_Fluentd_ *Pods* は、 *DaemonSet* としてデプロイされます。*DaemonSet* は、特定の *Pods* が、クラスタ内の特定の *Nodes* で常に実行されるための仕組みです。:
+_collector_ *Pods* は、 *DaemonSet* としてデプロイされます。*DaemonSet* は、特定の *Pods* が、クラスタ内の特定の *Nodes* で常に実行されるための仕組みです。:
 
 
 [source,bash,role="execute"]
@@ -263,12 +266,12 @@ oc get daemonset -n openshift-logging
 以下のようなものを見ることができます。:
 
 ----
-NAME      DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR            AGE
-fluentd   9         9         9       9            9           kubernetes.io/os=linux   94s
+NAME        DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR            AGE
+collector   10        10        10      10           10          kubernetes.io/os=linux   2m55s
 ----
 
-クラスタ内の *Node* ごとに1つの `fluentd` *Pod* が必要です。
-*Master* も *Node* であり、`fluentd` はそこでも様々なログを読み取るために実行されることを覚えておいてください。
+クラスタ内の *Node* ごとに1つの `collector` *Pod* が必要です。
+*Master* も *Node* であり、`collector` はそこでも様々なログを読み取るために実行されることを覚えておいてください。
 
 また、ElasticSearch 用のストレージが自動的にプロビジョニングされていることがわかります。
 このプロジェクトの *PersistentVolumeClaim* オブジェクトにクエリを実行すると、新しいストレージが表示されます。
@@ -293,7 +296,7 @@ elasticsearch-elasticsearch-cdm-ggzilasv-3   Bound    pvc-f326aa7d-389c-11ea-bab
 
 [Note]
 ====
-Metrics ソリューションの場合と同様に、Logging の構成( `CR` )で適切な `NodeSelector` を定義して、Logging コンポーネントが infra ノードにしかデプロイされないようにしています。
+Metrics ソリューションの場合と同様に、Logging 構成( `CR` )で適切な `NodeSelector` を定義して、Logging コンポーネントが infra ノードにしかデプロイされないようにしています。
 つまり、`DaemonSet` は FluentD が *すべての* ノードで実行されることを保証しています。
 そうでなければ、すべてのコンテナログをキャプチャすることはできません。
 ====
@@ -337,21 +340,37 @@ EFK インストールの一部として設定されている特別な認証プ�
 
 OpenShift Console に cluster-admin ユーザーとして認証済みのため、Kibana の管理画面が表示されます。
 
+#### インデックスパターンの設定
+
+Kibanaを開いたら、ログを表示する前に、 KibanaがElasticSearchにクエリを実行するために使用する `index pattern` を定義する必要があります。
+
+1. 次の画面で、下図のようにインデックスパターンに `app*` と入力し、 `Next Step` をクリックします。
++
+image::images/logging-kibana-indexpattern.png[]
++
+2. 次の画面で、以下に示すように、ドロップダウンボックスで `@timestamp` を選択します。
++
+image::images/logging-kibana-indexpattern-timestamp.png[]
++
+3. `Create Index Pattern` をクリックします。
+4. 以下の概要画面が表示されます。
++
+image::images/kibana-summary-ip.png[]
++
+5. 画面左上の `Discover` をクリックします
+
 #### _Kibana_ を使ってクエリを行う
 
 _Kibana_ の Web インターフェースが立ち上がったら、クエリを実行できるようになります。
-_Kibana_ は、クラスタから送られてくるすべてのログを問い合わせるための強力なインターフェイスをユーザに提供します
+_Kibana_ は、クラスタから送られてくるすべてのログを問い合わせるための強力なインターフェイスをユーザに提供します。
 
-デフォルトでは、_Kibana_　は過去15分以内に受信したすべてのログを表示します。
+デフォルトでは、_Kibana_ は過去15分以内に受信したすべてのログを表示します。
 この時間間隔は右上で変更できます。
 ログメッセージはページの中央に表示されます。
 受信したすべてのログメッセージは、ログメッセージの内容に基づいてインデックス化されます。
 各メッセージには、そのログメッセージに関連付けられたフィールドがあります。
 個々のメッセージを構成するフィールドを見るには、ページの中央にある各メッセージの側面にある矢印をクリックします。
 これにより、含まれているメッセージ フィールドが表示されます。
-
-まず、デフォルトのインデックスパターンを `.all` に設定します。
-左側から上に向かって、ドロップダウンメニューで `.all` のインデックスパターンを選択します。
 
 メッセージに表示するフィールドを選択するには、左側の `Available Fields` ラベルの手前を見てください。
 その下には選択可能なフィールドがあり、画面の中央に表示されます。
@@ -361,7 +380,7 @@ _Kibana_ は、クラスタから送られてくるすべてのログを問い�
 
 ログに対するクエリを作成するには、検索ボックスの右下にある `Add a filter +` リンクを使用することができます。
 これにより、メッセージのフィールドを使ってクエリを作成することができます。
-例えば、 `openshift-logging` namespace のすべてのログメッセージを見たい場合、以下のようにします。:
+例えば、 `lab-ocp-cns` namespace のすべてのログメッセージを見たい場合、以下のようにします。:
 
 1. `Add a filter +` をクリックします。
 
@@ -370,22 +389,202 @@ _Kibana_ は、クラスタから送られてくるすべてのログを問い�
 
 3. 次に、 `is` を選択します。
 
-4. `Value` フィールドで、 `openshift-logging`　とタイプします。
+4. `Value` フィールドで、 `lab-ocp-cns` とタイプします。
 
 5. "Save" ボタンをクリックします。
 
-さて、画面の中央には `openshift-logging` namespace にあるすべてのポッドからのログが表示されているはずです。
+画面の中央には `lab-ocp-cns` namespace にあるすべてのポッドからのログが表示されているはずです。
 
 もちろん、さらにフィルタを追加してクエリを絞り込むこともできます。
 
 Kibanaでは、クエリを保存して後で使えるようにすることができます。クエリを保存するには、以下のようにします。:
 
-1. 画面上部の `Save` をクリックする。
+1. 画面上部の `Save` をクリックします。
 
-2. 保存したい名前を入力します。ここでは、`openshift-logging Namespace` と入力します。
+2. 保存したい名前を入力します。ここでは、`lab-ocp-cns Namespace` と入力します。
 
 一度保存しておけば、後で `Open` ボタンを押してこのクエリを選択することで利用することができます。
 
 時間をかけて _Kibana_ のページを探索し、より多くのクエリを追加したり実行したりして経験を積んでください。
 これは本番環境のクラスタを使用する際に役立つでしょう。
 探しているログをこのコンソールから取得することができるようになります。
+
+
+
+### ログを外部システムに転送する
+
+このセクションでは、ログを外部ログシステムに転送する方法を示します。
+
+`ClusterLogForwarder` によって指定された新しい `CustomResourceDefinition（CRD）` は、ログを外部（または内部）システムに転送するために内部のFluentd `configmas` を作成または変更するために使用されます。Cluster Logging Operatorクラスタに存在できる `ClusterLogForwarder` は1つだけであり、すべてのログ転送ルールが組み合わされています。
+
+外部のサードパーティシステムにクラスタログを転送するには、 `ClusterLogForwarder` カスタムリソース（CR）で指定された出力とパイプラインを組み合わせて、OpenShift Container Platformクラスタの内部および外部の特定のエンドポイントにログを送信することが必要です。また、 `inputs` を使用して、特定のプロジェクトに関連するアプリケーションログをエンドポイントに転送することができます。これらの概念について詳しく学びましょう。
+
+* `output` は、定義したログデータの宛先、またはログの送信先です。`output` の種類は以下の通りです。
+** `elasticsearch` : 外部のElasticsearch v5.xまたはv6.xインスタンス。Elasticsearchの出力はTLS接続を使用できます。
+** `fluentdForward` : Fluentdをサポートする外部のログアグリゲーションソリューションです。このオプションはFluentdの転送プロトコルを使用します。`fluentForward` outputはTCPまたはTLS接続を使用でき、秘密鍵のshared_keyフィールドを提供することで *共有鍵認証* をサポートします。共有鍵認証は、TLS の有無にかかわらず使用できます。 
+** `syslog` : syslogRFC3164またはRFC5424プロトコルをサポートする外部ログ集約ソリューションです。syslog出力は、UDP、TCP、またはTLS接続を使用できます。
+** `kafka` : Kafkaブローカーです。`kafka` outputは、TCPまたはTLS接続を使用できます。
+** `default` : 内部の OpenShift Container Platform Elasticsearch インスタンスです。デフォルトのoutputを設定する必要はありません。デフォルトのoutputを設定した場合、デフォルトのoutputはクラスターロギングオペレーター用に予約されているため、エラーメッセージが表示されます。
+
+output URL スキームが TLS (HTTPS、TLS、または UDPS) を必要とする場合、TLS サーバーサイド認証が有効になります。クライアント認証も有効にするには、output に `openshift-logging` プロジェクト内の secret を指定する必要があります。この secret には、それぞれの証明書を指す *tls.crt*、*tls.key*、および *ca-bundle.crt* というキーが必要です。
+
+* `pipeline` は、1つのログタイプから1つまたは複数の出力への単純なルーティング、またはどのログを送信するかを定義します。ログタイプは以下のいずれかです。
+** `application` : インフラストラクチャコンテナアプリケーションを除く、クラスタで実行されているユーザーアプリケーションによって生成されたコンテナログ。
+** `infrastructure` : openshift *、kube *、またはデフォルトのプロジェクトで実行されるポッドからのコンテナーログと、ノードファイルシステムから供給されるジャーナルログ。
+** `audit` : ノードの監査システム（auditd）が生成するログと、Kubernetes APIサーバーおよびOpenShift APIサーバーの監査ログ。
+
+パイプラインのキーと値のペアを使用して、送信ログメッセージにラベルを追加することができます。たとえば、他のデータセンターに転送されるメッセージにラベルを追加したり、タイプ別にログにラベルを付けることができます。オブジェクトに追加されたラベルは、ログメッセージと一緒に転送されます。
+
+* inputは、特定のプロジェクトに関連付けられたアプリケーションログをパイプラインに転送します。
+
+詳細については、
+link:https://docs.openshift.com/container-platform/4.10/logging/cluster-logging-external.html[OpenShiftの公式ドキュメントサイト]をご覧ください。
+
+#### 外部Syslogサーバーへのログの送信
+
+ここでは簡略化のため、コンテナ化したSyslogサーバーを `external-logs` という名前空間に配置し、外部のSyslogサーバーをエミュレートすることにします。
+
+アプリケーションログとインフラログを分離する方法も紹介したいので、2つの（コンテナ化した）外部Syslogをデプロイします。1つは転送されたアプリケーションログを受信するため、もう1つは転送されたインフラログを受信するためです。
+
+まず、`external-logs` というネームスペースを作成し、そこにSyslogサーバを配置します。
+
+----
+oc new-project external-logs
+----
+
+では、そのネームスペースに `Syslog` サーバをデプロイしてみましょう。そのために、必要なリソースをすべて含むYAMLファイルを使用します。
+
+----
+oc create -f /opt/app-root/src/support/extlogs-syslog.yaml -n external-logs
+----
+
+すべてが正常に機能していることを確認しましょう。外部レジストリ用にイメージがプルされるまで1分かかる場合があります。すべてがOKの場合、次のような出力が得られるはずです。
+
+----
+oc get pods -n external-logs
+----
+
+次の出力が表示されます。
+
+----
+NAME                               READY   STATUS    RESTARTS   AGE
+syslog-ng-84c59fdc8-mdwrs          1/1     Running   0          81s
+syslog-ng-infra-697fc7597f-gwrxd   1/1     Running   0          81s
+----
+
+いずれかのPodが `CrashLoopBackOff` 状態になっている場合は、`oc delete pods --all -n external-logs` を実行してPodを再起動してください。
+
+外部 Syslog サーバが利用可能になったので、`ClusterLogForwarder` を作成してログ転送ルールを設定しましょう。まず、YAMLファイルを見てみましょう。
+
+----
+apiVersion: logging.openshift.io/v1
+kind: ClusterLogForwarder
+metadata:
+  name: instance
+  namespace: openshift-logging
+spec:
+  outputs: (1)
+  - name: rsyslog-app
+    syslog:
+      facility: user
+      payloadKey: message
+      rfc: RFC3164
+      severity: informational
+    type: syslog (2)
+    url: udp://syslog-ng.external-logs.svc:514 (3)
+  - name: rsyslog-infra
+    syslog:
+      facility: user
+      payloadKey: message
+      rfc: RFC3164
+      severity: informational
+    type: syslog
+    url: udp://syslog-ng-infra.external-logs.svc:514 (4)
+  pipelines: (5)
+  - inputRefs: (6)
+    - application (7)
+    labels:
+      syslog: app
+    name: syslog-app
+    outputRefs:
+    - rsyslog-app (8)
+    - default
+  - inputRefs:
+    - infrastructure (8)
+    labels:
+      syslog: infra
+    name: syslog-infra
+    outputRefs:
+    - rsyslog-infra (9)
+    - default
+----
+
+このYAMLファイルには、いくつかの注目すべきフィールドがあります。
+
+* (1) `outputs` セクションは、すべてのリモートログシステムを定義します。この例では、2つの Syslog サーバーがあります。
+* (2) 使用されているログアグリゲータの種類を定義します。
+* (3) アプリケーション関連のログを保存するためのURLです。 `external-logs` ネームスペースにあるサービスを指しています。
+* (4) インフラ関連のログを保存するためのURLです。`external-logs` ネームスペースにあるサービスを指しています。
+* (5）`pipeline` は、先に定義したアウトプットに送るべきログのソースと性質を定義しています。
+* (6) `inputRefs` は送信するログの性質を記述するためのもので、注意点として、アプリケーション、インフラ、OpenShift の監査ログ (API アクセスなど) のための監査のいずれかを指定できます。
+* 2つのinputRefがあり、(7)はアプリケーションログ用、(8)はインフラストラクチャログ用です。
+
+各 `inputRefs` セクションには、ログがどこに送られるかを示す `outRefs` が含まれており、`spec` セクションの最初に定義された `outputs` (1) を参照しています。
+
+では、YAML ファイルを使用して `ClusterLogForwarder` リソースを作成してみましょう。
+
+----
+oc create -f /opt/app-root/src/support/extlogs-clusterlogforwarder.yaml
+----
+
+CRが作成されると、Cluster Logging Operatorは `Collector` Podsをデプロイします。デプロイされるのを待ちます。
+
+----
+oc rollout status ds/collector -n openshift-logging
+----
+
+Podが再展開されない場合は、 `Collector` Podを手動で削除して、強制的に再展開させることができます。
+
+----
+oc delete pod --selector logging-infra=collector -n openshift-logging
+----
+
+すべての `Collector` Podが Running 状態になったことを確認しましょう。
+
+----
+oc get pod --selector logging-infra=collector -n openshift-logging
+----
+
+このようなものが出力されるはずです。
+
+----
+NAME              READY   STATUS    RESTARTS   AGE
+collector-2mk4h   2/2     Running   0          37s
+collector-4dfnc   2/2     Running   0          38s
+collector-99rh4   2/2     Running   0          37s
+collector-c7msc   2/2     Running   0          38s
+collector-gb7nh   2/2     Running   0          38s
+collector-k8khn   2/2     Running   0          37s
+collector-lt8j4   2/2     Running   0          38s
+collector-pzqxw   2/2     Running   0          37s
+collector-w54c5   2/2     Running   0          37s
+----
+
+ここで、2台のSyslogサーバにログが転送されていることを確認しましょう。Syslogサーバーはコンテナ内の `/var/log/messages` ファイルにログを保存していますので、Webコンソールからコンテナに`oc exec` して内容を確認する必要があります。
+
+今回はOpenShift Console Terminalを使用してPodにアクセスし、 `/var/log/messages` の内容を確認します。
+
+1. Administrator Viewを開き、 `workloads→Pods` と進みます。 `external-logs` Projectにいることを確認します。
++
+image::images/logging-syslog-pods.png[Syslog Pods]
++
+2. `syslog-ng-infra-xyz` のような名前の `syslog-infra` ポッドをクリックし、`Terminal` タブに移動します (# プロンプトを表示するには、何度かエンターキーを押す必要があるかもしれません)。
++
+image::images/logging-syslog-terminal-infra.png[Syslog Terminal]
++
+3. ターミナルボックスに、`tail -f /var/log/messages` と入力します。すると、転送されたログがターミナルに表示されるはずです。
++
+image::images/logging-syslog-logs.png[Syslog logs]
+
+
+これで完了です！この手順をもう一方のポッドで繰り返して、アプリケーション・ログも正しく転送されることを確認できます。

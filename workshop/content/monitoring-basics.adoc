@@ -3,7 +3,7 @@
 
 == 演習の概要
 このラボでは、OpenShift Monitoring 機能のさまざまな側面を探ります。
-これには、OpenShift Alertmanager UI の概要、Prometheus ウェブコンソールへのアクセス、PromQL (Prometheuses Query Language) クエリの実行によるクラスタの検査、最後に Grafana ダッシュボードの確認が含まれます。
+これには、OpenShift Alertmanager UI の概要、Prometheus ウェブコンソールへのアクセス、PromQL (Prometheuses Query Language) クエリの実行によるクラスタの検査、最後に Grafana ダッシュボードを確認することが含まれます。
 
 ---
 
@@ -32,7 +32,7 @@ OpenShift の Web コンソールに最初にアクセスすると、ブラウ�
 OpenShift をインストールすると、デフォルトでは、Web コンソールを含む OpenShift 内のすべてのコンポーネント間通信に対して CA 証明書と SSL 証明書が生成されます。
 ====
 +
-1. 左側の「Monitoring」ドロップダウンをクリックします。
+1. 左側の「Observe」ドロップダウンをクリックします。
 1. 「Alerting」をクリックします。OpenShift コンソールのアラート設定の表示です。
 
 「Alerting」タブには、現在設定されているアラートおよび/またはアクティブなアラートに関する情報が表示されます。
@@ -46,21 +46,19 @@ OpenShift をインストールすると、デフォルトでは、Web コンソ
 1. アラートの深刻度ラベルの値。
 1. アラートでできるアクション。
 
-また、このページの上部にあるリンクをクリックして、直接 Alertmanager UI に入ることもできます。
-
 ##### Metrics UI (Prometheus コンソール)
 アラート画面に加えて、OpenShift のビルトインモニタリングでは、Prometheus が収集したメトリクスにアクセスするためのインターフェイスを提供しています。詳しくは次のリンクを参照下さい。link:https://prometheus.io/docs/prometheus/latest/querying/basics/[Prometheus クエリ言語（PromQL）].
 
-1.OpenShift Console の左側の「Monitoring」セクションで、「Metrics」のリンクをクリックします。
+1.OpenShift Console の左側の「Observe」セクションで、「Metrics」のリンクをクリックします。
 
 ##### Prometheus クエリーを実行する
-クエリを実行して、すべてのポッド定義で定義されているリソースのメモリ制限を確認してみましょう。
+クエリを実行して、各ノードのメモリの余剰を確認してみましょう。
 
 1. 次のクエリをコピーして、式のテキストボックスに貼り付けます。:
 +
 [source,role="copypaste"]
 ----
-sum(kube_pod_container_resource_limits_memory_bytes)/(1024^3)
+node_memory_MemAvailable_bytes
 ----
 +
 1. 「Run Queries」をクリックします。
@@ -84,38 +82,14 @@ cluster:cpu_usage_cores:sum
  
 Metrics UI を使用すると、クラスタについて収集した情報に対して、強力なクエリを実行することができます。
 
-また、このページの上部にあるリンクをクリックすると、Prometheus の UI に直接入ることができることにも注意してください。
-
 ##### Dashboards UI (Grafana)
-Metrics UI 加えて、OpenShift モニタリングにはあらかじめ設定された「Dashboards」UI（別名「Grafana」）が用意されています。
+Metrics UI 加えて、OpenShift モニタリングにはあらかじめ設定された「Dashboards」UIが用意されています。
 これらのダッシュボードの目的は、複数のメトリクスを経時的にグラフ化して見やすい形で表示することです。
 
-1. 左側の「Monitoring」セクションの下にある「Dashboards」リンクをクリックします。
-+
-[Warning]
-====
-最初に Dashboards UI コンソールにアクセスすると、ブラウザに自己署名証明書のエラーが表示されます。
-OpenShiftをインストールすると、デフォルトでは、Grafana ダッシュボードを含む OpenShift 内のすべてのコンポーネント間通信に対して CA 証明書と SSL 証明書が生成されます。
-====
-+
-1. 「Log in with OpenShift」をクリックします。
-1. もし「kube:admin」がある場合は、クリックします。
-+
-[source,role="copypaste"]
-----
-kubeadmin
-----
-+
-[source,role="copypaste"]
-----
-{{ KUBEADMIN_PASSWORD }}
-----
-+
-1. 「Authorize Access」ページで、「Allow selected permissions」ボタンをクリックします。
-1. これが Grafana の 「Home Dashboard」 ページです。
-1. ページトップの「Home」ドロップダウンをクリックします。
-1.「Kubernetes / Compute Resources / Cluster」 ダッシュボードを選択します。
-  「Kubernetes / Compute Resources / Cluster」ダッシュボードは、現在、クラスターにより、コミットされ使用されているリソースの概要を表示します。
-+
-.Dashboards UI (Grafana)
-image::images/grafana_dashboard.png[]
+左側の「Observe」セクションの下にある「Dashboards」リンクをクリックします。
+
+
+.Dashboards UI
+image::images/ocp-grafana-replacement.png[]
+
+ここで、「Dashboard」プルダウンをクリックして、視覚化するさまざまなメトリックを選択できます。さあ、このビューで遊んでください。これは、Prometheusによって提供される情報を視覚化したものであることに注意してください。

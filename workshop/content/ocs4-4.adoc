@@ -30,7 +30,7 @@ oc new-project my-shared-storage
 
 [source,role="execute"]
 ----
-oc new-app openshift/php:7.4-ubi8~https://github.com/christianh814/openshift-php-upload-demo --name=file-uploader
+oc new-app openshift/php~https://github.com/christianh814/openshift-php-upload-demo --name=file-uploader
 ----
 
 .出力例:

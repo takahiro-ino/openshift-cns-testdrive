@@ -216,3 +216,4 @@ Checking connectivity between Pod A and Pod B... worked
 
 最後の行が、 `worked` になっている事に注目してください。
 これは、`netproj-a` プロジェクトの Pod が `netproj-b` プロジェクトの Pod に接続できたことを意味します (期待通りの動作です)。
+
