@@ -448,18 +448,21 @@ link:https://docs.openshift.com/container-platform/4.10/logging/cluster-logging-
 
 まず、`external-logs` というネームスペースを作成し、そこにSyslogサーバを配置します。
 
+[source,bash,role="execute"]
 ----
 oc new-project external-logs
 ----
 
 では、そのネームスペースに `Syslog` サーバをデプロイしてみましょう。そのために、必要なリソースをすべて含むYAMLファイルを使用します。
 
+[source,bash,role="execute"]
 ----
 oc create -f /opt/app-root/src/support/extlogs-syslog.yaml -n external-logs
 ----
 
 すべてが正常に機能していることを確認しましょう。外部レジストリ用にイメージがプルされるまで1分かかる場合があります。すべてがOKの場合、次のような出力が得られるはずです。
 
+[source,bash,role="execute"]
 ----
 oc get pods -n external-logs
 ----
@@ -533,24 +536,28 @@ spec:
 
 では、YAML ファイルを使用して `ClusterLogForwarder` リソースを作成してみましょう。
 
+[source,bash,role="execute"]
 ----
 oc create -f /opt/app-root/src/support/extlogs-clusterlogforwarder.yaml
 ----
 
 CRが作成されると、Cluster Logging Operatorは `Collector` Podsをデプロイします。デプロイされるのを待ちます。
 
+[source,bash,role="execute"]
 ----
 oc rollout status ds/collector -n openshift-logging
 ----
 
 Podが再展開されない場合は、 `Collector` Podを手動で削除して、強制的に再展開させることができます。
 
+[source,bash,role="execute"]
 ----
 oc delete pod --selector logging-infra=collector -n openshift-logging
 ----
 
 すべての `Collector` Podが Running 状態になったことを確認しましょう。
 
+[source,bash,role="execute"]
 ----
 oc get pod --selector logging-infra=collector -n openshift-logging
 ----
