@@ -31,6 +31,8 @@ cluster-f4a3-lpxbs-worker-us-east-2c   1         1         1       1           4
 
 OpenShiftがインストールされると、インストーラはクラウドプロバイダーに問い合わせて、利用可能なAZを得ます(この環境はAWS上にあるため)。そして、最終的に各AZの `MachineSet` を作成し、希望する `Machine` の数に達するまで、それらのセットを順番にスケーリングします。デフォルトのインストールには3つのWorkerがいるので、最初の3つのAZにはそれぞれ1つのWorkerが作られます。残りのAZは0です。
 
+※演習で使用する環境によっては、`Node` の数が異なる場合があります。
+
 [source,bash,role="execute"]
 ----
 oc get machine -n openshift-machine-api
@@ -118,7 +120,7 @@ oc get nodes
 `age` が非常に若いノードが見つかるはずです。
 
 ----
-ip-10-0-166-103.us-east-2.compute.internal   Ready    worker   1m   v1.16.2
+ip-10-0-166-103.us-east-2.compute.internal   Ready    worker   1m   v1.22.8
 ----
 
 [Note]
