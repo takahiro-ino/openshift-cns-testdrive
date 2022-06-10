@@ -1,4 +1,4 @@
-= インフラストラクチャノード
+= インフラストラクチャノード と Operator
 // Activate experimental attribute for Keyboard Shortcut keys
 :experimental:
 
@@ -30,11 +30,13 @@ taint/tolerationの使用は、これらの演習ではカバーされていま�
 
 これを実現するために、`MachineSets` を追加で作成します。
 
-`MachineSets` がどのように動作するかを理解するためには、以下を実行してください。
+`MachineSets` がどのように動作するかを理解するために、手順を進めていきましょう。
 
-[source,bash,role="copypaste copypaste-warning"]
+[source,bash,role="execute"]
 ----
-oc get machineset -n openshift-machine-api -o yaml cluster-5fa6-hx2ml-worker-us-east-2c
+CLUSTERNAME=$(oc get  infrastructures.config.openshift.io cluster  -o jsonpath='{.status.infrastructureName}')
+ZONENAME=$(oc get nodes -L topology.kubernetes.io/zone  --no-headers  | awk '{print $NF}' | tail -1)
+oc get machineset -n openshift-machine-api -o yaml ${CLUSTERNAME}-worker-${ZONENAME}
 ----
 
 #### Metadata
@@ -119,6 +121,7 @@ spec:
 
 一見複雑に見えますが、以下のように実行してみましょう。
 
+
 [source,bash,role="execute"]
 ----
 bash {{ HOME_PATH }}/support/machineset-generator.sh 1 infra 0 | oc create -f -
@@ -158,23 +161,33 @@ oc get nodes
 
 ```
 NAME                                         STATUS   ROLES          AGE     VERSION
-ip-10-0-133-134.us-east-2.compute.internal   Ready    infra,worker   8m     v1.16.2
-ip-10-0-133-191.us-east-2.compute.internal   Ready    worker         61m    v1.16.2
-ip-10-0-136-83.us-east-2.compute.internal    Ready    master         67m    v1.16.2
-ip-10-0-138-24.us-east-2.compute.internal    Ready    infra,worker   8m1s   v1.16.2
-ip-10-0-139-81.us-east-2.compute.internal    Ready    infra,worker   8m3s   v1.16.2
-ip-10-0-152-132.us-east-2.compute.internal   Ready    worker         61m    v1.16.2
-ip-10-0-157-139.us-east-2.compute.internal   Ready    master         67m    v1.16.2
-ip-10-0-167-9.us-east-2.compute.internal     Ready    worker         61m    v1.16.2
-ip-10-0-169-121.us-east-2.compute.internal   Ready    master         67m    v1.16.2
+ip-10-0-133-134.us-east-2.compute.internal   Ready    infra,worker   8m     v1.22.8
+ip-10-0-133-191.us-east-2.compute.internal   Ready    worker         61m    v1.22.8
+ip-10-0-136-83.us-east-2.compute.internal    Ready    master         67m    v1.22.8
+ip-10-0-138-24.us-east-2.compute.internal    Ready    infra,worker   8m1s   v1.22.8
+ip-10-0-139-81.us-east-2.compute.internal    Ready    infra,worker   8m3s   v1.22.8
+ip-10-0-152-132.us-east-2.compute.internal   Ready    worker         61m    v1.22.8
+ip-10-0-157-139.us-east-2.compute.internal   Ready    master         67m    v1.22.8
+ip-10-0-167-9.us-east-2.compute.internal     Ready    worker         61m    v1.22.8
+ip-10-0-169-121.us-east-2.compute.internal   Ready    master         67m    v1.22.8
 ```
 
 どのノードが新しいノードなのか分からなくて困っている場合は、`AGE` カラムを見てみてください。
 また、`ROLES` 列では、新しいノードが `worker` と `infra` の両方のロールを持っていることに気づくでしょう。
 
+[source,bash,role="execute"]
+----
+oc get nodes -l node-role.kubernetes.io/infra
+----
+
 ### ラベルを確認する
 この例では、一番若いノードは `ip-10-0-133-134.us-east-2.compute.internal` という名前でした。
 
+[source,bash,role="execute"]
+----
+YOUNG_INFRA_NODE=$(oc get nodes -l node-role.kubernetes.io/infra  --sort-by=.metadata.creationTimestamp -o jsonpath='{.items[0].metadata.name}')
+oc get nodes ${YOUNG_INFRA_NODE} --show-labels | grep --color node-role
+----
 
 [source,bash,role="copypaste copypaste-warning"]
 ----
@@ -183,7 +196,7 @@ oc get node ip-10-0-133-134.us-east-2.compute.internal --show-labels
 
 そして、`LABELS` の欄には、次のように書かれています。
 
-    beta.kubernetes.io/arch=amd64,beta.kubernetes.io/instance-type=m5.2xlarge,beta.kubernetes.io/os=linux,failure-domain.beta.kubernetes.io/region=us-east-2,failure-domain.beta.kubernetes.io/zone=us-east-2a,kubernetes.io/arch=amd64,kubernetes.io/hostname=ip-10-0-140-3,kubernetes.io/os=linux,node-role.kubernetes.io/infra=,node-role.kubernetes.io/worker=,node.openshift.io/os_id=rhcos
+beta.kubernetes.io/arch=amd64,beta.kubernetes.io/instance-type=m5.2xlarge,beta.kubernetes.io/os=linux,failure-domain.beta.kubernetes.io/region=us-east-2,failure-domain.beta.kubernetes.io/zone=us-east-2a,kubernetes.io/arch=amd64,kubernetes.io/hostname=ip-10-0-140-3,kubernetes.io/os=linux,node-role.kubernetes.io/infra=,node-role.kubernetes.io/worker=,node.openshift.io/os_id=rhcos
 
 `node-role.kubernetes.io/infra` ラベルが確認できます。
 
