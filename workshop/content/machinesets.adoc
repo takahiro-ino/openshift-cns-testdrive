@@ -126,7 +126,7 @@ ip-10-0-166-103.us-east-2.compute.internal   Ready    worker   1m   v1.16.2
 `Machine` が準備され、`Node` として追加されるまでには数分かかることがあります。
 ====
 
-続ける前に、先程スケールアップした `MachineSet` を2から1にスケールダウンしてください。
+続ける前に、先程スケールアップした `MachineSet` を1にスケールダウンしてください。
 
 [source,bash,role="copypaste copypaste-warning"]
 ----
