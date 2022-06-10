@@ -41,9 +41,9 @@ deployment.apps/mapit volume updated
 ----
 
 最初のステップでは、*PersistentVolumeClaim* が作成されました。このオブジェクトは、ユーザーからOpenShiftへの一定の容量を持つ特定の種類のストレージのリクエストを表しています。
-次に、`mapit` の *DeploymentConfig* を更新して、このストレージを参照し、*Pod* 内の `/app-storage` ディレクトリで利用できるようにしています。
+次に、`mapit` の `Deployment` を更新して、このストレージを参照し、*Pod* 内の `/app-storage` ディレクトリで利用できるようにしています。
 
-このように新しい *DeploymentConfig* が表示されます。
+このように新しい `Deployment` が表示されます。
 
 [source,bash,role="execute"]
 ----
@@ -71,7 +71,7 @@ mapit-4-d872b    0/1       ContainerCreating   0          5s
 mapit-4-deploy   1/1       Running             0          10s
 ----
 
-*DeploymentConfig* を見てみましょう。
+`Deployment` を見てみましょう。
 
 [source,bash,role="execute"]
 ----
@@ -95,7 +95,7 @@ oc describe deploy mapit
 しかし、この裏では何が起こっているのでしょうか?
 
 ### Storage Classes
-OpenShift 4を最初にインストールしたときに、AWS EBS用のダイナミックストレージプロバイダが設定されていました。この *StorageClass* を見てみましょう。
+OpenShift 4を最初にインストールしたときに、AWS EBS用のダイナミックストレージプロバイダが設定されていました。この `StorageClass` を見てみましょう。
 
 [source,bash,role="execute"]
 ----
@@ -110,7 +110,7 @@ gp2 (default)   kubernetes.io/aws-ebs   Delete          WaitForFirstConsumer   t
 gp2-csi         ebs.csi.aws.com         Delete          WaitForFirstConsumer   true                   47m
 ----
 
-*StorageClass* を指定していない *PersistentVolumeClaim* では、デフォルトの *StorageClass* が使用されます。この場合では、デフォルトはEBS Provisionerで、リクエストされたサイズ(この例では1Gi)のEBS GP2 Volumeを作成します。
+`StorageClass` を指定していない `PersistentVolumeClaim` では、デフォルトの *StorageClass* が使用されます。この場合では、デフォルトはEBS Provisionerで、リクエストされたサイズ(この例では1Gi)のEBS GP2 Volumeを作成します。
 
 [Note]
 ====
@@ -123,8 +123,8 @@ various container orchestration systems.
 
 ### Persistent Volume (Claims)
 先ほど実行した `oc set volume` コマンドは、`claim` を参照しています。 +
-Kubernetes環境のストレージは、Volume Claim と Volume のシステムを使用します。ユーザが *PersistentVolumeClaim* を作成し、Kubernetesはそれにマッチする *PersistentVolume* を見つけようとします。 +
-*PersistentVolume* が存在しない場合は、要求を満たすことができるDynamic Provisionerがあれば、*PersistentVolume* が動的に作成されます。
+Kubernetes環境のストレージは、Volume Claim と Volume のシステムを使用します。ユーザが `PersistentVolumeClaim` を作成し、Kubernetesはそれにマッチする`PersistentVolume` を見つけようとします。 +
+`PersistentVolume` が存在しない場合は、要求を満たすことができるDynamic Provisionerがあれば、`PersistentVolume` が動的に作成されます。
 
 以下を実行します。
 
@@ -140,7 +140,7 @@ NAME                                       CAPACITY   ACCESS MODES   RECLAIM POL
 pvc-4397c6be-9f53-490e-960d-c1b77de6000c   1Gi        RWO            Delete           Bound    app-management/mapit-storage   gp2                     12m
 ----
 
-これは、先ほどのClaimの結果として作成された *Persistent Volume* です。この `app-management` *Project* に存在するClaimにBindされている(*Bound*)ことに注意してください。
+これは、先ほどのClaimの結果として作成された `Persistent Volume` です。この `app-management` Project に存在するClaimにBindされている(*Bound*)ことに注意してください。
 
 [source,bash,role="execute"]
 ----
@@ -201,7 +201,7 @@ drwxr-xr-x.   1 root  root         41 Dec 14  2016 var
 ----
 <1> これはコンテナ内の永続ストレージが表示される場所です。
 
-Amazon EBSのVolumeはRead-Write-Onceです。EBSはブロックストレージなので、一度に1つのEC2インスタンスにしかアタッチできません。これは一度に1つのコンテナでしかEBSベースの *PersistentVolume* を使用できないということを意味します。(この性質をRead-Write-Onceと呼びます)
+Amazon EBSのVolumeはRead-Write-Onceです。EBSはブロックストレージなので、一度に1つのEC2インスタンスにしかアタッチできません。これは一度に1つのコンテナでしかEBSベースの `PersistentVolume` を使用できないということを意味します。(この性質をRead-Write-Onceと呼びます)
 
 リモートシェルセッション内で以下を実行します。
 
@@ -233,7 +233,7 @@ oc rsh $(oc get pods -l deployment=mapit -o name) cat /app-storage/hello.txt
 ----
 
 ファイルがあることが確認できるでしょう。*Pod* が消えてもストレージとそのデータは保存されていることが分かります。 +
-新しい *Pod* は古い *Pod* と同じノードで実行されていない可能性もありますが、問題なく *Persistent Volume* は使えています。 +
+新しい *Pod* は古い *Pod* と同じノードで実行されていない可能性もありますが、問題なく `Persistent Volume` は使えています。 +
 これはユーザーが意識しない形で、KubernetesとOpenShiftが自動的に外部ストレージを適切なタイミングで適切な場所にアタッチしたことを意味します。
 
 また、Read-Write-Manyなストレージが必要な場合は、ファイルベースのストレージソリューションが利用できます。 +
