@@ -189,11 +189,6 @@ YOUNG_INFRA_NODE=$(oc get nodes -l node-role.kubernetes.io/infra  --sort-by=.met
 oc get nodes ${YOUNG_INFRA_NODE} --show-labels | grep --color node-role
 ----
 
-[source,bash,role="copypaste copypaste-warning"]
-----
-oc get node ip-10-0-133-134.us-east-2.compute.internal --show-labels
-----
-
 そして、`LABELS` の欄には、次のように書かれています。
 
 beta.kubernetes.io/arch=amd64,beta.kubernetes.io/instance-type=m5.2xlarge,beta.kubernetes.io/os=linux,failure-domain.beta.kubernetes.io/region=us-east-2,failure-domain.beta.kubernetes.io/zone=us-east-2a,kubernetes.io/arch=amd64,kubernetes.io/hostname=ip-10-0-140-3,kubernetes.io/os=linux,node-role.kubernetes.io/infra=,node-role.kubernetes.io/worker=,node.openshift.io/os_id=rhcos
