@@ -8,7 +8,7 @@ Windowsコンテナは、以下のプロバイダによりdeployされたクラ�
 * Amazon Web Services (AWS)
 * Microsoft Azure
 * VMware vSphere
-* Bare Metal ( link:https://docs.openshift.com/container-platform/4.9/windows_containers/byoh-windows-instance.html[BYOH])
+* Bare Metal (link:https://docs.openshift.com/container-platform/4.9/windows_containers/byoh-windows-instance.html[BYOH])
 
 NOTE: Windows Server の対応バージョンは、link:https://docs.openshift.com/container-platform/4.9/windows_containers/understanding-windows-container-workloads.html[公式ドキュメント]
 をご参照ください。
