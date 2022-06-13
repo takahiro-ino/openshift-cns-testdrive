@@ -1,38 +1,38 @@
 modules:
   environment:
-    name: 演習環境の概要
+    name: ■ 演習環境の概要
   installation:
-    name: OpenShiftクラスタのインストールの検証
+    name: ■ OpenShiftクラスタのインストールの検証
   app-mgmt-basics:
-    name: アプリケーション管理の基礎
+    name: ■ アプリケーション管理の基礎
   app-storage-basics:
-    name: アプリケーションストレージの基礎
+    name: ■ アプリケーションストレージの基礎
     requires:
       - app-mgmt-basics
   machinesets:
-    name: MachineSets, Machines, and Nodes
+    name: ■ MachineSets, Machines, and Nodes
   infra-nodes:
-    name: インフラストラクチャノード と Operator
+    name: ■ インフラストラクチャノード と Operator
   odf4:
-    name: OpenShift Data Foundationのデプロイと管理
+    name: ■ OpenShift Data Foundationのデプロイと管理
   logging:
-    name: OpenShift ログ集約
+    name: ■ OpenShift ログ集約
   ldap-groupsync:
-    name: 外部認証プロバイダ(LDAP)の設定
+    name: ■ 外部認証プロバイダ(LDAP)の設定
   monitoring-basics:
-    name: OpenShift Monitoring
+    name: ■ OpenShift Monitoring
   template-quota-limits:
-    name: プロジェクト・リクエスト・テンプレートとクォータ/制限
+    name: ■ プロジェクト・リクエスト・テンプレートとクォータ/制限
   networking:
-    name: OpenShift の Network Policy ベースの SDN
+    name: ■ OpenShift の Network Policy ベースの SDN
   disabling-project-self-provisioning:
-    name: Projectのセルフプロビジョニングの無効化
+    name: ■ Projectのセルフプロビジョニングの無効化
   clusterresourcequota:
-    name: クラスタリソースのクォータ
+    name: ■ クラスタリソースのクォータ
   taints-and-tolerations:
-    name: Taint と Toleration
+    name: ■ Taint と Toleration
   windows-containers:
-    name: Windows コンテナ
+    name: ■ Windows コンテナ
 config:
     template_engine: liquid.js  
     vars:
