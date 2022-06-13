@@ -1,38 +1,38 @@
 modules:
   environment:
-    name: Environment Overview
+    name: 演習環境の概要
   installation:
-    name: Installation and Verification
+    name: OpenShiftクラスタのインストールの検証
   app-mgmt-basics:
-    name: Application Management Basics
+    name: アプリケーション管理の基礎
   app-storage-basics:
-    name: Application Storage Basics
+    name: アプリケーションストレージの基礎
     requires:
       - app-mgmt-basics
   machinesets:
     name: MachineSets, Machines, and Nodes
   infra-nodes:
-    name: Infrastructure Nodes and Operators
+    name: インフラストラクチャノード と Operator
   odf4:
-    name: Deploying and Managing OpenShift Data Foundation
+    name: OpenShift Data Foundationのデプロイと管理
   logging:
-    name: OpenShift Log Aggregation
+    name: OpenShift ログ集約
   ldap-groupsync:
-    name: External (LDAP) Authentication Providers, Users, and Groups
+    name: 外部認証プロバイダ(LDAP)の設定
   monitoring-basics:
-    name: OpenShift Monitoring with Prometheus
+    name: OpenShift Monitoring
   template-quota-limits:
-    name: Project Template, Quota, and Limits
+    name: プロジェクト・リクエスト・テンプレートとクォータ/制限
   networking:
-    name: OpenShift Networking and NetworkPolicy
+    name: OpenShift の Network Policy ベースの SDN
   disabling-project-self-provisioning:
-    name: Disabling Project Self-Provisioning
+    name: Projectのセルフプロビジョニングの無効化
   clusterresourcequota:
-    name: Cluster Resource Quotas
+    name: クラスタリソースのクォータ
   taints-and-tolerations:
-    name: Taints and Tolerations
+    name: Taint と Toleration
   windows-containers:
-    name: Windows Containers
+    name: Windows コンテナ
 config:
     template_engine: liquid.js  
     vars:
