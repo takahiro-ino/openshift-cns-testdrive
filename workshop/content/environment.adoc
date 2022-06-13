@@ -8,7 +8,7 @@ OpenShift 4のインストールは事前に完了しています。OpenShift4�
 
 * 3 Master ノード
 * 3 Worker ノード
-* 1 Bastion ホスト （踏み台ホスト）
+* 1 Bastion Host (踏み台ホスト)
 
 このワークショップでは、Rook/CephをベースにしたOpenShift Data Foundation(ODF)のインストールも行います。その際にODF用のノードを3台追加しますが、ノードの追加はODFの演習の中で行うため、ワークショップ開始の時点では3台のWorkerノードで構いません。
 
@@ -16,7 +16,7 @@ OpenShift 4のインストールは事前に完了しています。OpenShift4�
 このワークショップは、link:https://github.com/openshift-labs/workshop-dashboard[Homeroom] というツールを利用しています。Homeroomでは、画面左側に(まさに今読んでいる)演習ガイドが表示され、画面右側にはターミナルが表示されます。
 
 ### ターミナルの使い方
-演習では、様々なコードとコマンドブロックが記載されています。コマンドブロックにはクリックするだけで画面右側のターミナルで実行されるものと、実行前に修正が必要なものもあります。赤い枠線（下記参照）が付いたコマンドブロックが表示されている場合、そのコマンドはクリップボードにコピーされ、少し修正する必要があります。 +
+演習の中で、様々なコードとコマンドブロックが記載されています。いくつかのコマンドブロックはクリックするだけで画面右側　のターミナルで実行することができます。他に、実行前に修正が必要なものもあります。赤い枠線（下記参照）が付いたコマンドブロックが表示されている場合、そのコマンドはクリップボードにコピーされ、少し修正する必要があります。 +
 コマンドブロックの横にあるアイコンは、コマンドが実行されるか、コピーされるかを示しています。
 
 - このコマンドブロックは、クリックするだけでターミナルで実行されます
@@ -46,11 +46,11 @@ some command to modify
 ### Webコンソールの使い方
 多くの演習では、ターミナルとWebコンソールの両方を使って操作を行います。 +
 
-`openshift-console` が提供するWebコンソールは次のリンクからアクセスできますので、kbd:[Ctrl] + クリックして下さい。
+`openshift-console` が提供するWebコンソールは次のリンクからアクセスできますので、kbd:[Ctrl]+クリックして下さい。
 
 {{ MASTER_URL }}
 
-ログインする際は、`kubeadmin` ユーザーでログインします。 `kubeadmin` ユーザーのパスワードはこちらです。
+ログインする際は、`kubeadmin` ユーザでログインします。あなたの `kubeadmin` パスワードはこちらです。
 
 [source,role="copypaste"]
 ----
@@ -105,7 +105,8 @@ oc get clusterrole cluster-admin -o yaml
 
 `verbs` とは、リソースに対して実行するアクションのことです。OpenShiftでは `delete` や `get` などが `verbs` となります。
 
-特定の `verbs` について詳しく知るには、`oc [verb] --help`を実行します。
+特定の `verbs` について詳しく知るには、`oc [verb] --help`
+を実行します。
 
 例えば、`verbs` の1つである _whoami_ について学んでみましょう。
 
@@ -121,11 +122,13 @@ oc whoami --help
 oc whoami
 ----
 
-_cluster-admin_ `ServiceAccount` に `ClusterRole` を付与する、_dashboard-cluster-admin_ `ClusterRoleBinding` を調べてみます。
+_cluster-admin_ `ServiceAccount` に `ClusterRole` を付与する、_dashboard-cluster-admin_ `ClusterRoleBinding` を調べて見ます。
 
 [source,bash,role="execute"]
 ----
 oc get clusterrolebinding dashboard-cluster-admin -o yaml
 ----
 
-`ServiceAccount` は、この `ClusterRoleBinding` の `subjects` であり、参照されるロールが _cluster-admin_ `ClusterRole` であることに注目して下さい。ワークショップ全体を通して、_cluster-admin_ はクラスタを使って何でもできるようになりますので、注意して操作して下さい。
+`ServiceAccount` はこの `ClusterRoleBinding` の `subjects` であり、参照されるロールが _cluster-admin_ `ClusterRole` であることに注目して下さい。
+
+ワークショップ全体を通して、_cluster-admin_ はクラスタを使って何でもできるようになりますので、注意して操作して下さい。
