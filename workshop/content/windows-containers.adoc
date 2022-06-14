@@ -210,10 +210,13 @@ Windows Nodeは、MachineAPIを使用してOpenShift LinuxNodeを作成するの
 NOTE: Machine APIに慣れていない場合は、xref:machinesets.adoc [MachineSets, Machines, and Nodes] の演習で理解することができます。
 
 まず、Windows Machine用のMachineSetを作成します。その後 YAML の重要なセクションを探っていきます。
+本ワークショップのGitをcloneし、以下のシェルを実行します。
 
 [source,bash,role="execute"]
 ----
 ${HOME}/support/generate-windows-ms.sh
+
+Generating Windows Machineset YAML...Machineset ${HOME}/windows-ms.yaml created!
 ----
 
 NOTE: Windows MachineSetのYAMLの作成方法の詳細は、link:https://docs.openshift.com/container-platform/4.9/windows_containers/creating_windows_machinesets/creating-windows-machineset-aws.html[公式ドキュメント]を参照してください。
@@ -233,6 +236,10 @@ Windows MachineSetには、Operating System IDとして `Windows` というラ�
 [source,bash,role="execute"]
 ----
 yq e '.metadata.labels' ~/windows-ms.yaml
+
+例)
+machine.openshift.io/cluster-api-cluster: cluster-<xxxxx>-<yyyyy>
+machine.openshift.io/os-id: Windows
 ----
 
 すべてのWindows Nodeは `worker` というラベルを持つことになります。Windows Nodeはクラスタ内の他のNodeと同様に扱われます。
@@ -240,6 +247,9 @@ yq e '.metadata.labels' ~/windows-ms.yaml
 [source,bash,role="execute"]
 ----
 yq e '.spec.template.spec.metadata.labels' ~/windows-ms.yaml
+
+例)
+node-role.kubernetes.io/worker: ""
 ----
 
 AMI IDはWindows Server 2019 AMIを表します。
@@ -247,6 +257,8 @@ AMI IDはWindows Server 2019 AMIを表します。
 [source,bash,role="execute"]
 ----
 yq e '.spec.template.spec.providerSpec.value.ami.id' ~/windows-ms.yaml
+
+例) ami-0e81507e2b228b761
 ----
 
 NOTE: サポートされているバージョンの Windows Server の AMI を使用する必要があります。詳細については、link:https://docs.openshift.com/container-platform/4.9/windows_containers/windows-containers-release-notes-4-x.html#supported-windows-server-versions[公式ドキュメント] を参照して下さい。
@@ -256,6 +268,9 @@ NOTE: サポートされているバージョンの Windows Server の AMI を�
 [source,bash,role="execute"]
 ----
 yq e '.spec.template.spec.providerSpec.value.userDataSecret.name' ~/windows-ms.yaml
+
+例)
+windows-user-data
 ----
 
 このシークレットは、WMCOがインストールされたときに生成されます。
