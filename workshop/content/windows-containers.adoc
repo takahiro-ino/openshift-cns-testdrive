@@ -231,7 +231,7 @@ ls -l ~/windows-ms.yaml
 NOTE: 時間があるようでしたらこのファイルを自由に見てみてください。LinuxのMachineSetと変わらないことが分かると思います。
 
 Windows MachineSetには、Operating System IDとして `Windows` というラベルが貼られています。
-以下のコマンドを実行すると、ラベルが `machine.openshift.io/os-id: MachineSet の Windows` の結果が表示されます。
+以下のコマンドを実行すると、ラベルが `machine.openshift.io/os-id: Windows` の結果が表示されます。
 
 [source,bash,role="execute"]
 ----
