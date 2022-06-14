@@ -365,7 +365,7 @@ NOTE: The `-o jsonpath` は特定のフィールドを選択します。この�
 
 `new-app` のデフォルトの動作は、リクエストされたアイテムのインスタンスを1つだけ作成することです。これを修正/調整する方法を見ていきますが、その前にいくつかの概念を学んでおきましょう。
 
-### Deployment Configurations と Replica Sets
+### Deployment と Replica Sets
 
 *Service* が *Pod* のルーティングとロードバランシングを提供するのに対し、 *ReplicaSets (RS)* は、必要な数の *Pod*(=レプリカ) を確実に存在させるために使用されます。 +
 例えば、アプリケーションを常に3つの *Pod* にスケールさせておきたい場合は、*ReplicaSet* が必要になります。*ReplicaSet* がないと、何らかの理由で停止・終了した *Pod* は自動的に再作成されません。*ReplicaSet* はOpenShiftが「自己修復」する方法を提供します。
@@ -704,7 +704,7 @@ Readyiness Probeも同様にできます。
 
 [source,bash,role="execute"]
 ----
-oc set probe dc/mapit --readiness --get-url=http://:8080/health --initial-delay-seconds=30
+oc set probe deploy/mapit --readiness --get-url=http://:8080/health --initial-delay-seconds=30
 ----
 
 ### Deployment と ReplicaSets のテスト
