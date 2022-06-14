@@ -860,11 +860,11 @@ oc get nodes -l kubernetes.io/os=linux
 oc get pods -n netcandystore -l deploymentconfig=mssql -o wide
 ----
 
-下記のURLにアクセスすると、アプリケーションを見ることができます。
+下記のコマンドを実行し、返却されたURL(http://netcandystore-netcandystore.foo.bar)にアクセスすると、アプリケーションへアクセスできます。
 
 [source,role="copypaste"]
 ----
-http://netcandystore-netcandystore.{{ ROUTE_SUBDOMAIN }}[Net Candystore Route]
+oc get route -n netcandystore -o jsonpath='{.items[*].status.ingress[*].host}'
 ----
 
 フロントページはこのようになっています。
