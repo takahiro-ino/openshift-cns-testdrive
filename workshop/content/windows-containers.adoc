@@ -473,7 +473,7 @@ Windows Node 上では、`docker` 、`kubelet` 、`hybrid-overlay-node` の各�
 
 [source,bash,role="execute"]
 ----
-Get-Process | ?{ $_.ProcessName -match "kube|overlay|docker" } 
+PS C:\Users\Administrator> Get-Process | ?{ $_.ProcessName -match "kube|overlay|docker" } 
 Handles  NPM(K)    PM(K)      WS(K)     CPU(s)     Id  SI ProcessName
 -------  ------    -----      -----     ------     --  -- -----------
     342      20    80008      46020      16.95   2640   0 dockerd
@@ -498,7 +498,7 @@ Kubernetesの将来のリリースでは、`Containerd`がWindows Nodeで新た�
 
 [source,bash,role="execute"]
 ----
-docker pull mcr.microsoft.com/windows/servercore:ltsc2019
+PS C:\Users\Administrator> docker pull mcr.microsoft.com/windows/servercore:ltsc2019
 ----
 
 このPull処理には時間がかかることがあります。Pullしている間、Pullしているコンテナのバージョンが `mcr.microsoft.com/windows/servercore:ltsc2019` であることをメモしておきます。
@@ -509,7 +509,7 @@ NOTE: Windows ServerはバージョンによってOSカーネルが異なるた�
 
 [source,bash,role="execute"]
 ----
-docker images
+PS C:\Users\Administrator> docker images
 ----
 
 以下のような出力が表示されるはずです。
@@ -524,14 +524,14 @@ Windows Server コンテナイメージの事前Pullが完了したので、Powe
 
 [source,bash,role="execute"]
 ----
-exit
+PS C:\Users\Administrator> exit
 ----
 
 また、bashコンテナのセッションも同様に終了させることができます。
 
 [source,bash,role="execute"]
 ----
-exit
+bash-4.4$ exit
 ----
 
 # Windowsコンテナの実行
@@ -646,7 +646,7 @@ bash-4.4$ sshcmd.sh ip-10-0-140-10.ec2.internal
 
 [source,bash,role="execute"]
 ----
-docker ps
+PS C:\Users\Administrator> docker ps
 ----
 
 ここでは、コンテナが `pause` コンテナと一緒に実行されているのがわかります。
