@@ -700,7 +700,7 @@ NOTE: Windowsコンテナ内で以下のコマンドを実行する場合、`ENT
 
 [source,bash,role="execute"]
 ----
-tasklist /M /FI "IMAGENAME eq powershell.exe"  | Select-String -Pattern http
+PS C:\> tasklist /M /FI "IMAGENAME eq powershell.exe"  | Select-String -Pattern http
 ----
 
 Windowsコンテナからログアウトしてください。
