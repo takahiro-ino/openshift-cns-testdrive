@@ -258,7 +258,7 @@ AMI IDはWindows Server 2019 AMIを表します。
 ----
 yq e '.spec.template.spec.providerSpec.value.ami.id' ~/windows-ms.yaml
 
-例) ami-0e81507e2b228b761
+例) ami-015d67394a5860124
 ----
 
 NOTE: サポートされているバージョンの Windows Server の AMI を使用する必要があります。詳細については、link:https://docs.openshift.com/container-platform/4.9/windows_containers/windows-containers-release-notes-4-x.html#supported-windows-server-versions[公式ドキュメント] を参照して下さい。
