@@ -3,7 +3,7 @@
 :experimental:
 
 == 演習の概要
-OpenShift 4のInstaller-provisioned infrastructure (IPI) インストールでは、意図的に設定する範囲を狭くしています。これは、シンプルさと確実な成功を目指して設計されているためです。これまでインストーラで処理されていた項目や構成の多くは、control planeと基本的なワーカーのインストールが完了した直後に実行される、「Day 2」の操作となることでしょう。インストーラは、特定のプラットフォーム上でクラスタをプロビジョニングするためのガイドを提供します。
+OpenShift 4のInstaller-provisioned infrastructure (IPI) インストールでは、意図的に設定する範囲を狭くしています。これは、シンプルさと確実な成功を目指して設計されているためです。これまでインストーラで処理されていた項目や構成の多くは、control planeと基本的なWorkerのインストールが完了した直後に実行される「Day 2」の操作となります。インストーラは、特定のプラットフォーム上でクラスタをプロビジョニングするためのガイドを提供します。
 
 このIPIインストールはすでに実行されており、クラスタはデフォルト状態になっています。
 
@@ -17,6 +17,21 @@ OpenShift 4のInstaller-provisioned infrastructure (IPI) インストールで�
 ssh -l {{ SSH_USERNAME }} {{ BASTION_FQDN }} -o ServerAliveInterval=120
 ----
 
+次のようなメッセージが表示される場合があります。
+----
+The authenticity of host 'bastion.xxxxx.sandbox000.opentlc.com (x.x.x.x.' can't be established.
+ECDSA key fingerprint is SHA256:ZZZZzzzzzzZZZZZzzzzzzZZZZZZzzzzzzzZZZZzzZZz.
+ECDSA key fingerprint is MD5:12:34:56:78:9a:bc:de:f1:23:45:67:89:ab:cd:ef:10.
+Are you sure you want to continue connecting (yes/no)?
+----
+
+その場合は `yes` と入力してください。
+
+[source,bash,role="execute"]
+----
+yes
+----
+
 あなたの ssh パスワードはこれです。
 
 [source,bash,role="copypaste"]
@@ -24,7 +39,14 @@ ssh -l {{ SSH_USERNAME }} {{ BASTION_FQDN }} -o ServerAliveInterval=120
 {{ SSH_PASSWORD }}
 ----
 
-ホスト名に4桁の英数字文字列(例:f4a3)があることに気づくでしょう。この文字列が `GUID` です。`GUID` はよく使うものなので、環境変数としてエクスポートしておくのがよいです。
+踏み台サーバにsshしたら、`ec2-user` にスイッチします。
+
+[source,bash,role="execute"]
+----
+sudo su - ec2-user
+----
+
+ホスト名に4桁の英数字文字列(例:f4a3)がありますが、この文字列がこのワークショップ固有のIDである `GUID` です。`GUID` はよく使うものなので、環境変数としてエクスポートしておくと便利です。
 
 [source,bash,role="execute"]
 ----
@@ -39,7 +61,7 @@ image::images/openshift_master_4_responsibilities.png[]
 #### API/認証
 Kubernetes APIサーバーは、Kubernetesクラスタを構成するリソースを検証し、設定します。
 
-Kubernetes APIサーバーとインタラクションするための一般的なものは以下の通りです。
+Kubernetes APIサーバーとやり取りするための一般的なものは以下のとおりです。
 
 * OpenShift Webコンソール
 * OpenShift `oc` コマンドラインツール
@@ -64,11 +86,11 @@ Podスケジューラは、クラスタ内のノードへの新しいPodの配�
 #### ヘルスチェック/スケーリング
 各PodはLiveness ProbeとReadiness Probeの両方を登録することができます。
 
-Liveness ProbeはPodが健康かどうかをシステムに知らせます。Podが正常でない場合は、自動的に再起動することができます。
+Liveness ProbeはPodが正常かどうかをシステムに知らせます。Podが正常でない場合は、自動的に再起動することができます。
 
-Readiness ProbeはPodがトラフィックを受ける準備ができているかどうかをシステムに知らせます。これは例えば、クラスタがPodをロードバランサに入れるタイミングを知るために使用できます。
+Readiness ProbeはPodがトラフィックを受ける準備ができているかどうかをシステムに知らせます。例えば、クラスタがPodをロードバランサに入れるタイミングを知るために使用できます。
 
-OpenShift Masterの責任範囲の詳細については、製品ドキュメントのlink:https://docs.openshift.com/container-platform/3.11/architecture/infrastructure_components/kubernetes_infrastructure.html[infrastructure components section] を参照してください。
+OpenShift Masterの責任範囲の詳細については、製品ドキュメントのlink:https://docs.openshift.com/container-platform/4.9/architecture/control-plane.html[Control plane architecture ] を参照してください。
 
 ### インストールで作られる成果物
 OpenShift 4は2つのスーパーユーザでインストールします。
@@ -76,15 +98,15 @@ OpenShift 4は2つのスーパーユーザでインストールします。
 * `kubeadmin`(`kube:admin` のエイリアス)
 * `system:admin`
 
-なぜ2つなのか？それは、`system:admin` は証明書を使ってログインするユーザーであり、パスワードを持っていないからです。そのため、このスーパーユーザーでは(パスワードが必要な)Webコンソールにログインすることができません。
+なぜ2つなのか？それは、`system:admin` は、証明書を使ってログインするユーザーで、パスワードを持ちません。そのため、このスーパーユーザーでは(パスワードが必要な)Webコンソールにログインすることができません。
 
-追加のユーザがクラスタを認証して使えるようにしたい場合は、以前に説明したようにCustomResourcesとOperatorsを使用して必要な認証メカニズムを設定する必要があります。ラボの演習の1つとして、LDAPベースの認証を設定します。
+追加のユーザーがクラスタを認証して使えるようにしたい場合は、以前に説明したようにCustomResourcesとOperatorsを使用して必要な認証メカニズムを設定する必要があります。ラボの演習の1つとして、LDAPベースの認証を設定するものがあります。
 
 ### インストールの検証
-基本的なテストをいくつか行ってみましょう。管理者として、OpenShiftとのやりとりのほとんどはコマンドラインから行います。`oc` プログラムはOpenShift APIと対話するコマンドラインインターフェースです。
+基本的なテストをいくつか行ってみましょう。管理者として、OpenShiftとのやり取りのほとんどはコマンドラインから行います。`oc` プログラムはOpenShift APIと対話するコマンドラインインターフェースです。
 
 #### OpenShiftへのログイン
-インストールが完了すると、インストーラはクラスタ環境にアクセスするために必要な様々なURLとパスワードを含むいくつかの成果物を残しました。インストールプログラムは `ec2-user` アカウントで実行されています。
+インストールが完了すると、インストーラはクラスタ環境にアクセスするために必要な様々なURLとパスワードを含むいくつかの成果物を残します。インストールプログラムは `ec2-user` アカウントで実行されています。
 
 [source,bash,role="execute"]
 ----
@@ -113,20 +135,25 @@ OpenShift 4 IPIのインストールでは、クラウドプロバイダーの�
 
 [source,bash,role="execute"]
 ----
-tail -n5 ~/cluster-$GUID/.openshift_install.log
+tail -n10 ~/cluster-$GUID/.openshift_install.log
 ----
 
 以下のように表示されます。
 
 ----
-time="2019-04-08T14:49:34Z" level=info msg="Install complete!"
-time="2019-04-08T14:49:34Z" level=info msg="Run 'export KUBECONFIG=/home/ec2-user/cluster-f4a3/auth/kubeconfig' to manage the cluster with 'oc', the OpenShift CLI."
-time="2019-04-08T14:49:34Z" level=info msg="The cluster is ready when 'oc login -u kubeadmin -p SxUr2-tQ2py-c6jq2-YtjW3' succeeds (wait a few minutes)."
-time="2019-04-08T14:49:34Z" level=info msg="Access the OpenShift web-console here: https://console-openshift-console.apps.cluster-f4a3.f4a3.openshiftworkshop.com"
-time="2019-04-08T14:49:34Z" level=info msg="Login to the console with user: kubeadmin, password: SxUr2-tQ2py-c6jq2-YtjW3"
+time="2021-07-06T19:36:30Z" level=info msg="Install complete!"
+time="2021-07-06T19:36:30Z" level=info msg="To access the cluster as the system:admin user when using 'oc', run 'export KUBECONFIG=/home/ec2-user/cluster-pdr-5434/auth/kubeconfig'"
+time="2021-07-06T19:36:30Z" level=info msg="Access the OpenShift web-console here: https://console-openshift-console.apps.cluster-pdr-5434.pdr-5434.sandbox259.opentlc.com"
+time="2021-07-06T19:36:30Z" level=info msg="Login to the console with user: \"kubeadmin\", and password: \"SfaIH-4dBE5-A95AT-ahjjd\""
+time="2021-07-06T19:36:30Z" level=debug msg="Time elapsed per stage:"
+time="2021-07-06T19:36:30Z" level=debug msg="    Infrastructure: 8m50s"
+time="2021-07-06T19:36:30Z" level=debug msg="Bootstrap Complete: 9m10s"
+time="2021-07-06T19:36:30Z" level=debug msg=" Bootstrap Destroy: 38s"
+time="2021-07-06T19:36:30Z" level=debug msg=" Cluster Operators: 14m45s"
+time="2021-07-06T19:36:30Z" level=info msg="Time elapsed: 33m33s"
 ----
 
-インストールは別のシステムユーザで実行され、成果物のフォルダはあなたの `lab-user` フォルダに読み取り専用でマウントされています。`export` コマンドを与えてくれましたが、表示されているパスへの書き込み権限がありません。`oc` コマンドは `KUBECONFIG` ファイルに書き込もうとしますが、それはできません。
+インストールは別のシステムユーザで実行され、成果物のフォルダはあなたの `lab-user` フォルダに読み取り専用でマウントされています。`export` コマンドを提供していますが、表示されているパスへの書き込み権限がありません。`oc` コマンドは `KUBECONFIG` ファイルに書き込もうとしますが、それはできません。
 
 インストールプロセスでは、必要な設定を `~/.kube/config` にコピーしているので、すでにログインしています。以下のようにしてみてください。
 
@@ -146,10 +173,11 @@ oc get clusterversion
 ----
 
 以下のような出力が表示されます。
+（バージョンの4.9.zzのzzの部分は異なる場合があります）
 
 ----
 NAME      VERSION   AVAILABLE   PROGRESSING   SINCE   STATUS
-version   4.3.1     True        False         15m     Cluster version is 4.3.1
+version   4.9.11    True        False         3h11m   Cluster version is 4.9.11
 ----
 
 詳細については、以下のコマンドを実行します。
@@ -169,8 +197,8 @@ Annotations:  <none>
 API Version:  config.openshift.io/v1
 Kind:         ClusterVersion
 Metadata:
-  Creation Timestamp:  2020-11-10T15:59:59Z
-  Generation:          1
+  Creation Timestamp:  2022-01-31T21:16:57Z
+  Generation:          2
   Managed Fields:
     API Version:  config.openshift.io/v1
     Fields Type:  FieldsV1
@@ -179,10 +207,9 @@ Metadata:
         .:
         f:channel:
         f:clusterID:
-        f:upstream:
     Manager:      cluster-bootstrap
     Operation:    Update
-    Time:         2020-11-10T15:59:59Z
+    Time:         2022-01-31T21:16:57Z
     API Version:  config.openshift.io/v1
     Fields Type:  FieldsV1
     fieldsV1:
@@ -201,55 +228,91 @@ Metadata:
         f:versionHash:
     Manager:         cluster-version-operator
     Operation:       Update
-    Time:            2020-11-10T16:30:21Z
-  Resource Version:  26775
-  Self Link:         /apis/config.openshift.io/v1/clusterversions/version
-  UID:               aeecffc3-c364-425a-a324-01d32f019630
+    Subresource:     status
+    Time:            2022-01-31T21:29:24Z
+  Resource Version:  83732
+  UID:               b2c4f11b-6200-4d19-b3b8-1d8b743eede2
 Spec:
-  Channel:     stable-4.6
-  Cluster ID:  e4ab25a7-7729-4b81-8770-274a531ea0d3
-  Upstream:    https://api.openshift.com/api/upgrades_info/v1/graph
+  Channel:     stable-4.9
+  Cluster ID:  20b3751f-aff9-4eaf-81ca-62930812e82d
 Status:
-  Available Updates:  <nil>
+  Available Updates:
+    Channels:
+      candidate-4.10
+      candidate-4.9
+      fast-4.9
+      stable-4.9
+    Image:    quay.io/openshift-release-dev/ocp-release@sha256:7b67b0cb5ab016528b8efdb6130c000398efc58f55e2226f3cf4e3be59c
+78443
+    URL:      https://access.redhat.com/errata/RHBA-2022:0195
+    Version:  4.9.17
+    Channels:
+      candidate-4.10
+      candidate-4.9
+      fast-4.9
+      stable-4.9
+    Image:    quay.io/openshift-release-dev/ocp-release@sha256:bb1987fb718f81fb30bec4e0e1cd5772945269b77006576b02546cf84c7
+7498e
+    URL:      https://access.redhat.com/errata/RHBA-2022:0110
+    Version:  4.9.15
+    Channels:
+      candidate-4.10
+      candidate-4.9
+      fast-4.9
+      stable-4.9
+    Image:    quay.io/openshift-release-dev/ocp-release@sha256:dd71b3cd08ce1e859e0e740a585827c9caa1341819d1121d92879873a12
+7f5e2
+    URL:      https://access.redhat.com/errata/RHBA-2021:5214
+    Version:  4.9.12
+    Channels:
+      candidate-4.10
+      candidate-4.9
+      fast-4.9
+      stable-4.9
+    Image:    quay.io/openshift-release-dev/ocp-release@sha256:0ff5adc1199c77c2814c2030642109b24039087a2621b19e553a2315bcd
+c4801
+    URL:      https://access.redhat.com/errata/RHBA-2022:0029
+    Version:  4.9.13
   Conditions:
-    Last Transition Time:  2020-11-10T16:30:21Z
-    Message:               Done applying 4.6.1
+    Last Transition Time:  2022-01-31T21:41:09Z
+    Message:               Done applying 4.9.11
     Status:                True
     Type:                  Available
-    Last Transition Time:  2020-11-10T16:30:21Z
+    Last Transition Time:  2022-01-31T21:41:09Z
     Status:                False
     Type:                  Failing
-    Last Transition Time:  2020-11-10T16:30:21Z
-    Message:               Cluster version is 4.6.1
+    Last Transition Time:  2022-01-31T21:41:09Z
+    Message:               Cluster version is 4.9.11
     Status:                False
     Type:                  Progressing
-    Last Transition Time:  2020-11-10T15:59:59Z
+    Last Transition Time:  2022-01-31T21:16:57Z
     Status:                True
     Type:                  RetrievedUpdates
   Desired:
     Channels:
-      candidate-4.6
-      fast-4.6
-      stable-4.6
-    Image:    quay.io/openshift-release-dev/ocp-release@sha256:d78292e9730dd387ff6198197c8b0598da340b
-e7678e8e1e4810b557a926c2b9
-    URL:      https://access.redhat.com/errata/RHBA-2020:4196
-    Version:  4.6.1
+      candidate-4.10
+      candidate-4.9
+      fast-4.9
+      stable-4.9
+    Image:    quay.io/openshift-release-dev/ocp-release@sha256:0f72e150329db15279a1aeda1286c9495258a4892bc5bf1bf5bb89942cd
+432de
+    URL:      https://access.redhat.com/errata/RHBA-2021:5003
+    Version:  4.9.11
   History:
-    Completion Time:    2020-11-10T16:30:21Z
-    Image:              quay.io/openshift-release-dev/ocp-release@sha256:d78292e9730dd387ff6198197c8b
-0598da340be7678e8e1e4810b557a926c2b9
-    Started Time:       2020-11-10T15:59:59Z
+    Completion Time:    2022-01-31T21:41:09Z
+    Image:              quay.io/openshift-release-dev/ocp-release@sha256:0f72e150329db15279a1aeda1286c9495258a4892bc5bf1bf
+5bb89942cd432de
+    Started Time:       2022-01-31T21:16:57Z
     State:              Completed
     Verified:           false
-    Version:            4.6.1
-  Observed Generation:  1
-  Version Hash:         l4WEdVTgp58=
+    Version:            4.9.11
+  Observed Generation:  2
+  Version Hash:         TAWX_HO9fK4=
 Events:                 <none>
 ----
 
 #### ノードを調べる
-以下のコマンドを実行すると、OpenShiftが知っている *Nodes* の一覧が表示されます。
+以下のコマンドを実行すると、OpenShiftが知っている *ノード* の一覧が表示されます。
 
 [source,bash,role="execute"]
 ----
@@ -259,21 +322,28 @@ oc get nodes
 出力は以下のようになります。
 
 ----
-NAME                                         STATUS   ROLES    AGE     VERSION
-ip-10-0-128-29.us-west-2.compute.internal    Ready    worker   4h16m   v1.19.0+d59ce34
-ip-10-0-154-253.us-west-2.compute.internal   Ready    master   4h26m   v1.19.0+d59ce34
-ip-10-0-162-126.us-west-2.compute.internal   Ready    worker   4h17m   v1.19.0+d59ce34
-ip-10-0-164-110.us-west-2.compute.internal   Ready    master   4h26m   v1.19.0+d59ce34
-ip-10-0-197-0.us-west-2.compute.internal     Ready    worker   4h17m   v1.19.0+d59ce34
-ip-10-0-203-93.us-west-2.compute.internal    Ready    master   4h26m   v1.19.0+d59ce34
+NAME                           STATUS   ROLES    AGE     VERSION
+ip-10-0-132-57.ec2.internal    Ready    master   3h36m   v1.22.3+ffbb954
+ip-10-0-136-126.ec2.internal   Ready    worker   3h23m   v1.22.3+ffbb954
+ip-10-0-155-84.ec2.internal    Ready    worker   3h28m   v1.22.3+ffbb954
+ip-10-0-158-48.ec2.internal    Ready    master   3h36m   v1.22.3+ffbb954
+ip-10-0-166-207.ec2.internal   Ready    worker   3h22m   v1.22.3+ffbb954
+ip-10-0-169-24.ec2.internal    Ready    master   3h35m   v1.22.3+ffbb954
 ----
 
-3つのmasterと3つのworkerがあります。OpenShift *Master* はSDN（Software Defined Network）に参加する必要があるため、*Node* でもあります。追加の目的でノードが必要な場合は、IPIでクラウドプロバイダーのOperatorを活用すると、非常に簡単にノードを作成できます。OpenShiftのインフラコンポーネント(レジストリ、ルーターなど)を実行するためのノードを作成するのは、後の演習で行います。
+3つのMasterと3つのWorkerがあります。OpenShift *Master* はSDN（Software Defined Network）に参加する必要があるため、*ノード* でもあります。追加の目的でノードが必要な場合は、IPIでクラウドプロバイダーのOperatorを活用すると、非常に簡単にノードを作成できます。OpenShiftのインフラコンポーネント(レジストリ、Routerなど)を実行するためのノードを作成するのは、後の演習で行います。
+
+次のコマンドで `ec2-user` ユーザーのシェルからexitします。
+
+[source,role="execute"]
+----
+exit
+----
 
 #### Webコンソールを確認する
 OpenShiftでは、ユーザ、開発者、アプリケーション運用者、管理者が環境とインタラクションするためのWebコンソールを提供しています。クラスタ自体のアップグレードを含むクラスタ管理機能の多くは、Webコンソールを使用するだけで実行できます。
 
-Webコンソールは実際にはOpenShift環境内でアプリケーションとして実行され、OpenShift Routerを介して公開されます。ルーターについては、この後の演習で詳しく説明します。今は、リンクをkbd:[Ctrl]+クリックするだけでOKです。
+Webコンソールは実際にはOpenShift環境内でアプリケーションとして実行され、OpenShift Routerを介して公開されます。Routerについては、この後の演習で詳しく説明します。今は、リンクをkbd:[Ctrl]+クリックするだけでOKです。
 
 {{ MASTER_URL }}
 
@@ -286,5 +356,5 @@ exit
 
 [Warning]
 ====
-最初にWebコンソールにアクセスすると、ブラウザに自己署名証明書エラーが表示されます。OpenShiftをインストールすると、デフォルトでは、Webコンソールを含むOpenShift内のすべてのコンポーネント間通信に対してCA証明書とSSL証明書が生成されます。
+最初にWebコンソールにアクセスすると、ブラウザに「自己署名証明書の警告」という、自己証明書を使っている場合の警告が表示されます。OpenShiftをインストールすると、デフォルトでは、Webコンソールを含むOpenShift内のすべてのコンポーネント間通信に対してCA証明書とSSL証明書が生成されます。
 ====

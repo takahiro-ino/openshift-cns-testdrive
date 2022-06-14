@@ -2,15 +2,15 @@
 :experimental:
 
 == 演習の概要
-このモジュールでは、`oc` ツールを使用してサンプルアプリケーションをデプロイし、OpenShift Container Platform上での中心概念、基本オブジェクト、アプリケーション管理の基本について学習します。
+このモジュールでは、`oc` ツールを使用してサンプルアプリケーションをデプロイし、OpenShift Container Platform上でのコアとなる概念、基本オブジェクト、アプリケーション管理の基本について学習します。
 
 ---
 
-=== OpenShiftの中心概念
+=== OpenShiftのコアとなる概念
 OpenShiftの管理者として、アプリケーションに関連するいくつかのコアとなるビルディングブロックを理解することは重要です。これらのビルディングブロックを理解することで、プラットフォーム上でのアプリケーション管理の全体像をよりよく理解することができます。
 
 === Projects
-*Project* は一種の「バケツ」です。これは、ゆべてのユーザのリソースが存在するメタ構造です。 +
+*Project* は一種の「バケツ」です。これは、すべてのユーザのリソースが存在するメタ構造です。 +
 管理の観点からは、各Projectはテナントのように考えることができます。そのためProjectにはアクセスできる複数のユーザがいるかもしれませんし、ユーザは複数のProjectにアクセスできるかもしれません。 +
 技術的に言えば、リソースはユーザが所有しているのではなく、Projectが所有しています。したがって、ユーザを削除しても作成されたリソースには影響しません。
 
@@ -24,7 +24,6 @@ oc new-project app-management
 === サンプルアプリケーションのデプロイ
 `new-app` コマンドは、OpenShiftでアプリケーションを実行するように指示するシンプルな方法です。
 ユーザはこのコマンドを使ってOpenShiftで既存のイメージを起動させたり、ソースコードをビルドしてデプロイしたり、テンプレートをインスタンス化したりするのが一般的です。 +
-このコマンドに入力すべき事項のうち1つを与えるだけで、OpenShiftは何をすべきかを判断します。
 
 次のようにQuay上に存在する特定のイメージを起動します。
 
@@ -53,7 +52,7 @@ g one or more of the commands below:
 
 このコマンドの出力でOpenShiftがいくつかのリソースを自動的に作成したことがわかります。作成されたリソースを少し時間をかけて調べてみましょう。
 
-`new-app` の機能の詳細については、 `oc new-app -h` を実行してそのヘルプメッセージを見てください。
+`new-app` の機能の詳細については、 `oc new-app -h` を実行して、そのヘルプメッセージを見てください。
 
 === Pods
 
@@ -79,9 +78,7 @@ NAME                     READY   STATUS    RESTARTS   AGE
 mapit-764c5bf8b8-l49z7   1/1     Running   0          2m53s
 ----
 
-NOTE: Pod名はデプロイプロセスの一部として動的に生成されますが、これについては後ほど説明します。
-
-NOTE: `-deploy` Podは後述する `DeploymentConfig` に関連しています。
+NOTE: Pod名はデプロイプロセスの一部として動的に生成されますが、これについては後ほど説明します。また表示される名前はこの表示とは少し異なります。
 
 `oc describe` コマンドを使うと、Podの詳細を知ることができます。上記のPod名の場合、
 
@@ -89,6 +86,8 @@ NOTE: `-deploy` Podは後述する `DeploymentConfig` に関連しています�
 ----
 oc describe pod -l deployment=mapit
 ----
+
+NOTE: `-l deployment=mapit` Podは後述する `Deployment` に関連しています。
 
 と実行すると、以下のような出力が表示されます。
 
@@ -181,8 +180,8 @@ horaxe/mapit@sha256:8c7e0349b6a016e3436416f3c54debda4594ba09fd34b8a0dee0c4497102
 image::images/openshift_service.png[]
 
 *Services* はOpenShift内部でPodのようなグループを見つけるのに便利な抽象化レイヤーを提供します。 +
-*Service* はまた、それらのPodとOpenShift環境内からPodにアクセスする必要のある、他の何かとの間の内部プロキシ/ロードバランサーとしても機能します。 +
-例えば、負荷を処理するためにより多くの `mapit` インスタンスが必要な場合、より多くのPodを立ち上げることができますが、OpenShiftは自動的にそれらのPodを *Service* へのエンドポイントとしてマップします。これによってアプリケーションへのリクエストはこれまでと変わらず処理され、*Service* がリクエストを処理するために良いことした以外は、何も変わったことに気づかないでしょう。
+*Service* はまた、それらのPodと、OpenShift環境内からPodにアクセスする必要のある他の何かとの間の内部プロキシ/ロードバランサーとしても機能します。 +
+例えば、負荷を処理するためにより多くの `mapit` インスタンスが必要な場合、より多くのPodを立ち上げることができますが、OpenShiftは自動的にそれらのPodを *Service* へのエンドポイントとしてマップします。これによってアプリケーションへのリクエストはこれまでと変わらず処理され、*Service* がリクエストをより適切に処理するようになったことを除いて、リクエストは何も変わりません。
 
 OpenShiftにイメージを実行するよう依頼することで、`new-app` コマンドが自動的に *Service* を作成しました。 +
 ここで覚えていただきたいことは、*Service* はOpenShift内部のためのものであるということです。「外の世界」から利用することはできません。これについてはあとで学習します。
@@ -191,7 +190,7 @@ OpenShiftにイメージを実行するよう依頼することで、`new-app` �
 *Services* には固定IPアドレスが割り当てられ、多くのポートやプロトコルをマッピングすることができます。
 
 手作業で作成するためのYAML形式など、
-https://docs.openshift.com/container-platform/3.11/architecture/core_concepts/pods_and_services.html#services[Services]
+https://docs.openshift.com/container-platform/4.9/architecture/understanding-development.html#understanding-kubernetes-pods[Services]
 については公式ドキュメントに多くの情報があります。
 
 それではProject内の *Service* のリストを見てみましょう。
@@ -210,7 +209,7 @@ mapit   ClusterIP   172.30.167.160   <none>        8080/TCP,8778/TCP,9779/TCP   
 
 NOTE: *Service* のIPアドレスは作成時に動的に割り当てられますが、これは変わることはありません。*Service* のIPアドレスは *Service* が削除されるまで予約されます。
 
-*Pod* と同じように、*Service* も `describe` することができます。OpenShiftではほとんどのオブジェクトを `describe` することができます。
+*Pod* と同じように、*Service* も `describe` で説明を表示することができます。OpenShiftではほとんどのオブジェクトを `describe` で説明を表示することができます。
 
 [source,bash,role="execute"]
 ----
@@ -345,7 +344,9 @@ status:
 oc get pod -l deployment=mapit -o jsonpath='{.items[*].metadata.labels}' | jq -r
 ----
 
-`metadata` セクションの下に、以下のように表示されているはずです。
+NOTE: The `-o jsonpath` は特定のフィールドを選択します。このケースではマニフェストの `labels` セクションを尋ねています。
+
+以下のように表示されているはずです。
 
 ----
 {
@@ -354,23 +355,22 @@ oc get pod -l deployment=mapit -o jsonpath='{.items[*].metadata.labels}' | jq -r
 }
 ----
 
-* *Service* には `app:mapit` と `deploymentconfig: mapit` を参照する `selector` スタンザがあります。
+* *Service* には `deployment: mapit` を参照する `selector` スタンザがあります。
 * *Pod* には複数の *Label* があります。
-** `deploymentconfig: mapit`
-** `app: mapit`
-** `deployment: mapit-1`
+** `deployment: mapit`
+** `pod-template-hash: 764c5bf8b8`
 
 *Labels* は単なるkey/valueのペアです。この *Project* 内で *Selector* に一致する *Label* を持つ *Pod* はすべて、 *Service* 関連付けられます。 +
 もう一度 `oc describe` の出力を見てみると、*Service* のエンドポイントが1つあることが分かります。これはつまり、既存の `mapit` *Pod* であることがわかります。
 
 `new-app` のデフォルトの動作は、リクエストされたアイテムのインスタンスを1つだけ作成することです。これを修正/調整する方法を見ていきますが、その前にいくつかの概念を学んでおきましょう。
 
-### Deployment Configuration と Replication Controllers
+### Deployment Configurations と Replica Sets
 
-*Service* が *Pod* のルーティングとロードバランシングを提供するのに対し、 *ReplicationControllers (RC)* は、必要な数の *Pod*(=レプリカ) を確実に存在させるために使用されます。 +
-例えば、アプリケーションを常に3つの *Pod* にスケールさせておきたい場合は、*ReplicationController* が必要になります。*ReplicationController* があると、何らかの理由で終了した *Pod* は自動的に再作成されます。*ReplicationController* はOpenShiftが「自己修復」する方法を提供します。
+*Service* が *Pod* のルーティングとロードバランシングを提供するのに対し、 *ReplicaSets (RS)* は、必要な数の *Pod*(=レプリカ) を確実に存在させるために使用されます。 +
+例えば、アプリケーションを常に3つの *Pod* にスケールさせておきたい場合は、*ReplicaSet* が必要になります。*ReplicaSet* がないと、何らかの理由で停止・終了した *Pod* は自動的に再作成されません。*ReplicaSet* はOpenShiftが「自己修復」する方法を提供します。
 
-*DeploymentConfiguration (DC)* はOpenShift内の何かをどのようにデプロイするかを定義します。以下は https://docs.openshift.com/container-platform/3.11/architecture/core_concepts/deployments.html[deployments documentation^] の抜粋です。
+*Deployment* (deploy) はOpenShift内の何かをどのようにデプロイするかを定義します。以下は https://docs.openshift.com/container-platform/4.9/applications/deployments/what-deployments-are.html#deployments-kube-deployments_what-deployments-are[deployments documentation^] の抜粋です。
 
 ----
 Deployments describe the desired state of a particular component of an
@@ -378,14 +378,18 @@ application as a Pod template. Deployments create ReplicaSets, which
 orchestrate Pod lifecycles.
 ----
 
-ほとんどの場合、*Pod* , *Service* , *ReplicationController* , *DeploymentConfiguration* のリソースを一緒に使用することになります。そして、ほとんどの場合、OpenShiftがすべてのリソースを作成してくれます。
+ほとんどの場合、*Pod* , *Service* , *ReplicaSet* , *Deployment* のリソースを一緒に使用することになります。そして、ほとんどの場合、OpenShiftがすべてのリソースを作成してくれます。
 
-NOTE: *DC* や *Service* 存在しない *Pod* や *RC* が求められるエッジケースもありますが、これらはこの演習では説明しない高度なトピックです。
+*Deployment* や *Service* を必要としない *Pod* や *RS* が求められるエッジケースもありますが、これらはこの演習では説明しない高度なトピックです。
+
+NOTE: 以前のOpenShiftのバージョンでは *DeploymentConfig* と呼ばれるものが使用されていました。まだ有効なメカニズムですが、*Deployment* に移行しており、`oc new-app` コマンドによって何が作成されるのかは
+https://docs.openshift.com/container-platform/4.9/applications/deployments/what-deployments-are.html#deployments-comparing-deploymentconfigs_what-deployments-are[official
+documentation] を参照してください。
 
 ### Deploymentに関連するオブジェクトの探索
 
-*ReplicatonController* と *DeploymentConfig* が何かが分かったので、それらがどのように動作し、どのように関連しているかを探ってみましょう。 +
-OpenShiftに `mapit` イメージを立ち上げるように指示したときに作成された *DeploymentConfig (DC)* を見てみましょう。
+*ReplicaSet* と *Deployment* が何かが分かったので、それらがどのように動作し、どのように関連しているかを探ってみましょう。 +
+OpenShiftに `mapit` イメージを立ち上げるように指示したときに作成された *Deployment* (deploy)を見てみましょう。
 
 [source,bash,role="execute"]
 ----
@@ -399,9 +403,9 @@ NAME    READY   UP-TO-DATE   AVAILABLE   AGE
 mapit   1/1     1            1           76m
 ----
 
-より詳しく知るために、*ReplicationController (RC)* について調べることができます。
+より詳しく知るために、*ReplicaSet (RS)* について調べることができます。
 
-OpenShiftに `mapit` イメージを立ち上げるように指示したときに作成された *RC* を見てみましょう。
+OpenShiftに `mapit` イメージを立ち上げるように指示したときに作成された *ReplicaSet (RS)* を見てみましょう。
 
 [source,bash,role="execute"]
 ----
@@ -440,6 +444,8 @@ NAME               DESIRED   CURRENT   READY   AGE
 mapit-764c5bf8b8   2         2         2       79m
 mapit-8695cb9c67   0         0         0       79m
 ----
+
+NOTE: 古いバージョンのものが保持されています。これにより、アプリケーションを以前のバージョンに "rollback"することができます。
 
 これで 2つのレプリカができたことがわかります。`oc get pods` コマンドでPodの数を確認してみましょう。
 
@@ -516,7 +522,7 @@ OpenShiftは既存のイメージの新しいインスタンスを起動して�
 
 ### アプリケーションの 「セルフヒーリング」
 
-OpenShiftの *RC* は、希望する数の *Pod* が実際に動いているかどうかを常に監視しています。そのため、何か正しくないことがあればOpenShiftが「修正」することも期待できます。
+OpenShiftの *RS* は、希望する数の *Pod* が実際に動いているかどうかを常に監視しています。そのため、何か正しくないことがあればOpenShiftが「修正」することも期待できます。
 
 現在2つの *Pod* が稼働しているので、1つを「誤って」killしてしまった場合にどうなるか見てみましょう。`oc get pods` コマンドをもう一度実行して、*Pod* 名を選択し、次のようにしてみます。
 
@@ -527,12 +533,20 @@ oc get pods
 
 すると、以下のように表示されます。
 
-[source,bash,role="execute"]
 ----
-oc delete pods -l deployment=mapit
+NAME                     READY   STATUS    RESTARTS   AGE
+mapit-764c5bf8b8-lxnvw   1/1     Running   0          2m28s
+mapit-764c5bf8b8-rscss   1/1     Running   0          2m54s
 ----
 
-Run the `oc get pods` command once again:
+*Deployment* `mapit` に属するPodを削除します。
+
+[source,bash,role="execute"]
+----
+oc delete pods -l deployment=mapit --wait=false
+----
+
+再度 `oc get pods` コマンドを実行します。
 
 [source,bash,role="execute"]
 ----
@@ -541,7 +555,7 @@ oc get pods
 
 何か気づきましたか? そうです、もう新しいコンテナが作成されています。
 
-また、`ContainerCreating` の *Pod* の名前が変わっています。これは、OpenShiftが現在の状態(*Pod* が1つ)が希望の状態(*Pod* が2つ)と一致していないことを即座に検出し、別の *Pod* をスケジューリングして修正したためです。
+また、*Pod* の名前が変わっています。これは、OpenShiftが現在の状態が(削除したので *Pod* が0)、希望の状態(*Pod* が2)と一致していないことを即座に検出し、*Pod* をスケジューリングして修正したためです。
 
 ### Routes
 .OpenShift Route
@@ -550,7 +564,7 @@ image::images/openshift_route.png[]
 *Service* はOpenShift内で内部の抽象化と負荷分散を提供しますが、OpenShift**外**のクライアント(ユーザ、システム、デバイスなど)がアプリケーションにアクセスする必要がある場合もあります。 +
 外部クライアントがOpenShift内で実行されているアプリケーションにアクセスする方法は、OpenShiftのルーティングレイヤーを介して行われます。そしてその背後にあるオブジェクトが *Route* です。
 
-デフォルトのOpenShiftルーター(HAProxy)は、着信リクエストのHTTPヘッダを使用して、どこにプロキシするかを決定します。 +
+デフォルトのOpenShift Router(HAProxy)は、着信リクエストのHTTPヘッダを使用して、どこにプロキシするかを決定します。 +
 *Service*(ひいては *Pod*)に外部からアクセスできるようにしたい場合は、*Route* を作成する必要があります。オプションで *Route* に対してTLSなどのセキュリティを定義することができます。
 
 Routerの設定を覚えていますか？おそらく覚えていないと思います。それは、OpenShiftのインストール中にRouter用のOperatorがデプロイされ、OperatorがRouterを作成したからです。 +
@@ -560,11 +574,6 @@ Routerは `openshift-ingress` *Project* にあり、以下のコマンドでそ�
 ----
 oc describe deployment router-default -n openshift-ingress
 ----
-
-NOTE: *Deployment* がKubernetesネイティブなオブジェクトであるのに対し、*DeploymentConfig* はOpenShift固有のオブジェクトであり、新しいデプロイの実行を促す
- `trigger` など、いくつかの追加機能を持っています。
-
-
 RouterのOperatorについては、後続の演習で詳しく説明します。
 
 ### Route の作成
@@ -626,8 +635,7 @@ oc scale --replicas=1 deploy/mapit
 ----
 
 ### アプリケーションのProbe
-OpenShiftでは *Pod* およびコンテナ内でコマンドを実行してアプリケーションの死活をチェックすることも可能です。しかしそのコマンドは、コンテナイメージ内に既にインストールされている任意の言語を使用した複雑なスクリプトであるかもしれません。 +
-OpenShiftでは、アプリケーションインスタンスの活性度(liveness)や準備状態(readiness)をチェックするための初歩的な機能が提供されています。
+OpenShiftでは、アプリケーションインスタンスの活性度(liveness)や準備状態(readiness)をチェックするための初歩的な機能が提供されています。基本的なチェックでは不十分な場合は *Pod* およびコンテナ内でコマンドを実行してアプリケーションの死活をチェックすることも可能です。そのコマンドは、コンテナイメージ内に既にインストールされている任意の言語を使用した複雑なスクリプトであるかもしれません。 +
 
 定義できるアプリケーションProbeには2種類あります。
 
@@ -640,7 +648,8 @@ Liveness Probeは、設定されているコンテナが実行されているか
 Readiness Probeは、コンテナがリクエストをサービスする準備ができているかどうかを判断します。Readiness Probeが失敗した場合、エンドポイントのコントローラは、コンテナのIPアドレスをマッチするはずのすべての *Service* のエンドポイントから削除します。Readiness Probeは、コンテナが実行中であっても、トラフィックを受信すべきではないことをエンドポイントのコントローラに知らせるために使用することができます。
 
 アプリケーションのProbeに関する詳細は、ドキュメントの
-https://docs.openshift.com/container-platform/4.5/applications/application-health.html[Monitoring application health] セクションを参照してください。
+https://docs.openshift.com/container-platform/4.9/applications/application-health.html[Application
+Health] セクションを参照してください。
 
 ### アプリケーションへのProbeの追加
 `oc set` コマンドは、いくつかの異なる機能を実行するために使用することができますが、そのうちの1つにProbeの作成/編集があります。 +
@@ -698,27 +707,9 @@ Readyiness Probeも同様にできます。
 oc set probe dc/mapit --readiness --get-url=http://:8080/health --initial-delay-seconds=30
 ----
 
-### DeploymentConfigs と ReplicationControllers のテスト
+### Deployment と ReplicaSets のテスト
 
-次を実行してみて下さい。
-
-[source,bash,role="execute"]
-----
-oc get pods
-----
-
-以下のように表示されます。
-
-----
-NAME             READY   STATUS      RESTARTS   AGE
-mapit-1-deploy   0/1     Completed   0          18h
-mapit-2-deploy   0/1     Completed   0          112s
-mapit-3-deploy   0/1     Completed   0          75s
-mapit-3-kkwxq    1/1     Running     0          66s
-----
-
-`-deploy` *Pod* が3つあることに注意して下さい。そして現在の `mapit` *Pod* には3という数字が含まれています。 +
-これは、*DeploymentConfig* に加えた変更が、_configuration_ の変更としてカウントされ、それが新しいdeploymentの _trigger_ となったからです。`-deploy` *Pod* は、新しいdeploymentを引き起こす役割を持ちます。
+*Deployment* への各変更は、構成変更としてカウントされ、新しいデプロイメントのトリガーとなります。
 
 次を実行して下さい。
 
@@ -734,7 +725,7 @@ NAME    READY   UP-TO-DATE   AVAILABLE   AGE
 mapit   1/1     1            1           131m
 ----
 
-最初のdeploymentの後に2つの設定変更を行ったため、*DeploymentConfiguration* の3番目のリビジョンになっています。
+最初のdeploymentの後に2つの構成変更を行ったため、*Deployment* の4番目のリビジョンになっています。
 
 以下を実行して下さい。
 
@@ -753,7 +744,7 @@ mapit-764c5bf8b8   0         0         0       133m
 mapit-8695cb9c67   0         0         0       133m
 ----
 
-新しいdeploymentがトリガーされるたびに、新しい *ReplicationController* が作成されます。 +
-*ReplicationController* は *Pod* が存在することを保証する責任を持ちます。古い *RC* のスケールは0で、最新の *RC* のスケールは1であることに注意してください。
+新しいdeploymentがトリガーされるたびに、新しい *ReplicaSet* が作成されます。 +
+*ReplicaSet* は *Pod* が存在することを保証する責任を持ちます。古い *RS* のスケールは0で、最新の *RS* のスケールは1であることに注意してください。
 
-これらの *RC* をそれぞれ `oc describe` すると、`-1` にはProbeがなく、`-2` と `-3` にはそれぞれ新しいProbeがあることがわかるでしょう。
+これらの *RS* を、それぞれ `oc describe` すると、以前のバージョンにはProbeがなく、最新の実行中の *RS* にはそれぞれ新しいProbeがあることがわかります。
