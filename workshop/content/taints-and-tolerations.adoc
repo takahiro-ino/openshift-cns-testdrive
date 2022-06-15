@@ -7,7 +7,7 @@
  `nodePlacement` 内の `nodeSelector` は、あるノードのセットに Pod を引き寄せます。
 しかし、反対に、Pod をなるノードから遠ざけたい場合は、どうすればいいでしょう？
 
-Taint された(汚された)ノード上でポッドが動作しないようにする事ができます。
+Taint された(汚された)ノード上でPodが動作しないようにする事ができます。
 
 これは、例えば、以下のようなユースケースで役に立つでしょう。：
 
@@ -86,10 +86,10 @@ oc create -f ~/support/welcome-php.yaml
 
 以下のオブジェクトが作成されます。
 
-* ネームスペース `tt-lab` 
-* サンプルのphpアプリを実行している `welcome-php` というデプロイメント
-* ポート `808080` で Listen する `welcome-php` というサービス
-* `welcome-php` という名前のルート
+* Namespace `tt-lab` 
+* サンプルのphpアプリを実行している `welcome-php` というDeployment
+* ポート `8080` で Listen する `welcome-php` というService
+* `welcome-php` という名前のRoute
 
 
 ここから `tt-lab` プロジェクトで作業しますので、切り替えます。
@@ -99,8 +99,8 @@ oc create -f ~/support/welcome-php.yaml
 oc project tt-lab
 ----
 
-ここで、ポッドをノードの数と同じにスケールさせます。
-フォルトのスケジューラは、アプリを均等に分散させようとします。
+ここで、Podをノードの数と同じにスケールさせます。
+デフォルトのスケジューラは、アプリを均等に分散させようとします。
 また、ロールアウトが完了するのを待ちます。
 
 [source,bash,role="execute"]
@@ -151,16 +151,16 @@ Pod が均等に広がるようにするには、`oc delete pods --all` を何�
 
 以下の 3 つの効果が現れます。: 
 
-* `NoSchedule` - taint にマッチしない新しいポッドは、そのノードにスケジュールされません。ノード上の既存のポッドはそのまま残ります。
-* `NoExecute` -  taint にマッチしない新しいポッドは、そのノードにスケジューリングすることはできません。一致しないノード上の既存のポッドは削除されます。
-* `PreferNoSchedule` - taint にマッチしない新しいポッドがそのノードにスケジューリングされることがありますが、スケジューラはそれを回避しようとします。ノード上の既存のポッドは残ります。
+* `NoSchedule` - taint にマッチしない新しいPodは、そのノードにスケジュールされません。ノード上の既存のPodはそのまま残ります。
+* `NoExecute` -  taint にマッチしない新しいPodは、そのノードにスケジューリングすることはできません。一致しないノード上の既存のPodは削除されます。
+* `PreferNoSchedule` - taint にマッチしない新しいPodがそのノードにスケジューリングされることがありますが、スケジューラはそれを回避しようとします。ノード上の既存のPodは残ります。
 
 もう一つのコンポーネントとして `operator` があります。 `operator` については「Toleration」のセクションで詳しく説明します。
 
 
 
 この演習では、インフラ・ノードでもストレージ・ノードではない最初のノードを `welcome-php=run:NoSchedule` で Taint します。 
-これにより、すべての新しいポッド(適切な Toleration を持たないものは)は、このノードでスケジューリングされないようになります。
+これにより、すべての新しいPod(適切な Toleration を持たないものは)は、このノードでスケジューリングされないようになります。
 
 
 [source,bash,role="execute"]
@@ -176,8 +176,8 @@ oc adm taint node ${TTNODE} welcome-php=run:NoSchedule
 oc describe nodes -l appnode=welcome-php | grep Taint
 ----
 
-`NoSchedule` を使用しているので、ポッドはまだそこにあるはずです。
-`NoSchedule` はノード上での新しいポッドの生成を停止するだけであることを覚えておいてください（コマンドは `1` を返すはずです）。
+`NoSchedule` を使用しているので、Podはまだそこにあるはずです。
+`NoSchedule` はノード上での新しいPodの生成を停止するだけであることを覚えておいてください（コマンドは `1` を返すはずです）。
 
 [source,bash,role="execute"]
 ----
@@ -260,7 +260,7 @@ oc get deploy welcome-php -o yaml
 oc get pods -o wide | grep -c ${TTNODE}
 ----
 
-すべてのポッドをリストアップすると、それらが均等に広がっているはずです
+すべてのPodをリストアップすると、それらが均等に広がっているはずです
 
 [source,bash,role="execute"]
 ----

@@ -92,9 +92,10 @@ oc get machineset -n openshift-machine-api
 
 そのリストの中から、`-2c` で終わる `MachineSet` を見つけてください。このScaleは1のはずです。それでは、2つのインスタンスを持つようにスケールしてみましょう。あなたの `MachineSet` の名前はラボガイドの名前とは異なる可能性があるので、特に注意してください。
 
-[source,bash,role="copypaste copypaste-warning"]
+[source,bash,role="execute"]
 ----
-oc scale machineset cluster-5fa6-hx2ml-worker-us-east-2c -n openshift-machine-api --replicas=2
+CLUSTERNAME=$(oc get  infrastructures.config.openshift.io cluster  -o jsonpath='{.status.infrastructureName}')
+oc scale machineset ${CLUSTERNAME}-worker-us-east-2c -n openshift-machine-api --replicas=2
 ----
 
 `MachineSet` が正常にスケーリングされたというメモが表示されているはずです。次に、`Machine` のリストを見てみましょう。
@@ -130,7 +131,8 @@ ip-10-0-166-103.us-east-2.compute.internal   Ready    worker   1m   v1.22.8
 
 続ける前に、先程スケールアップした `MachineSet` を1にスケールダウンしてください。
 
-[source,bash,role="copypaste copypaste-warning"]
+[source,bash,role="execute"]
 ----
-oc scale machineset cluster-5fa6-hx2ml-worker-us-east-2c -n openshift-machine-api --replicas=1
+CLUSTERNAME=$(oc get  infrastructures.config.openshift.io cluster  -o jsonpath='{.status.infrastructureName}')
+oc scale machineset ${CLUSTERNAME}-worker-us-east-2c -n openshift-machine-api --replicas=1
 ----

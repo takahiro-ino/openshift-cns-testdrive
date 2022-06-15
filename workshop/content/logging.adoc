@@ -5,7 +5,7 @@
 == 演習の概要
 このラボでは、OpenShiftのログ集約機能を触ってみます。
 
-OpenShift の非常に重要な機能の一つに、実行中の環境とアプリケーションポッドからログを収集して集約する機能があります。
+OpenShift の非常に重要な機能の一つに、実行中の環境とアプリケーションPodからログを収集して集約する機能があります。
 OpenShift には柔軟性のある *EFK* によるログ集約ソリューションが同梱されています。
 *EFK* は、それぞれのソリューションの頭文字を集めたものです。( *E* lasticSearch、*F* luentd、*K* ibana)
 
@@ -223,7 +223,7 @@ Logging が作成されたので、動作しているかどうかを確認して
 
 2. `openshift-logging` プロジェクトを選択します。
 
-クラスタ Logging （Operator 自身）、Elasticsearch、Fluentd、Kibana のポッドが表示されているはずです。
+クラスタ Logging （Operator 自身）、Elasticsearch、Fluentd、Kibana のPodが表示されているはずです。
 
 または、次のコマンドを使用してコマンドラインから検証することもできます。:
 
@@ -393,7 +393,7 @@ _Kibana_ は、クラスタから送られてくるすべてのログを問い�
 
 5. "Save" ボタンをクリックします。
 
-画面の中央には `lab-ocp-cns` namespace にあるすべてのポッドからのログが表示されているはずです。
+画面の中央には `lab-ocp-cns` namespace にあるすべてのPodからのログが表示されているはずです。
 
 もちろん、さらにフィルタを追加してクエリを絞り込むこともできます。
 
@@ -430,7 +430,7 @@ output URL スキームが TLS (HTTPS、TLS、または UDPS) を必要とする
 
 * `pipeline` は、1つのログタイプから1つまたは複数の出力への単純なルーティング、またはどのログを送信するかを定義します。ログタイプは以下のいずれかです。
 ** `application` : インフラストラクチャコンテナアプリケーションを除く、クラスタで実行されているユーザーアプリケーションによって生成されたコンテナログ。
-** `infrastructure` : openshift *、kube *、またはデフォルトのプロジェクトで実行されるポッドからのコンテナーログと、ノードファイルシステムから供給されるジャーナルログ。
+** `infrastructure` : openshift *、kube *、またはデフォルトのプロジェクトで実行されるPodからのコンテナーログと、ノードファイルシステムから供給されるジャーナルログ。
 ** `audit` : ノードの監査システム（auditd）が生成するログと、Kubernetes APIサーバーおよびOpenShift APIサーバーの監査ログ。
 
 パイプラインのキーと値のペアを使用して、送信ログメッセージにラベルを追加することができます。たとえば、他のデータセンターに転送されるメッセージにラベルを追加したり、タイプ別にログにラベルを付けることができます。オブジェクトに追加されたラベルは、ログメッセージと一緒に転送されます。
@@ -585,7 +585,7 @@ collector-w54c5   2/2     Running   0          37s
 +
 image::images/logging-syslog-pods.png[Syslog Pods]
 +
-2. `syslog-ng-infra-xyz` のような名前の `syslog-infra` ポッドをクリックし、`Terminal` タブに移動します (# プロンプトを表示するには、何度かエンターキーを押す必要があるかもしれません)。
+2. `syslog-ng-infra-xyz` のような名前の `syslog-infra` Podをクリックし、`Terminal` タブに移動します (# プロンプトを表示するには、何度かエンターキーを押す必要があるかもしれません)。
 +
 image::images/logging-syslog-terminal-infra.png[Syslog Terminal]
 +
@@ -594,4 +594,4 @@ image::images/logging-syslog-terminal-infra.png[Syslog Terminal]
 image::images/logging-syslog-logs.png[Syslog logs]
 
 
-これで完了です！この手順をもう一方のポッドで繰り返して、アプリケーション・ログも正しく転送されることを確認できます。
+これで完了です！この手順をもう一方のPodで繰り返して、アプリケーション・ログも正しく転送されることを確認できます。
