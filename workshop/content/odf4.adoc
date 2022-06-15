@@ -570,8 +570,7 @@ PostgreSQLのPodが再作成されたら、再びRailsのWebアプリケーシ�
 ----
 oc delete $(oc get pod -l name=postgresql -n my-database-app -o name) -n my-database-app
 ----
-.ターミナルのプロンプトが戻ってくるまで待って下さい。
-CAUTION: プロンプトが戻ってくるまで数分かかる場合があります。
+CAUTION: ターミナルのプロンプトが戻ってくるまで待って下さい。プロンプトが戻ってくるまで数分かかる場合があります。
 
 
 先程作成したPVは、`ocs-storagecluster-cephblockpool` プール内に作られるCeph RBD(RADOS Block Device)ボリュームです。ここではPVとCeph RBDボリュームとがどのように対応しているか確認してみます。 +
@@ -699,7 +698,7 @@ tmpfs           32566396        0  32566396   0% /proc/scsi
 tmpfs           32566396        0  32566396   0% /sys/firmware
 ----
 
-上の出力にあるように、`/dev/rbd1` という名前のデバイスは `/var/lib/pgsql/data` という名前でマウントされています。このディレクトリを人為的に満杯にします。
+上の出力にあるように、`/dev/rbd0` という名前のデバイスは `/var/lib/pgsql/data` という名前でマウントされています。このディレクトリを人為的に満杯にします。
 
 [source,role="execute"]
 ----
