@@ -116,7 +116,7 @@ Windows Nodeを展開する前に、Windows Machine Config Operator（WMCO）を
 
 [source,role="copypaste"]
 ----
-{{ OpenShiftコンソールのURL }}
+{{  MASTER_URL }}
 ----
 
 パスワードは `kubeadmin` ユーザーのパスワードを使用します。
