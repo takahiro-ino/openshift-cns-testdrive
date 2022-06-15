@@ -672,7 +672,7 @@ bash-4.4$ sshcmd.sh ip-10-0-140-10.ec2.internal
 
 [source,bash,role="execute"]
 ----
-PS C:\Users\Administrator> docker ps
+docker ps
 ----
 
 ここでは、コンテナが `pause` コンテナと一緒に実行されているのがわかります。
