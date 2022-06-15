@@ -672,7 +672,7 @@ bash-4.4$ sshcmd.sh ip-10-0-140-10.ec2.internal
 
 [source,bash,role="execute"]
 ----
-PS C:\Users\Administrator> docker ps
+docker ps
 ----
 
 ここでは、コンテナが `pause` コンテナと一緒に実行されているのがわかります。
@@ -811,7 +811,7 @@ redhat-demos/netcandystore \
 
 NOTE: 尚、`--timeout=1200s` が必要なのは、Helmのデフォルトのタイムアウトが5分で、ほとんどの場合、Windowsコンテナイメージのダウンロードにそれ以上の時間がかかるからです。
 
-これは、「ぶら下がっている」「引っかかっている」ように見えるでしょう。そうではありません。
+これは、「ハングしている」「スタックしている」ように見えるでしょう。そうではありません。
 これは、イメージがWindows　Nodeに引き込まれたことを示しています。先に述べたように、Windowsのコンテナは非常に大きいので、時間がかかるかもしれません。
 
 しばらくすると、次のような戻り値が表示されるはずです。
@@ -892,7 +892,7 @@ oc get pods -n netcandystore -l deploymentconfig=mssql -o wide
 
 下記のコマンドを実行し、出力されたURLにアクセスすると、アプリケーションへアクセスできます。
 
-[source,role="copypaste"]
+[source,bash,role="execute"]
 ----
 oc get route -n netcandystore -o jsonpath --template="http://{.items[*].status.ingress[*].host}{'\n'}"
 ----
