@@ -65,10 +65,9 @@ oc get pod
 ----
 
 ----
-NAME             READY     STATUS              RESTARTS   AGE
-mapit-3-ntd9w    1/1       Running             0          9m
-mapit-4-d872b    0/1       ContainerCreating   0          5s
-mapit-4-deploy   1/1       Running             0          10s
+NAME                     READY   STATUS              RESTARTS   AGE
+mapit-649fd997c6-rvntj   0/1     ContainerCreating   0          13s
+mapit-79975ccb98-hpw6m   1/1     Running             0          76s
 ----
 
 `Deployment` を見てみましょう。
@@ -114,11 +113,8 @@ gp2-csi         ebs.csi.aws.com         Delete          WaitForFirstConsumer   t
 
 [Note]
 ====
-You'll note that there is also a `gp2-csi`. This implements the
-https://github.com/container-storage-interface/spec[CSI interface],
-which stands for "Container Storage Interface". This specification enables
-storage vendors to develop their plugins once, and have it work across
-various container orchestration systems.
+`gp2-csi` もあることに注意してみましょう。これは https://github.com/container-storage-interface/spec[CSI] を実装した *StorageClass* です。これは "Container Storage Interface" の略です。
+CSIの仕様により、ストレージベンダはプラグインを一度開発すれば、様々なコンテナオーケストレーションシステムで動作させることができるようになります。
 ====
 
 ### Persistent Volume (Claims)
@@ -237,4 +233,4 @@ oc rsh $(oc get pods -l deployment=mapit -o name) cat /app-storage/hello.txt
 これはユーザーが意識しない形で、KubernetesとOpenShiftが自動的に外部ストレージを適切なタイミングで適切な場所にアタッチしたことを意味します。
 
 また、Read-Write-Manyなストレージが必要な場合は、ファイルベースのストレージソリューションが利用できます。 +
-OpenShift Container Storageは、OpenShiftの内部で動作するハイパーコンバージドなストレージソリューションです。ローカルに接続されたストレージデバイスをストレージプールにして、そこからVolumeを作成することで、ファイル、ブロック、さらにはオブジェクトストレージを提供することができます。
+OpenShift Data Foundationは、OpenShiftの内部で動作するハイパーコンバージドなストレージソリューションです。ローカルに接続されたストレージデバイスをストレージプールにして、そこからVolumeを作成することで、ファイル、ブロック、さらにはオブジェクトストレージを提供することができます。

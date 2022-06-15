@@ -181,26 +181,30 @@ oc patch --type=merge project.config.openshift.io cluster -p '{"spec":{"projectR
 ここでは、`projectRequestMessage` と `Please visit
 https://ticket.example.com to request a project` というValueを指定しています。
 
+この新しいメッセージを表示する前に、`apiserver` アプリケーションが変更をロールアウトするのを待つ必要があります。これはロールアウトに時間がかかることがあり、特に忙しいクラスタではそうです。
+
+[source,bash,role="execute"]
+----
+sleep 30
+oc rollout status -n openshift-apiserver deploy/apiserver
+----
+
+
 これで、ユーザはProjectを作成しようとするときにこのメッセージを受け取るようになります。`fancyuser1` になってProjectを作成してみてください。
 
 [source,bash,role="execute"]
 ----
-oc rollout status -n  openshift-apiserver deploy/apiserver
+oc login -u fancyuser1 -p Op#nSh1ft
+oc new-project fancyuserproject
 ----
 
 以下のようなメッセージが表示されるはずです。
 
-[source,bash,role="execute"]
-----
-oc login -u fancyuser1 -p Op#nSh1ft
-----
+```
+Error from server (Forbidden): Please visit https://ticket.example.com to request a project
+```
 
 Operatorがmaster configを更新するまでに時間がかかることがあるので、新しいメッセージが表示されるまでに時間がかかるかもしれません。新しいメッセージが表示されない場合は、しばらく待ってからもう一度試してみてください。
-
-[source,bash,role="execute"]
-----
-oc new-project fancyuserproject
-----
 
 #### クリーンアップ
 

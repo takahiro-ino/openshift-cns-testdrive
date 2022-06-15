@@ -1,7 +1,7 @@
 = Node のメンテナンス
 :experimental:
 
-OpenShift 環境の任意のノード上のすべてのポッドをドレインし、non-schedulable としてマークすることで、メンテナンス状態にすることができます。
+OpenShift 環境の任意のノード上のすべてのPodをドレインし、non-schedulable としてマークすることで、メンテナンス状態にすることができます。
 
 
 これらの操作には高度な権限が必要です。クラスタ管理者としてログインしていることを確認してください。：
@@ -11,7 +11,7 @@ OpenShift 環境の任意のノード上のすべてのポッドをドレイン�
 oc login -u kubeadmin -p {{ KUBEADMIN_PASSWORD }}
 ----
 
-今までに、ほぼすべてのノードでポッドが稼働していることがわかるでしょう。:
+今までに、ほぼすべてのノードでPodが稼働していることがわかるでしょう。:
 
 [source,bash,role="execute"]
 ----
@@ -40,8 +40,8 @@ NAME                                          STATUS                     ROLES  
 {{ NODE2_INTERNAL_FQDN }}   Ready,SchedulingDisabled   compute   1h        v1.11.0+d4cacc0
 ----
 
-ノードを non-schedulable なノードとしてマークしても、実行中のポッドには影響しませんでした。
-それらのポッドをリストアップしてください。:
+ノードを non-schedulable なノードとしてマークしても、実行中のPodには影響しませんでした。
+それらのPodをリストアップしてください。:
 
 [source,bash,role="execute"]
 ----

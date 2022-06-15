@@ -490,7 +490,7 @@ exit
 
 NOTE: Rails + PostgreSQLのデプロイを開始できるように、前のセクションをすべて完了したことを確認してください。
 
-はじめに新規のプロジェクトを作成します。
+はじめに新規の**Project**を作成します。
 
 [source,role="execute"]
 ----
@@ -897,7 +897,7 @@ NOTE: 両方の結果が同じ値を報告する場合、拡張は成功した�
 ==== GUIを使った拡張
 *PVC* 拡張の最後の方法は、*OpenShift Web Console* を使って行うことです。以下のように進めます。
 
-最初のステップは、*PVC* が属するプロジェクトを選択することです。
+最初のステップは、*PVC* が属する**Project**を選択することです。
 
 .Select the appropriate project
 image::images/ocs/OCS-PVCResize-select-project.png[Select project]
@@ -921,7 +921,7 @@ image::images/ocs/OCS-PVCResize-verify-resize-worked2.png[Wait for expansion]
 
 == CephFS volumeを使用するOCPアプリケーションを作成する
 
-このセクションでは、`ocs-storagecluster-cephfs` *StorageClass* を使用して、同時に複数のポッドで使用できるRWX(ReadWriteMany) *PVC* を作成します。ここでは `File Uploader` と呼ばれるアプリケーションを使用します。
+このセクションでは、`ocs-storagecluster-cephfs` *StorageClass* を使用して、同時に複数のPodで使用できるRWX(ReadWriteMany) *PVC* を作成します。ここでは `File Uploader` と呼ばれるアプリケーションを使用します。
 
 はじめに新しいProjectを作成します
 
@@ -1435,7 +1435,7 @@ spec:
 ----
 
 *OpenShift Web Console* を使う場合は、 *Storage* -> *Persistent Volume Claim* に移動して、目的の *PVC* で *Create Snapshot* を実行します。
-`my-shared-storage` プロジェクトが選択されていることを確認してください。
+`my-shared-storage` **Project**が選択されていることを確認してください。
 
 .Persistent Volume Claim snapshot using UI
 image::images/ocs/OCP4-OCS4-Snapshot.png[Persistent Volume Claim snapshot using UI]

@@ -921,7 +921,7 @@ image::images/ocs/OCS-PVCResize-verify-resize-worked2.png[Wait for expansion]
 
 == CephFS volumeを使用するOCPアプリケーションを作成する
 
-このセクションでは、`ocs-storagecluster-cephfs` *StorageClass* を使用して、同時に複数のポッドで使用できるRWX(ReadWriteMany) *PVC* を作成します。ここでは `File Uploader` と呼ばれるアプリケーションを使用します。
+このセクションでは、`ocs-storagecluster-cephfs` *StorageClass* を使用して、同時に複数のPodで使用できるRWX(ReadWriteMany) *PVC* を作成します。ここでは `File Uploader` と呼ばれるアプリケーションを使用します。
 
 はじめに新しいProjectを作成します
 

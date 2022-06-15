@@ -14,7 +14,7 @@ OpenShiftのサブスクリプションモデルでは、顧客は追加料金�
 * クラスタ集約型ロギング
 * サービスブローカー
 
-上記以外のコンテナ/ポッド/コンポーネントを実行しているノードはすべてワーカーとみなされ、サブスクリプションでカバーされている必要があります。
+上記以外のコンテナ/Pod/コンポーネントを実行しているノードはすべてワーカーとみなされ、サブスクリプションでカバーされている必要があります。
 
 ---
 
@@ -121,6 +121,7 @@ spec:
 
 一見複雑に見えますが、以下のように実行してみましょう。
 
+WARNING: 踏み台ホストにログインしている場合は、ログアウトして実行してください。
 
 [source,bash,role="execute"]
 ----
@@ -141,7 +142,7 @@ oc get machineset -n openshift-machine-api
 
 ```
 ...
-cluster-city-56f8-mc4pf-infra-us-east-2a    1         1                             13s
+cluster-city-56f8-mc4pf-infra-us-east-2a    3         3                             13s
 ...
 ```
 
@@ -191,7 +192,9 @@ oc get nodes ${YOUNG_INFRA_NODE} --show-labels | grep --color node-role
 
 そして、`LABELS` の欄には、次のように書かれています。
 
+```
 beta.kubernetes.io/arch=amd64,beta.kubernetes.io/instance-type=m5.2xlarge,beta.kubernetes.io/os=linux,failure-domain.beta.kubernetes.io/region=us-east-2,failure-domain.beta.kubernetes.io/zone=us-east-2a,kubernetes.io/arch=amd64,kubernetes.io/hostname=ip-10-0-140-3,kubernetes.io/os=linux,node-role.kubernetes.io/infra=,node-role.kubernetes.io/worker=,node.openshift.io/os_id=rhcos
+```
 
 `node-role.kubernetes.io/infra` ラベルが確認できます。
 
@@ -238,9 +241,10 @@ router-default-7bc4c9c5cd-fq7m2   1/1     Running   0          9h    10.131.0.7 
 
 ルータが動作している `Node` を確認します。
 
-[source,bash,role="copypaste copypaste-warning"]
+[source,bash,role="execute"]
 ----
-oc get node ip-10-0-144-70.us-east-2.compute.internal
+ROUTER_POD_NODE=$(oc get pods -n openshift-ingress -o jsonpath='{.items[0].spec.nodeName}')
+oc get node ${ROUTER_POD_NODE}
 ----
 
 `worker` の役割が指定されていることが確認できます。
@@ -250,7 +254,7 @@ NAME                                        STATUS   ROLES    AGE   VERSION
 ip-10-0-144-70.us-east-2.compute.internal   Ready    worker   9h    v1.12.4+509916ce1
 ```
 
-ルータオペレータのデフォルトの設定では、`worker`の役割を持つノードを見つけてルータを配置するようになっています。しかし、専用のインフラストラクチャノードを作成したので、ルータインスタンスを `infra` の役割を持つノードに配置するようにオペレータに指示します。
+ルータオペレータのデフォルトの設定では、`worker` の役割を持つノードを見つけてルータを配置するようになっています。しかし、専用のインフラストラクチャノードを作成したので、ルータインスタンスを `infra` の役割を持つノードに配置するようにオペレータに指示します。
 
 OpenShiftのルーターオペレータは、`ingresses.config.openshift.io`という`CustomResourceDefinitions`(`CRD`)を使用して、クラスタのデフォルトルーティングサブドメインを定義します。
 
@@ -313,7 +317,7 @@ status:
   selector: ingress.operator.openshift.io/ingress-controller-deployment=default
 ```
 
-ルータポッドがインフラストラクチャノードにヒットするように指示する `nodeSelector` を指定するには、以下の設定を適用します。
+ルータPodがインフラストラクチャノードにヒットするように指示する `nodeSelector` を指定するには、以下の設定を適用します。
 
 [source,bash,role="execute"]
 ----
@@ -335,12 +339,12 @@ oc get pod -n openshift-ingress -o wide
 端末セッションが失われることはありませんが、手動でこのページに戻る必要があるかもしれません。
 ====
 
-もし十分に手際が良ければ、`Terminating` か `ContainerCreating` のいずれかのポッドを捕まえることができるかもしれません。
-`Terminating` ポッドはワーカーノードの1つで動作していました。
-実行中の `Running` ポッドは最終的に `infra` ロールを持つノードの1つで動作しています。
+もし十分に手際が良ければ、`Terminating` か `ContainerCreating` のいずれかのPodを捕まえることができるかもしれません。
+`Terminating` Podはワーカーノードの1つで動作していました。
+実行中の `Running` Podは最終的に `infra` ロールを持つノードの1つで動作しています。
 
 ## レジストリ
-レジストリは、オペレータが実際のレジストリポッドをどのように展開するかを設定するために、同様の `CRD` メカニズムを使用します。
+レジストリは、オペレータが実際のレジストリPodをどのように展開するかを設定するために、同様の `CRD` メカニズムを使用します。
 このCRDは `configs.imageregistry.operator.openshift.io` です。
 このCRDに `nodeSelector` を追加するために `cluster` のCRDオブジェクトを編集します。まず、それを見てみましょう。
 
@@ -409,7 +413,7 @@ oc patch configs.imageregistry.operator.openshift.io/cluster -p '{"spec":{"nodeS
 演算子とオペランドは両方とも `openshift-image-registry` プロジェクトの中にあります。
 ====
 
-パッチコマンドを実行すると、レジストリポッドがinfraノードに移動しているのがわかるはずです。
+パッチコマンドを実行すると、レジストリPodがinfraノードに移動しているのがわかるはずです。
 レジストリは `openshift-image-registry` プロジェクトにあります。
 
 以下を素早く実行してみてください。
@@ -420,8 +424,8 @@ oc patch configs.imageregistry.operator.openshift.io/cluster -p '{"spec":{"nodeS
 oc get pod -n openshift-image-registry
 ----
 
-古いレジストリポッドが終了し、新しいレジストリポッドが起動しているのがわかるかもしれません。
-レジストリはS3バケットによってバックアップされているので、新しいレジストリポッドのインスタンスがどのノードにあるかは問題ではありません。
+古いレジストリPodが終了し、新しいレジストリPodが起動しているのがわかるかもしれません。
+レジストリはS3バケットによってバックアップされているので、新しいレジストリPodのインスタンスがどのノードにあるかは問題ではありません。
 これはAPI経由でオブジェクトストアと通信しているので、そこに保存されている既存のイメージはすべてアクセス可能なままです。
 
 また、デフォルトのレプリカ数は1であることにも注意してください。
@@ -497,7 +501,7 @@ oc get configmap -n openshift-monitoring
 oc create -f {{ HOME_PATH }}/support/cluster-monitoring-configmap.yaml
 ----
 
-モニタリングポッドが `worker` から `infra` `Nodes` に移動するのを見てみましょう。
+モニタリングPodが `worker` から `infra` `Nodes` に移動するのを見てみましょう。
 
 [source,bash,role="execute"]
 ----
