@@ -892,7 +892,7 @@ oc get pods -n netcandystore -l deploymentconfig=mssql -o wide
 
 下記のコマンドを実行し、出力されたURLにアクセスすると、アプリケーションへアクセスできます。
 
-[source,role="copypaste"]
+[source,bash,role="execute"]
 ----
 oc get route -n netcandystore -o jsonpath --template="http://{.items[*].status.ingress[*].host}{'\n'}"
 ----
