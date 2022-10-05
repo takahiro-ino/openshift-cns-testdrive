@@ -1,6 +1,6 @@
 = Lab 1-2: コンテナイメージのビルドとデプロイ
 
-アプリケーションをOpenShift4クラスターで動作させます。Developer Catalogのテンプレートを使用してアプリケーションをデプロイします。
+アプリケーションをOpenShiftクラスターで動作させます。Developer Catalogのテンプレートを使用してアプリケーションをデプロイします。
 
 * A) 新規Projectの作成 (1-2-3-1)
 * B) カタログからデプロイ (1-2-3-2)
@@ -13,7 +13,7 @@ image::images/ocp4ws-ops/ocp4-Lab1-3_overview.png[]
 '''
 
 == 1-2-1. 諸注意
-=== 1-2-1-1. OpenShift4におけるデプロイについて
+=== 1-2-1-1. OpenShiftにおけるデプロイについて
 
 OpenShiftでは、いくつかの方法でアプリケーションをクラスター上にデプロイすることができます。
 
@@ -23,13 +23,12 @@ OpenShiftでは、いくつかの方法でアプリケーションをクラス�
 
 === 1-2-1-2. 事前準備
 
-* 踏み台サーバー(Bastion Server)へのアクセス情報
-* OpenShift4クラスターへのアクセス情報
+* OpenShiftクラスターへのアクセス情報
 
-== 1-2-2. OpenShift4コンソールへのログイン
+== 1-2-2. OpenShiftコンソールへのログイン
 
-*OpenShift4 Webコンソール* に接続します。
-次のリンクをクリックしてブラウザ(Chrome or Firefox)でOpenShift4 Webコンソールにログインします。
+*OpenShift Webコンソール* に接続します。
+次のリンクをクリックしてブラウザ(Chrome or Firefox)でOpenShift Webコンソールにログインします。
 
 {{ MASTER_URL }}
 
@@ -40,7 +39,7 @@ OpenShiftでは、いくつかの方法でアプリケーションをクラス�
 {{ KUBEADMIN_PASSWORD }}
 ----
 
-Webコンソールの基本操作やクラスター内コンポーネントの基本的な動作の確認を行いたい場合は、前のハンズオンlink:ocp4ws-ops-1-1[OpenShift4クラスターへのログインと動作確認(Lab1-1)]を実施してください。
+Webコンソールの基本操作やクラスター内コンポーネントの基本的な動作の確認を行いたい場合は、前のハンズオンlink:ocp4ws-ops-1-1[OpenShiftクラスターへのログインと動作確認(Lab1-1)]を実施してください。
 
 == 1-2-3. コンテナイメージのビルドとデプロイ
 
@@ -49,13 +48,13 @@ S2I(Source-to-Image)というツールを使って以下の2つのコンポー�
 * *リポジトリURL* : GitHubなどソースコード格納場所
 * *S2I Builder Image* : S2Iスクリプトが含まれているDockerイメージ
 
-またOpenShift4は、カタログ機能(Developer Catalog)を備えています。JavaやPython、nginxなどのS2I Builder Imageをカタログ上で選択、あるいはカタログ上に追加でき、アプリケーションを簡単にOpenShift4上にデプロイできます。
+またOpenShiftは、カタログ機能(Developer Catalog)を備えています。JavaやPython、nginxなどのS2I Builder Imageをカタログ上で選択、あるいはカタログ上に追加でき、アプリケーションを簡単にOpenShift上にデプロイできます。
 
-新規にProjectを作成し、サンプルのコードとPython用のS2I Builder Imageを使ってコンテナイメージを作成し、アプリケーションをOpenShift4上にデプロイしてみましょう。
+新規にProjectを作成し、サンプルのコードとPython用のS2I Builder Imageを使ってコンテナイメージを作成し、アプリケーションをOpenShift上にデプロイしてみましょう。
 
 === 1-2-3-1. Project(Namespace)の作成
 
-OpenShift4 Webコンソールで各自のProjectを作成しましょう。
+OpenShift Webコンソールで各自のProjectを作成しましょう。
 
 . Webコンソールを Developer Console に切り替えます。
 +
@@ -65,13 +64,13 @@ image::images/ocp4ws-ops/ocp4-lab1-3-developer-console.png[]
 +
 image::images/ocp4ws-ops/ocp4-lab1-3-create-project.png[]
 
-. Project名(例: `blog` )を指定し、*Create* を選択します。
+. Project名(例: `userX-blog` )を指定し、*Create* を選択します。
 +
 image::images/ocp4ws-ops/ocp4-lab1-3-create-project-blog.png[]
 +
 [TIPS]
 ====
-NOTE: OpenShift4ではProjectを作成することで、Projectと同じ名前のNamespaceが生成されます。NamespaceはK8sクラスターを論理的に分離させることが可能なK8sリソースの一種です。 +
+NOTE: OpenShiftではProjectを作成することで、Projectと同じ名前のNamespaceが生成されます。NamespaceはK8sクラスターを論理的に分離させることが可能なK8sリソースの一種です。 +
 例えば、アプリA用のNamespaceを``ns_appa``、アプリB用のNamespaceを``ns_appb``のように作成することで、同一のK8sクラスター内に存在する``ns_appa``と``ns_appb``が干渉しないように構成することも可能です。
 ====
 
@@ -79,7 +78,7 @@ NOTE: OpenShift4ではProjectを作成することで、Projectと同じ名前�
 
 === 1-2-3-2. カタログでソースを指定してビルド&デプロイ
 
-. [</> Developer] > [+Add] > [Developer Catalog] > [All services] を選択します。Projectには先ほど作成したProject(例: `blog` )が指定されていることに注意してください。
+. [</> Developer] > [+Add] > [Developer Catalog] > [All services] を選択します。Projectには先ほど作成したProject(例: `userX-blog` )が指定されていることに注意してください。
 +
 image::images/ocp4ws-ops/ocp4-lab1-3-from-catalog.png[]
 
@@ -103,7 +102,7 @@ NOTE: Developer CatalogからPythonアプリケーションを作成すること
  ** クラスター外にワークロードを公開
 ====
 
-. アプリケーションのリポジトリなどを指定して、OpenShift4上にアプリケーションをデプロイします。
+. アプリケーションのリポジトリなどを指定して、OpenShift上にアプリケーションをデプロイします。
 +
 最初に、*[Create Application]*　を選択します。 +
  image:images/ocp4ws-ops/ocp4-lab1-3-from-catalog-python-create.png[]
@@ -112,13 +111,13 @@ NOTE: Developer CatalogからPythonアプリケーションを作成すること
 
  ** Builder Image Version: `3.9-ubi8`
  ** Git Repo URL: `+https://github.com/openshift-katacoda/blog-django-py+`
- ** Applicaiton Name:``任意の名前(例: blog)``
- ** Name:``任意の名前(例: blog)``
+ ** Applicaiton Name:``任意の名前(例: userX-blog)``
+ ** Name:``任意の名前(例: userX-blog)``
  ** Create route: `チェックを外す`
 +
 image::images/ocp4ws-ops/ocp4-lab1-3-from-catalog-python-create-detail.png[]
 +
-以上の手順で、blogアプリケーションをOpenShift4上にデプロイできます。
+以上の手順で、blogアプリケーションをOpenShift上にデプロイできます。
 +
 [TIPS]
 ====
@@ -150,7 +149,7 @@ image::images/ocp4ws-ops/ocp4-lab1-3-topology-pod-terminal.png[]
 
 === 1-2-3-4. 外部からアクセスするための Route を作成
 
-現在のblogアプリケーションは、OpenShift4クラスター内に閉じた状態ですので、外部からアクセスできるように Route を作成しましょう。
+現在のblogアプリケーションは、OpenShiftクラスター内に閉じた状態ですので、外部からアクセスできるように Route を作成しましょう。
 
 . コンソールを Administation Console に切り替えます。
 . [Administrator] > [Networking] > [Routes] > [Create Route] を選択します。選択しているProjectに注意してください。
@@ -158,8 +157,8 @@ image::images/ocp4ws-ops/ocp4-lab1-3-topology-pod-terminal.png[]
 image::images/ocp4ws-ops/ocp4-lab1-3-create-route.png[]
 
 . *Name*、対象アプリ用の**Service**、*Port* を指定します。
- ** Name: `任意の名前 (例: blog)`
- ** Service: `指定済のアプリ名 (例: blog)`
+ ** Name: `任意の名前 (例: userX-blog)`
+ ** Service: `指定済のアプリ名 (例: userX-blog)`
  ** Target Port: `8080 → 8080(TCP)`
 
 +
@@ -190,7 +189,7 @@ image::images/ocp4ws-ops/ocp4-lab1-3-create-route-result.png[]
 
 === 1-2-3-5. アプリケーションの動作確認
 
-. [Networking] > [Routes] を選択し、blog用のRoute(例: `blog`)の行にある *Location欄のリンク* を開きます。
+. [Networking] > [Routes] を選択し、blog用のRoute(例: `userX-blog`)の行にある *Location欄のリンク* を開きます。
  例) `+	
 http://blog-blog.apps.cluster-8jz2n.8jz2n.sandbox1903.opentlc.com+`
 +
@@ -204,18 +203,18 @@ Pod名が分からない場合は、[Workloads] > [Pods] のPod一覧から確�
 +
 image::images/ocp4ws-ops/ocp4-lab1-3-create-route-confirm-result-pod.png[]
 
-== 1-2-4. [練習問題] OpenShift4クラスターに他アプリケーションをデプロイ
+== 1-2-4. [練習問題] OpenShiftクラスターに他アプリケーションをデプロイ
 
 お題:
 
-「*OpenShift4クラスターに他アプリケーションをS2Iでビルド&デプロイしてみよう*」
+「*OpenShiftクラスターに他アプリケーションをS2Iでビルド&デプロイしてみよう*」
 
 コンテンツ:
 
-* Project名(NameSpace): `trial` (例: `trial`)
+* Project名(NameSpace): `userX-trial` (例: `userX-trial`)
 * BaseImage(BuilderImage): `Python 3.9-ubi8`
 * Git Repository: `+https://github.com/sclorg/django-ex+`
-* Routes名: `trial`
+* Routes名: `userX-trial`
 
 '''
 
