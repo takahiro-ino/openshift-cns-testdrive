@@ -21,23 +21,21 @@ OpenShiftでは、いくつかの方法でアプリケーションをクラス�
 * ソースコードとS2I(ツール)を使ってビルド&デプロイする方法
 * ソースコードとDockerfileを使ってビルド&デプロイする方法
 
+本ハンズオンでは、ソースコードとS2I(ツール)で、ビルド＆デプロイを実施します。
+
 === 1-2-1-2. 事前準備
 
 * OpenShiftクラスターへのアクセス情報
 
 == 1-2-2. OpenShiftコンソールへのログイン
 
-*OpenShift Webコンソール* に接続します。
-次のリンクをクリックしてブラウザ(Chrome or Firefox)でOpenShift Webコンソールにログインします。
+ブラウザ(Chrome or Firefox)でOpenShift Webコンソールにログインします。
 
-{{ MASTER_URL }}
+OpenShift WebコンソールのRULは、etherpad OpenShift WebコンソールのURLを参照ください。
 
-`kubeadmin` としてログインしましょう。パスワードはこちらです。
+`userX` としてログインしましょう。パスワードはetherpadの OpenShiftユーザのパスワードを参照ください。
+(etherpadで予約したuser1,user2などのIDです)
 
-[source,role="copypaste"]
-----
-{{ KUBEADMIN_PASSWORD }}
-----
 
 Webコンソールの基本操作やクラスター内コンポーネントの基本的な動作の確認を行いたい場合は、前のハンズオンlink:ocp4ws-ops-1-1[OpenShiftクラスターへのログインと動作確認(Lab1-1)]を実施してください。
 
