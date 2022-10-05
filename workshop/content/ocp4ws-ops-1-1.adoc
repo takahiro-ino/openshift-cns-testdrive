@@ -22,7 +22,6 @@ image::images/ocp4ws-ops/ocp4-Lab1-2_overview.png[]
  ** etc.
 
 === 1-1-1-2. 事前準備
-* 踏み台サーバー(Bastion Server)へのアクセス情報
 * OpenShift4クラスターへのアクセス情報
 
 == 1-1-2. OpenShift4へのログイン
@@ -33,7 +32,7 @@ image::images/ocp4ws-ops/ocp4-Lab1-2_overview.png[]
 
 {{ MASTER_URL }}
 
-`kubeadmin` としてログインしましょう。パスワードはこちらです。
+`userX` としてログインしましょう。パスワードはこちらです。
 
 [source,role="copypaste"]
 ----
@@ -42,31 +41,20 @@ image::images/ocp4ws-ops/ocp4-Lab1-2_overview.png[]
 
 ---
 
-=== 1-1-2-2. ocコマンドによるログイン(oc login)
+=== 1-1-2-2. Webターミナルの確認
 
-. 踏み台サーバー(Bastion Server)にSSHでログインします。
-+
-[source,bash,role="execute"]
-----
-ssh -l {{ SSH_USERNAME }} {{ BASTION_FQDN }} -o ServerAliveInterval=120 -o StrictHostKeyChecking=no
-----
-+
-あなたの ssh パスワードはこれです。
-+
-[source,bash,role="copypaste"]
-----
-{{ SSH_PASSWORD }}
-----
-+
-. OpenShift4クラスターに``oc login``コマンドでログインします。 +
-※実は今回のLabでは踏み台サーバーで``oc login``をする必要性はないのですが、通常の環境では``oc login``は大抵必要となりますので、学習のためあえて``oc login``をすることとしています。(詳細は下記の"NOTE"を参照)
-+
-[source,bash,role="execute"]
-----
-oc login -u kubeadmin -p {{ KUBEADMIN_PASSWORD }} {{ API_URL }} 
-----
-+
-試しにログインしているユーザーの情報を表示する``oc whoami``コマンドを実行してみましょう。``kube:admin``と表示されるはずです。
+. Webターミナルは、Webコンソール上でシェルターミナルが利用できる機能です。
+Webコンソールの画面右上にある <_ となっているアイコンをクリックします。
+
+image::images/ocp4ws-ops/ocp4-Lab1-1-2-2_1webterminal.png[]
+
+・アイコンをクリックすると、Webコンソールの画面下に Webターミナルが表示されます。
+　Webターミナルは、Webターミナルの箱矢印のボタンを押すと、別ウィンドウで表示もできます。
+
+image::images/ocp4ws-ops/ocp4-Lab1-1-2-2_2webterminal.png[]
+
+
+試しにログインしているユーザーの情報を表示する``oc whoami``コマンドを実行してみましょう。``userX``と表示されるはずです。
 +
 [source,bash,role="execute"]
 ----
@@ -77,34 +65,9 @@ oc whoami
 +
 ----
 $ oc whoami
-kube:admin
+userX
 ----
 +
-
-[TIPS]
-====
-TIP: **クラスターにログインしなくてもクラスターと通信ができる？？**
-
-今回のLabで利用する踏み台サーバーでは、``oc login``でログインする前に``oc whoami``を実行すると、``system:admin``と表示されます。  +
-通常、クラスターにログインする前に``oc``コマンドを実行すると、クラスターのAPIサーバーのURLが分からないためエラーとなるはずです。なぜコマンドは成功するのでしょうか？
-
-その理由は、踏み台サーバーが(system:)adminユーザーの**context**を持っているからです。 +
-contextには、ログイン時にアクセスするクラスターのAPIサーバーのURLや、ログインユーザー、クライアントの認証キーなどのアクセス情報が含まれています。これらの情報は``oc``コマンドを実行する際に参照され、クラスターにAPIで通信できるよう自動的に認証処理がなされます。 
-現在クライアントが持つcontextは、``oc config view``コマンドで確認できます。
-
-[source,bash,role="execute"]
-----
-oc config view
-----
-``oc login``した後だと次の2つのcontextが確認でき、後者が``current-context``として指定されているはずです。
-
-- ``name: admin``
-- ``name: default/api-cluster-.../kube:admin``　　← ``current-context``として指定
-
-``oc config view``の出力ではクラスターやユーザーの認証キーといったセンシティブな情報は除外されていますが、これらの情報はクライアントが持つ``oc``および``kubectl``のconfigファイル(``~/.kube/config``)に書かれています。そのファイルを見ることで全ての情報を確認できますので、興味のある方は、``cat``などでこのconfigファイルを確認してみるとよいでしょう。
-
-ちなみに、``oc config use-context``コマンドを使うことで、``current-context``を切り替えることが可能です。
-====
 
 == 1-1-3. OpenShift4クラスターの動作確認
 
