@@ -44,7 +44,7 @@ image::images/ocp4ws-ops/ocp4-Lab1-2_overview.png[]
 === 1-1-2-2. Webターミナルの確認
 
 . Webターミナルは、Webコンソール上でシェルターミナルが利用できる機能です。
-Webコンソールの画面右上にある <_ となっているアイコンをクリックします。
+Webコンソールの画面右上にある >_ となっているアイコンをクリックします。
 
 image::images/ocp4ws-ops/ocp4-Lab1-1-2-2_1webterminal.png[]
 
@@ -55,19 +55,19 @@ image::images/ocp4ws-ops/ocp4-Lab1-1-2-2_2webterminal.png[]
 
 
 試しにログインしているユーザーの情報を表示する``oc whoami``コマンドを実行してみましょう。``userX``と表示されるはずです。
-+
+
 [source,bash,role="execute"]
 ----
 oc whoami
 ----
-+
+
 出力例)
-+
+
 ----
 $ oc whoami
 userX
 ----
-+
+
 
 == 1-1-3. OpenShift4クラスターの動作確認
 
