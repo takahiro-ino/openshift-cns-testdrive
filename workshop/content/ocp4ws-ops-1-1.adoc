@@ -20,11 +20,6 @@ image::images/ocp4ws-ops/ocp4-Lab1-2_overview.png[]
  ** カタログからのミドルウェア、アプリケーションのデプロイ
  ** クラスター設定やNamespace、ロール管理などのAdmin作業
  ** etc.
-* *ocコマンド* : kubectlをwrapしたOpenShift4を制御するCLIでログイン
- ** `oc login <OpenShift_API>`: 任意のユーザーでログイン
- ** `oc get pods -n default`: default NamespaceのPodを一覧表示
- ** `kubectl get pods -n default` : kubectlも使用可
- ** etc.
 
 === 1-1-1-2. 事前準備
 * 踏み台サーバー(Bastion Server)へのアクセス情報
